@@ -89,8 +89,29 @@ class _JobAllocateAppState extends State<JobAllocateApp> {
   }
 
   void _onPushNotification(RemoteMessage message) {
-    // We now rely on flutter_local_notifications to show a heads-up notification.
-    // If you need custom in-app handling (like a badge refresh), handle it here.
+    debugPrint('[JobAllocateApp] Notification tapped: ${message.data}');
+    final data = message.data;
+    if (data.isEmpty) return;
+
+    final nav = rootNavigatorKey.currentState;
+    if (nav == null) return;
+
+    final type = data['type']?.toString() ?? '';
+    final jobIdStr = data['job_id']?.toString() ?? data['reference_id']?.toString() ?? data['referenceId']?.toString();
+
+    if ((type == 'job' || type == 'new_job') && jobIdStr != null) {
+      nav.push(
+        MaterialPageRoute(
+          builder: (_) => JobDetailScreen(jobId: jobIdStr),
+        ),
+      );
+    } else {
+      nav.push(
+        MaterialPageRoute(
+          builder: (_) => const NotificationInboxPage(),
+        ),
+      );
+    }
   }
 
   Widget _getInitialScreen() {

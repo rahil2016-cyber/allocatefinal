@@ -74,7 +74,15 @@ class FcmFlutterService {
       await _localNotifsPlugin.initialize(
         settings: initializationSettings,
         onDidReceiveNotificationResponse: (NotificationResponse response) {
-          debugPrint('[FcmFlutterService] Local notification tapped');
+          debugPrint('[FcmFlutterService] Local notification tapped with payload: ${response.payload}');
+          if (response.payload != null && response.payload!.isNotEmpty) {
+            try {
+              final Map<String, dynamic> data = Map<String, dynamic>.from(jsonDecode(response.payload!));
+              NotificationEvents.notify(RemoteMessage(data: data));
+            } catch (_) {}
+          } else {
+            NotificationEvents.notify(const RemoteMessage());
+          }
         },
       );
 
@@ -225,6 +233,7 @@ class FcmFlutterService {
         id: notification.hashCode,
         title: notification.title,
         body: notification.body,
+        payload: jsonEncode(message.data),
         notificationDetails: NotificationDetails(
           android: AndroidNotificationDetails(
             _channel.id,

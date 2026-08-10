@@ -48,6 +48,26 @@ class JobReportController extends Controller
             'status'      => 'pending',
         ]);
 
+        // Notify admin users
+        try {
+            $admins = \App\Models\User::where('role', 'admin')->get();
+            $notifier = app(\App\Services\NotificationSender::class);
+            foreach ($admins as $admin) {
+                $notifier->sendToUser(
+                    $admin->id,
+                    '🚩 Job Reported: '.$job->title,
+                    "Reason: {$validated['reason']}. Tap to view report in admin panel.",
+                    [
+                        'type' => 'job_report',
+                        'job_id' => (string) $jobId,
+                        'report_id' => (string) $report->id,
+                    ]
+                );
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Failed sending admin notification for job report: '.$e->getMessage());
+        }
+
         return $this->ok($report, 'Report submitted. Admin will review it.', [], 201);
     }
 }

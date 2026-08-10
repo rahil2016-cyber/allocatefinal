@@ -34,6 +34,8 @@ class AdminDashboardController extends Controller
             'jobs_pending_review' => JobPost::query()->where('status', JobPostStatus::PendingReview->value)->count(),
             'jobs_published' => JobPost::query()->where('status', JobPostStatus::Published->value)->count(),
             'applications_total' => Application::query()->count(),
+            'job_reports_pending' => \App\Models\JobReport::query()->where('status', 'pending')->count(),
+            'job_reports_total' => \App\Models\JobReport::query()->count(),
         ]);
     }
 }

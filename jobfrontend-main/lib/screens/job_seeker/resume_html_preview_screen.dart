@@ -397,16 +397,34 @@ class _ResumeHtmlPreviewScreenState extends State<ResumeHtmlPreviewScreen> {
                         children: [
                           Expanded(
                             child: FilledButton.icon(
-                              onPressed: (_loading || _purchasing) ? null : _onPurchaseAndDownload,
+                              onPressed: (_loading || _purchasing)
+                                  ? null
+                                  : () async {
+                                      setState(() => _purchasing = true);
+                                      try {
+                                        await _exportPdf();
+                                      } catch (e) {
+                                        if (mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text('Failed to export PDF: $e'),
+                                              backgroundColor: AppColors.error,
+                                            ),
+                                          );
+                                        }
+                                      } finally {
+                                        if (mounted) setState(() => _purchasing = false);
+                                      }
+                                    },
                               icon: _purchasing
                                   ? const SizedBox(
                                       width: 20,
                                       height: 20,
                                       child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                     )
-                                  : const Icon(Icons.shopping_bag_outlined, size: 20),
+                                  : const Icon(Icons.download_rounded, size: 20),
                               label: Text(
-                                _purchasing ? 'Processing…' : 'Purchase · ₹$kResumeHtmlPdfPriceInr',
+                                _purchasing ? 'Preparing PDF…' : 'Download Resume',
                               ),
                               style: FilledButton.styleFrom(
                                 backgroundColor: AppColors.primary,

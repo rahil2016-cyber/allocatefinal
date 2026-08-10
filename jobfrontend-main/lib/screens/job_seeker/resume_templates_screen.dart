@@ -101,22 +101,25 @@ class ResumeTemplatesScreen extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              '$allowedCount Resume Templates Unlocked',
-                              style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                            Expanded(
+                              child: Text(
+                                '$allowedCount Resume Templates Unlocked',
+                                style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
+                            const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
+                                color: AppColors.primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 planKey.replaceAll('_', ' ').toUpperCase(),
                                 style: const TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.bold,
                                   color: AppColors.primary,
                                 ),

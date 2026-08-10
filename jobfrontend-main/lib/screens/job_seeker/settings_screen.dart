@@ -6,6 +6,7 @@ import '../../utils/app_colors.dart';
 import '../common/refer_and_earn_screen.dart';
 import 'my_resumes_screen.dart';
 import 'resume_templates_screen.dart';
+import 'job_seeker_profile_edit_sheet.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -115,8 +116,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _SettingsTile(
             icon: Icons.work_outline_rounded,
             title: 'Career preferences',
-            subtitle: 'Job recommendations based on your career preferences',
-            onTap: () => _showComingSoon(context, 'Career Preferences'),
+            subtitle: 'Update headline, location, salary, skills & industry preferences',
+            onTap: () => _openCareerPreferencesSheet(context),
           ),
           _SettingsTile(
             icon: Icons.block_rounded,
@@ -246,6 +247,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _openCareerPreferencesSheet(BuildContext context) async {
+    try {
+      final profile = await JobSeekerApiService.instance.getSeekerProfile();
+      if (!mounted) return;
+      await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => JobSeekerProfileEditSheet(profile: profile),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not load profile: $e'), backgroundColor: AppColors.error),
+      );
+    }
   }
 }
 

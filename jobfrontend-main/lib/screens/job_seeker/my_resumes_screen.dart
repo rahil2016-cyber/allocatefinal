@@ -432,12 +432,27 @@ class _MyResumesScreenState extends State<MyResumesScreen>
                                               ),
                                               if (isPrimary)
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                                   decoration: BoxDecoration(
-                                                    color: AppColors.success.withOpacity(0.1),
-                                                    borderRadius: BorderRadius.circular(6),
+                                                    color: AppColors.success.withValues(alpha: 0.15),
+                                                    borderRadius: BorderRadius.circular(8),
+                                                    border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
                                                   ),
-                                                  child: const Icon(Icons.verified_rounded, size: 14, color: AppColors.success),
+                                                  child: const Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      Icon(Icons.check_circle_rounded, size: 13, color: AppColors.success),
+                                                      SizedBox(width: 4),
+                                                      Text(
+                                                        'ACTIVE FOR APPLIES',
+                                                        style: TextStyle(
+                                                          fontSize: 10,
+                                                          fontWeight: FontWeight.bold,
+                                                          color: AppColors.success,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
                                                 ),
                                             ],
                                           ),
@@ -450,7 +465,7 @@ class _MyResumesScreenState extends State<MyResumesScreen>
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                             decoration: BoxDecoration(
-                                              color: AppColors.primary.withOpacity(0.05),
+                                              color: AppColors.primary.withValues(alpha: 0.05),
                                               borderRadius: BorderRadius.circular(4),
                                             ),
                                             child: Text(
@@ -458,7 +473,7 @@ class _MyResumesScreenState extends State<MyResumesScreen>
                                               style: TextStyle(
                                                 fontSize: 9,
                                                 fontWeight: FontWeight.w700,
-                                                color: AppColors.primary.withOpacity(0.7),
+                                                color: AppColors.primary.withValues(alpha: 0.7),
                                               ),
                                             ),
                                           ),
@@ -489,26 +504,18 @@ class _MyResumesScreenState extends State<MyResumesScreen>
                                               if (!isPrimary)
                                                 SizedBox(
                                                   height: 32,
-                                                  child: TextButton(
+                                                  child: FilledButton.icon(
                                                     onPressed: id > 0 ? () => _setPrimary(id) : null,
-                                                    style: TextButton.styleFrom(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                                                      backgroundColor: AppColors.primary.withOpacity(0.08),
-                                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                                    icon: const Icon(Icons.star_rounded, size: 14),
+                                                    style: FilledButton.styleFrom(
+                                                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                                                      backgroundColor: AppColors.primary,
+                                                      visualDensity: VisualDensity.compact,
                                                     ),
-                                                    child: const Text(
-                                                      'Use for Applications',
-                                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700),
+                                                    label: const Text(
+                                                      'Set Active',
+                                                      style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold),
                                                     ),
-                                                  ),
-                                                )
-                                              else
-                                                const Text(
-                                                  'Active Primary Resume',
-                                                  style: TextStyle(
-                                                    fontSize: 11,
-                                                    color: AppColors.success,
-                                                    fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
                                             ],

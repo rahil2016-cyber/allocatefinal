@@ -63,6 +63,7 @@ class JobSeekerProfile extends Model
         'expected_salary',
         'onboarding_step',
         'current_status',
+        'selected_template_ids',
     ];
 
     protected function casts(): array
@@ -88,6 +89,7 @@ class JobSeekerProfile extends Model
             'preferred_locations' => 'array',
             'willing_to_relocate' => 'boolean',
             'employment_preferences' => 'array',
+            'selected_template_ids' => 'array',
             'onboarding_step' => 'integer',
             'package_activated_at' => 'datetime',
             'package_expires_at' => 'datetime',
@@ -95,6 +97,29 @@ class JobSeekerProfile extends Model
             'resume_credits_expires_at' => 'datetime',
             'last_app_activity_at' => 'datetime',
         ];
+    }
+
+    public function allowedTemplateCount(): int
+    {
+        $key = $this->resume_package_key ?? $this->package_key ?? 'basic_resume';
+        if ($key === 'professional_resume') {
+            return 12;
+        }
+        if ($key === 'premium_resume') {
+            return 8;
+        }
+
+        return 4;
+    }
+
+    public function isTemplateUnlocked(string $templateKey): bool
+    {
+        $selected = $this->selected_template_ids;
+        if (! is_array($selected) || empty($selected)) {
+            return true;
+        }
+
+        return in_array($templateKey, $selected, true);
     }
 
     public function canApply(): bool

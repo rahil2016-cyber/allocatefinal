@@ -134,43 +134,22 @@ class _MyResumesScreenState extends State<MyResumesScreen>
       
       final file = File(result.files.single.path!);
       
-      // 1. Upload resume file to backend storage
+      // 1. Upload resume file to backend storage (creates persistent imported ResumeDraft record)
+      Map<String, dynamic>? uploadRes;
       try {
-        await JobSeekerApiService.instance.uploadResumePdf(file);
+        uploadRes = await JobSeekerApiService.instance.uploadResumePdf(file);
       } catch (_) {}
 
-      // 2. Try parsing file via API (if key is set), or fallback to profile model
-      JsonResume? parsedResume;
-      try {
-        parsedResume = await UseresumeApiService.instance.parseResume(file);
-      } catch (_) {}
+      await _load();
 
       if (!mounted) return;
-      setState(() => _loading = false);
-
-      if (parsedResume != null) {
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => SeekerResumeStudioScreen(
-              initialModel: ResumeModel.fromLegacyJsonResume(parsedResume!),
-              templateIdForSave: '1',
-            ),
-          ),
-        ).then((_) => _load());
-      } else {
-        // Fallback: seed from user profile so user gets an instant customizable resume
-        final profileMap = await JobSeekerApiService.instance.getSeekerProfile();
-        final seeded = resumeModelFromSeekerProfileMaps(profile: profileMap);
-        if (!mounted) return;
-        Navigator.of(context).push(
-          MaterialPageRoute<void>(
-            builder: (_) => SeekerResumeStudioScreen(
-              initialModel: seeded,
-              templateIdForSave: '1',
-            ),
-          ),
-        ).then((_) => _load());
-      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('🎉 Resume imported successfully and saved to your dashboard!'),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
@@ -465,15 +444,21 @@ class _MyResumesScreenState extends State<MyResumesScreen>
                                           Container(
                                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                             decoration: BoxDecoration(
-                                              color: AppColors.primary.withValues(alpha: 0.05),
+                                              color: (d['source_type'] == 'imported' || template == 'imported')
+                                                  ? AppColors.accent.withValues(alpha: 0.1)
+                                                  : AppColors.primary.withValues(alpha: 0.05),
                                               borderRadius: BorderRadius.circular(4),
                                             ),
                                             child: Text(
-                                              seekerHtmlTemplateLabel(htmlKey),
+                                              (d['source_type'] == 'imported' || template == 'imported')
+                                                  ? 'Imported Resume'
+                                                  : seekerHtmlTemplateLabel(htmlKey),
                                               style: TextStyle(
                                                 fontSize: 9,
                                                 fontWeight: FontWeight.w700,
-                                                color: AppColors.primary.withValues(alpha: 0.7),
+                                                color: (d['source_type'] == 'imported' || template == 'imported')
+                                                    ? AppColors.accent
+                                                    : AppColors.primary.withValues(alpha: 0.7),
                                               ),
                                             ),
                                           ),

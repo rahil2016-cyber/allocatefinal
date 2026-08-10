@@ -7,6 +7,7 @@ import '../../services/resume_demo_profiles_cache.dart';
 import '../../services/resume_html_thumbnail_cache.dart';
 import '../../widgets/seeker_html_template_swatch.dart';
 import '../../widgets/resume_template_mini_preview.dart';
+import 'packages_screen.dart';
 import 'my_resumes_screen.dart';
 import 'resume_dashboard_template_card.dart';
 import 'resume_html_preview_screen.dart';
@@ -51,6 +52,14 @@ class ResumeTemplatesScreen extends StatelessWidget {
     );
   }
 
+  void _openUpgradePlan(BuildContext context) {
+    Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (_) => const JobSeekerPackagesScreen(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     ResumeDemoProfilesCache.instance.ensureLoaded();
@@ -78,7 +87,7 @@ class ResumeTemplatesScreen extends StatelessWidget {
       body: ListenableBuilder(
         listenable: ResumePlanService.instance,
         builder: (context, _) {
-          final availableTemplates = ResumePlanService.instance.getAvailableTemplates();
+          final allTemplates = kSeekerResumeHtmlTemplates;
           final allowedCount = ResumePlanService.instance.allowedTemplateCount;
           final planKey = ResumePlanService.instance.activePackageKey ?? 'basic_resume';
 
@@ -104,7 +113,7 @@ class ResumeTemplatesScreen extends StatelessWidget {
                           children: [
                             Expanded(
                               child: Text(
-                                '$allowedCount Resume Templates Unlocked',
+                                '$allowedCount / ${allTemplates.length} Templates Active',
                                 style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800),
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -129,7 +138,7 @@ class ResumeTemplatesScreen extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Showing $allowedCount templates available in your current active resume plan.',
+                          'Unlocked templates are available for editing & downloading. Upgrade your plan to unlock more.',
                           style: tt.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,
                             height: 1.35,
@@ -146,18 +155,63 @@ class ResumeTemplatesScreen extends StatelessWidget {
                   child: ListView.builder(
                     padding: const EdgeInsets.symmetric(horizontal: 8),
                     scrollDirection: Axis.horizontal,
-                    itemCount: availableTemplates.length,
+                    itemCount: allTemplates.length,
                     itemBuilder: (context, index) {
-                      final slot = availableTemplates[index];
+                      final slot = allTemplates[index];
                       final key = slot['key'] ?? 't1_teal_sidebar';
                       final label = slot['label'] ?? 'Template';
                       final variant = index % ResumeDemoProfilesCache.instance.variantCount;
-                      return ResumeDashboardTemplateCard(
-                        displayLabel: label,
-                        htmlTemplateKey: key,
-                        demoVariant: variant,
-                        onView: () => _openPreview(context, key),
-                        onEdit: () => _openStudio(context, key),
+                      final isUnlocked = ResumePlanService.instance.isTemplateUnlocked(key);
+
+                      return Stack(
+                        children: [
+                          ResumeDashboardTemplateCard(
+                            displayLabel: label,
+                            htmlTemplateKey: key,
+                            demoVariant: variant,
+                            onView: () => _openPreview(context, key),
+                            onEdit: isUnlocked
+                                ? () => _openStudio(context, key)
+                                : () => _openUpgradePlan(context),
+                          ),
+                          if (!isUnlocked)
+                            Positioned.fill(
+                              child: Container(
+                                margin: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.45),
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Center(
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.lock_rounded, color: Colors.white, size: 36),
+                                      const SizedBox(height: 8),
+                                      const Text(
+                                        'LOCKED',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w900,
+                                          letterSpacing: 1.2,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      FilledButton.icon(
+                                        onPressed: () => _openUpgradePlan(context),
+                                        icon: const Icon(Icons.star_rounded, size: 14),
+                                        style: FilledButton.styleFrom(
+                                          backgroundColor: AppColors.primary,
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                        label: const Text('Upgrade Plan', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       );
                     },
                   ),
@@ -166,58 +220,86 @@ class ResumeTemplatesScreen extends StatelessWidget {
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
                 sliver: SliverList.separated(
-                  itemCount: availableTemplates.length,
+                  itemCount: allTemplates.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, index) {
-                    final slot = availableTemplates[index];
+                    final slot = allTemplates[index];
                     final key = slot['key']!;
                     final label = slot['label'] ?? key;
                     final variant = index % ResumeDemoProfilesCache.instance.variantCount;
-                return Material(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(14),
-                    onTap: () => _openStudio(context, key),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            width: 52,
-                            height: 68,
-                            child: ResumeTemplateMiniPreview(
-                              templateKey: key,
-                              demoVariant: variant,
-                            ),
+                    final isUnlocked = ResumePlanService.instance.isTemplateUnlocked(key);
+
+                    return Material(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(14),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: isUnlocked
+                            ? () => _openStudio(context, key)
+                            : () => _openUpgradePlan(context),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 52,
+                                height: 68,
+                                child: ResumeTemplateMiniPreview(
+                                  templateKey: key,
+                                  demoVariant: variant,
+                                ),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      label,
+                                      style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w800),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      isUnlocked ? 'Unlocked & Active' : 'Locked (Included in other plans)',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: isUnlocked ? AppColors.success : AppColors.textHint,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => _openPreview(context, key),
+                                child: const Text('Preview'),
+                              ),
+                              if (isUnlocked)
+                                FilledButton(
+                                  onPressed: () => _openStudio(context, key),
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                                  ),
+                                  child: const Text('Use'),
+                                )
+                              else
+                                OutlinedButton.icon(
+                                  onPressed: () => _openUpgradePlan(context),
+                                  icon: const Icon(Icons.lock_outline_rounded, size: 14),
+                                  style: OutlinedButton.styleFrom(
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                  label: const Text('Unlock'),
+                                ),
+                            ],
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Text(
-                              label,
-                              style: tt.titleSmall?.copyWith(fontWeight: FontWeight.w800),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () => _openPreview(context, key),
-                            child: const Text('Preview'),
-                          ),
-                          FilledButton(
-                            onPressed: () => _openStudio(context, key),
-                            style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              padding: const EdgeInsets.symmetric(horizontal: 14),
-                            ),
-                            child: const Text('Edit'),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
+                    );
+                  },
+                ),
+              ),
         ],
       );
     },

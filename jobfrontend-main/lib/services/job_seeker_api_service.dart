@@ -279,6 +279,38 @@ class JobSeekerApiService {
     throw Exception('Invalid resume upload response');
   }
 
+  /// `GET /job-seeker/resume/selection` — get current active plan selection data.
+  Future<Map<String, dynamic>> getResumeSelection() async {
+    final r = await http.get(
+      Uri.parse('$_base/job-seeker/resume/selection'),
+      headers: _authHeaders,
+    );
+    final json = _decode(r);
+    _ensureSuccess(json, r.statusCode);
+    final data = json['data'];
+    if (data is Map<String, dynamic>) return data;
+    throw Exception('Invalid resume selection response');
+  }
+
+  /// `POST /job-seeker/resume/select-templates` — save user selected template keys.
+  Future<Map<String, dynamic>> saveResumeSelection(List<String> templateIds) async {
+    final r = await http.post(
+      Uri.parse('$_base/job-seeker/resume/select-templates'),
+      headers: {
+        ..._authHeaders,
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'template_ids': templateIds,
+      }),
+    );
+    final json = _decode(r);
+    _ensureSuccess(json, r.statusCode);
+    final data = json['data'];
+    if (data is Map<String, dynamic>) return data;
+    throw Exception('Invalid save resume selection response');
+  }
+
   /// `GET /job-seeker/packages/purchases` — paginated activation history (server account).
   Future<Map<String, dynamic>> getPackagePurchases({
     int page = 1,

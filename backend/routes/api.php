@@ -27,6 +27,7 @@ use App\Http\Controllers\Api\V1\JobSeeker\JobSeekerPackageController;
 use App\Http\Controllers\Api\V1\JobSeeker\JobSeekerPaymentController;
 use App\Http\Controllers\Api\V1\JobSeeker\JobSeekerProfileController;
 use App\Http\Controllers\Api\V1\JobSeeker\ResumeDraftController;
+use App\Http\Controllers\Api\V1\JobSeeker\ResumeSelectionController;
 use App\Http\Controllers\Api\V1\JobSeeker\ResumeHtmlPreviewController;
 use App\Http\Controllers\Api\V1\JobSeeker\ResumeAiController;
 use App\Http\Controllers\Api\V1\JobSeeker\ResumePdfPurchaseController;
@@ -127,6 +128,8 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
             Route::get('packages/catalog', [JobSeekerPackageController::class, 'catalog']);
             Route::get('packages/purchases', [JobSeekerPackageController::class, 'purchases']);
             Route::post('packages/select', [JobSeekerPackageController::class, 'select']);
+            Route::get('resume/selection', [ResumeSelectionController::class, 'getSelection']);
+            Route::post('resume/select-templates', [ResumeSelectionController::class, 'saveSelection']);
             Route::post('payments/create-order', [JobSeekerPaymentController::class, 'createOrder']);
             Route::post('payments/confirm-status', [JobSeekerPaymentController::class, 'confirmStatus']);
             Route::get('applications', [SeekerApplicationController::class, 'index']);

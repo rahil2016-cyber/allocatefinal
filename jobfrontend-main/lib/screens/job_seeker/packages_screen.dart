@@ -6,6 +6,7 @@ import '../../utils/app_colors.dart';
 import '../../utils/network_user_message.dart';
 import '../../mixins/auto_reload_on_reconnect.dart';
 import 'package_purchase_history_screen.dart';
+import 'resume_selection_screen.dart';
 
 /// Job-seeker plans (catalog from API).
 class JobSeekerPackagesScreen extends StatefulWidget {
@@ -106,9 +107,14 @@ class _JobSeekerPackagesScreenState extends State<JobSeekerPackagesScreen>
           merchantOrderId: merchantOrderId,
         ),
       );
-      _showSuccess('Payment successful! Package activated.');
+      _showSuccess('🎉 Payment Successful! Your plan is now active.');
       await ResumePlanService.instance.fetchActivePlan();
-      await _load();
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute<void>(
+          builder: (_) => ResumeSelectionScreen(initialPackageKey: key),
+        ),
+      );
     } catch (e) {
       _showError(NetworkUserMessage.shortSummary(e));
     } finally {

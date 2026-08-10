@@ -9,9 +9,11 @@ class ResumePlanService extends ChangeNotifier {
 
   String? _activePackageKey;
   int _allowedTemplateCount = 4; // Default plan limit is 4 templates
+  List<String> _selectedTemplateIds = [];
 
   String? get activePackageKey => _activePackageKey;
   int get allowedTemplateCount => _allowedTemplateCount;
+  List<String> get selectedTemplateIds => List.unmodifiable(_selectedTemplateIds);
 
   Future<void> fetchActivePlan() async {
     try {
@@ -20,10 +22,23 @@ class ResumePlanService extends ChangeNotifier {
           profile['package_key']?.toString() ??
           'basic_resume';
       _setActivePlanKey(key);
+
+      final sel = profile['selected_template_ids'];
+      if (sel is List) {
+        _selectedTemplateIds = sel.map((e) => e.toString()).toList();
+      } else {
+        _selectedTemplateIds = [];
+      }
+      notifyListeners();
     } catch (_) {
       // Default to basic_resume (4 templates) if offline or guest
       _setActivePlanKey('basic_resume');
     }
+  }
+
+  void updateSelections(List<String> selection) {
+    _selectedTemplateIds = List.from(selection);
+    notifyListeners();
   }
 
   void _setActivePlanKey(String key) {
@@ -38,8 +53,22 @@ class ResumePlanService extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Returns the slice of templates allowed under the current active plan.
+  bool isTemplateUnlocked(String templateKey) {
+    if (_selectedTemplateIds.isEmpty) {
+      // If user hasn't made a custom 4-template selection yet, fallback to default slice
+      final available = getAvailableTemplates();
+      return available.any((t) => t['key'] == templateKey);
+    }
+    return _selectedTemplateIds.contains(templateKey);
+  }
+
+  /// Returns the templates allowed/selected under the active plan.
   List<Map<String, String>> getAvailableTemplates() {
+    if (_selectedTemplateIds.isNotEmpty) {
+      return kSeekerResumeHtmlTemplates
+          .where((t) => _selectedTemplateIds.contains(t['key']))
+          .toList();
+    }
     final count = _allowedTemplateCount;
     if (count >= kSeekerResumeHtmlTemplates.length) {
       return kSeekerResumeHtmlTemplates;

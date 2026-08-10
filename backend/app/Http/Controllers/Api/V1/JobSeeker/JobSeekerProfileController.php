@@ -8,6 +8,7 @@ use App\Support\Base64Image;
 use App\Support\Identifier;
 use App\Models\IndustryType;
 use App\Support\ProfileCompletion;
+use App\Models\ResumeDraft;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -283,8 +284,33 @@ class JobSeekerProfileController extends Controller
         $name = 'resume_'.$request->user()->id.'_'.time().'.'.$ext;
         $path = $file->storeAs('resumes', $name, 'public');
 
-        $profile->resume_url = url('/media/resumes/'.basename($path));
+        $resumeUrl = url('/media/resumes/'.basename($path));
+        $profile->resume_url = $resumeUrl;
         $profile->save();
+
+        // Create or update persistent imported resume draft record
+        $origName = $file->getClientOriginalName();
+        $titleName = ! empty($origName) ? pathinfo($origName, PATHINFO_FILENAME) : 'Imported Resume';
+
+        $importedDraft = ResumeDraft::query()->create([
+            'user_id' => $request->user()->id,
+            'title' => 'Imported: '.$titleName,
+            'template_id' => '1',
+            'source_type' => 'imported',
+            'file_url' => $resumeUrl,
+            'content' => [
+                'full_name' => $request->user()->name ?? 'Job Seeker',
+                'contact' => [
+                    'email' => $request->user()->email ?? '',
+                    'mobile' => $request->user()->phone ?? '',
+                ],
+            ],
+        ]);
+
+        if ($profile->primary_resume_draft_id === null) {
+            $profile->primary_resume_draft_id = $importedDraft->id;
+            $profile->save();
+        }
 
         $fresh = $profile->fresh();
         $user = $request->user();
@@ -292,7 +318,8 @@ class JobSeekerProfileController extends Controller
         $this->appendMobileAliases($data);
         $data['profile_completion_percent'] = ProfileCompletion::seekerPercent($user, $fresh);
         $this->mergeContactFromUser($data, $user);
+        $data['imported_draft'] = $importedDraft;
 
-        return $this->ok($data, 'Resume uploaded.');
+        return $this->ok($data, 'Resume uploaded and saved to your dashboard.');
     }
 }

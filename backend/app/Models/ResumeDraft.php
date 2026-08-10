@@ -11,6 +11,8 @@ class ResumeDraft extends Model
         'user_id',
         'title',
         'template_id',
+        'source_type',
+        'file_url',
         'content',
     ];
 

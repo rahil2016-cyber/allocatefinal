@@ -160,7 +160,7 @@ class _MyResumesScreenState extends State<MyResumesScreen>
       } else {
         // Fallback: seed from user profile so user gets an instant customizable resume
         final profileMap = await JobSeekerApiService.instance.getSeekerProfile();
-        final seeded = seedResumeModelFromProfileMap(profileMap);
+        final seeded = resumeModelFromSeekerProfileMaps(profile: profileMap);
         if (!mounted) return;
         Navigator.of(context).push(
           MaterialPageRoute<void>(

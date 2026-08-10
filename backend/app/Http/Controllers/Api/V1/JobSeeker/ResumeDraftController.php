@@ -16,6 +16,42 @@ class ResumeDraftController extends Controller
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
+        $profile = $user->jobSeekerProfile;
+
+        // Automatically create a persistent draft for profile resume_url if missing
+        if ($profile && filled($profile->resume_url)) {
+            $hasImported = ResumeDraft::query()
+                ->where('user_id', $user->id)
+                ->where(function ($q) use ($profile) {
+                    $q->where('source_type', 'imported')
+                      ->orWhere('file_url', $profile->resume_url);
+                })
+                ->exists();
+
+            if (! $hasImported) {
+                $fileName = basename($profile->resume_url);
+                $importedDraft = ResumeDraft::query()->create([
+                    'user_id' => $user->id,
+                    'title' => 'Imported: '.pathinfo($fileName, PATHINFO_FILENAME),
+                    'template_id' => '1',
+                    'source_type' => 'imported',
+                    'file_url' => $profile->resume_url,
+                    'content' => [
+                        'full_name' => $user->name ?? 'Job Seeker',
+                        'contact' => [
+                            'email' => $user->email ?? '',
+                            'mobile' => $user->phone ?? '',
+                        ],
+                    ],
+                ]);
+
+                if ($profile->primary_resume_draft_id === null) {
+                    $profile->primary_resume_draft_id = $importedDraft->id;
+                    $profile->save();
+                }
+            }
+        }
+
         $drafts = ResumeDraft::query()
             ->where('user_id', $user->id)
             ->latest()
@@ -58,6 +94,9 @@ class ResumeDraftController extends Controller
         );
 
         $profile->primary_resume_draft_id = $draft->id;
+        if (filled($draft->file_url)) {
+            $profile->resume_url = $draft->file_url;
+        }
         $profile->save();
 
         $profile->load('primaryResumeDraft');

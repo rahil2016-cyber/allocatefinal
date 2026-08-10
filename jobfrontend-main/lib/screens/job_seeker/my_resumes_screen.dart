@@ -375,18 +375,42 @@ class _MyResumesScreenState extends State<MyResumesScreen>
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    // Template Preview Block
+                                    // Template / PDF Preview Block
                                     Container(
                                       width: 80,
                                       height: 110,
                                       decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
+                                        color: (d['source_type'] == 'imported' || template == 'imported')
+                                            ? AppColors.accent.withValues(alpha: 0.08)
+                                            : Colors.grey.shade50,
                                         borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(color: Colors.grey.shade100),
+                                        border: Border.all(
+                                          color: (d['source_type'] == 'imported' || template == 'imported')
+                                              ? AppColors.accent.withValues(alpha: 0.3)
+                                              : Colors.grey.shade200,
+                                        ),
                                       ),
                                       child: ClipRRect(
                                         borderRadius: BorderRadius.circular(12),
-                                        child: SeekerHtmlTemplateSwatch(templateKey: htmlKey),
+                                        child: (d['source_type'] == 'imported' || template == 'imported')
+                                            ? const Center(
+                                                child: Column(
+                                                  mainAxisAlignment: MainAxisAlignment.center,
+                                                  children: [
+                                                    Icon(Icons.picture_as_pdf_rounded, size: 36, color: AppColors.accent),
+                                                    SizedBox(height: 4),
+                                                    Text(
+                                                      'PDF',
+                                                      style: TextStyle(
+                                                        fontSize: 10,
+                                                        fontWeight: FontWeight.w900,
+                                                        color: AppColors.accent,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              )
+                                            : SeekerHtmlTemplateSwatch(templateKey: htmlKey),
                                       ),
                                     ),
                                     const SizedBox(width: 16),

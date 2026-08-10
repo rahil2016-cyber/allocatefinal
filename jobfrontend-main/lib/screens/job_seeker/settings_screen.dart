@@ -257,7 +257,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (_) => JobSeekerProfileEditSheet(profile: profile),
+        builder: (_) => JobSeekerProfileEditSheet(
+          initial: profile,
+          onSaved: () {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Career preferences saved!'), backgroundColor: AppColors.success),
+              );
+            }
+          },
+        ),
       );
     } catch (e) {
       if (!mounted) return;

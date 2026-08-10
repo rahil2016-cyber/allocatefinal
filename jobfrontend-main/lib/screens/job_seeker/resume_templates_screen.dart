@@ -216,7 +216,9 @@ class ResumeTemplatesScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 }

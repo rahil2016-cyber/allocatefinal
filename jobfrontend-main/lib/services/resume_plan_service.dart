@@ -15,7 +15,7 @@ class ResumePlanService extends ChangeNotifier {
 
   Future<void> fetchActivePlan() async {
     try {
-      final profile = await JobSeekerApiService.instance.getProfile();
+      final profile = await JobSeekerApiService.instance.getSeekerProfile();
       final key = profile['resume_package_key']?.toString() ??
           profile['package_key']?.toString() ??
           'basic_resume';

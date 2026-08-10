@@ -8,6 +8,7 @@ import '../../services/useresume_api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/network_user_message.dart';
 import '../../mixins/auto_reload_on_reconnect.dart';
+import '../../models/json_resume.dart';
 import '../../features/resume/adapters/draft_resume_parse.dart';
 import '../../features/resume/models/resume_model.dart';
 import '../../features/resume/services/resume_seed_from_profile.dart';
@@ -158,7 +159,7 @@ class _MyResumesScreenState extends State<MyResumesScreen>
         ).then((_) => _load());
       } else {
         // Fallback: seed from user profile so user gets an instant customizable resume
-        final profileMap = await JobSeekerApiService.instance.getProfile();
+        final profileMap = await JobSeekerApiService.instance.getSeekerProfile();
         final seeded = seedResumeModelFromProfileMap(profileMap);
         if (!mounted) return;
         Navigator.of(context).push(

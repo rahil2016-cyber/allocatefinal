@@ -21,7 +21,11 @@ import 'utils/app_colors.dart';
 import 'utils/app_theme.dart';
 import 'widgets/app_logo.dart';
 import 'widgets/brand_dream_job_tagline.dart';
+import 'models/job.dart';
+import 'services/job_seeker_api_service.dart';
 import 'widgets/job_deep_link_listener.dart';
+import 'screens/job_seeker/job_detail_screen.dart';
+import 'screens/notifications/notification_inbox_page.dart';
 import 'screens/splash_screen.dart';
 
 import 'dart:io';
@@ -88,7 +92,7 @@ class _JobAllocateAppState extends State<JobAllocateApp> {
     super.dispose();
   }
 
-  void _onPushNotification(RemoteMessage message) {
+  Future<void> _onPushNotification(RemoteMessage message) async {
     debugPrint('[JobAllocateApp] Notification tapped: ${message.data}');
     final data = message.data;
     if (data.isEmpty) return;
@@ -99,12 +103,25 @@ class _JobAllocateAppState extends State<JobAllocateApp> {
     final type = data['type']?.toString() ?? '';
     final jobIdStr = data['job_id']?.toString() ?? data['reference_id']?.toString() ?? data['referenceId']?.toString();
 
-    if ((type == 'job' || type == 'new_job') && jobIdStr != null) {
-      nav.push(
-        MaterialPageRoute(
-          builder: (_) => JobDetailScreen(jobId: jobIdStr),
-        ),
-      );
+    if ((type == 'job' || type == 'new_job') && jobIdStr != null && jobIdStr.isNotEmpty) {
+      try {
+        final job = await JobSeekerApiService.instance.getJob(jobIdStr);
+        nav.push(
+          MaterialPageRoute(
+            builder: (_) => JobDetailScreen(
+              job: job,
+              userId: AppSession.userId ?? 'guest',
+              token: AppSession.token ?? '',
+            ),
+          ),
+        );
+      } catch (_) {
+        nav.push(
+          MaterialPageRoute(
+            builder: (_) => const NotificationInboxPage(),
+          ),
+        );
+      }
     } else {
       nav.push(
         MaterialPageRoute(

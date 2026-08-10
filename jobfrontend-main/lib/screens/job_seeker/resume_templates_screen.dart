@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../services/app_session.dart';
+import '../../services/resume_plan_service.dart';
 import '../../utils/app_colors.dart';
 import '../../services/resume_demo_profiles_cache.dart';
 import '../../services/resume_html_thumbnail_cache.dart';
@@ -74,74 +75,101 @@ class ResumeTemplatesScreen extends StatelessWidget {
           ),
         ],
       ),
-      body: CustomScrollView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        slivers: [
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '12 professional layouts',
-                      style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+      body: ListenableBuilder(
+        listenable: ResumePlanService.instance,
+        builder: (context, _) {
+          final availableTemplates = ResumePlanService.instance.getAvailableTemplates();
+          final allowedCount = ResumePlanService.instance.allowedTemplateCount;
+          final planKey = ResumePlanService.instance.activePackageKey ?? 'basic_resume';
+
+          return CustomScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
+            slivers: [
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Fill your details in the studio, preview on A4, then purchase to download PDF.',
-                      style: tt.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                        height: 1.35,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '$allowedCount Resume Templates Unlocked',
+                              style: tt.titleMedium?.copyWith(fontWeight: FontWeight.w800),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                planKey.replaceAll('_', ' ').toUpperCase(),
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Showing $allowedCount templates available in your current active resume plan.',
+                          style: tt.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary,
+                            height: 1.35,
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(
-              height: 460,
-              child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                scrollDirection: Axis.horizontal,
-                itemCount: kSeekerResumeHtmlTemplates.length,
-                itemBuilder: (context, index) {
-                  final slot = kSeekerResumeHtmlTemplates[index];
-                  final key = slot['key'] ?? 't1_teal_sidebar';
-                  final label = slot['label'] ?? 'Template';
-                  final variant = index % ResumeDemoProfilesCache.instance.variantCount;
-                  return ResumeDashboardTemplateCard(
-                    displayLabel: label,
-                    htmlTemplateKey: key,
-                    demoVariant: variant,
-                    onView: () => _openPreview(context, key),
-                    onEdit: () => _openStudio(context, key),
-                  );
-                },
+              SliverToBoxAdapter(
+                child: SizedBox(
+                  height: 460,
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    scrollDirection: Axis.horizontal,
+                    itemCount: availableTemplates.length,
+                    itemBuilder: (context, index) {
+                      final slot = availableTemplates[index];
+                      final key = slot['key'] ?? 't1_teal_sidebar';
+                      final label = slot['label'] ?? 'Template';
+                      final variant = index % ResumeDemoProfilesCache.instance.variantCount;
+                      return ResumeDashboardTemplateCard(
+                        displayLabel: label,
+                        htmlTemplateKey: key,
+                        demoVariant: variant,
+                        onView: () => _openPreview(context, key),
+                        onEdit: () => _openStudio(context, key),
+                      );
+                    },
+                  ),
+                ),
               ),
-            ),
-          ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
-            sliver: SliverList.separated(
-              itemCount: kSeekerResumeHtmlTemplates.length,
-              separatorBuilder: (_, _) => const SizedBox(height: 10),
-              itemBuilder: (context, index) {
-                final slot = kSeekerResumeHtmlTemplates[index];
-                final key = slot['key']!;
-                final label = slot['label'] ?? key;
-                final variant = index % ResumeDemoProfilesCache.instance.variantCount;
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 32),
+                sliver: SliverList.separated(
+                  itemCount: availableTemplates.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final slot = availableTemplates[index];
+                    final key = slot['key']!;
+                    final label = slot['label'] ?? key;
+                    final variant = index % ResumeDemoProfilesCache.instance.variantCount;
                 return Material(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(14),

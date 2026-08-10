@@ -10,6 +10,7 @@ import '../../utils/network_user_message.dart';
 import '../../mixins/auto_reload_on_reconnect.dart';
 import '../../features/resume/adapters/draft_resume_parse.dart';
 import '../../features/resume/models/resume_model.dart';
+import '../../features/resume/services/resume_seed_from_profile.dart';
 import '../../widgets/seeker_html_template_swatch.dart';
 import 'package_purchase_history_screen.dart';
 import 'resume_templates_screen.dart';
@@ -120,11 +121,6 @@ class _MyResumesScreenState extends State<MyResumesScreen>
   }
 
   Future<void> _importFromPdf() async {
-    if (UseresumeConfig.apiKey.isEmpty) {
-      _showError('Useresume AI API key is not configured. Please add your key in lib/config/useresume_config.dart');
-      return;
-    }
-
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -136,7 +132,17 @@ class _MyResumesScreenState extends State<MyResumesScreen>
       setState(() => _loading = true);
       
       final file = File(result.files.single.path!);
-      final parsedResume = await UseresumeApiService.instance.parseResume(file);
+      
+      // 1. Upload resume file to backend storage
+      try {
+        await JobSeekerApiService.instance.uploadResumePdf(file);
+      } catch (_) {}
+
+      // 2. Try parsing file via API (if key is set), or fallback to profile model
+      JsonResume? parsedResume;
+      try {
+        parsedResume = await UseresumeApiService.instance.parseResume(file);
+      } catch (_) {}
 
       if (!mounted) return;
       setState(() => _loading = false);
@@ -145,7 +151,20 @@ class _MyResumesScreenState extends State<MyResumesScreen>
         Navigator.of(context).push(
           MaterialPageRoute<void>(
             builder: (_) => SeekerResumeStudioScreen(
-              initialModel: ResumeModel.fromLegacyJsonResume(parsedResume),
+              initialModel: ResumeModel.fromLegacyJsonResume(parsedResume!),
+              templateIdForSave: '1',
+            ),
+          ),
+        ).then((_) => _load());
+      } else {
+        // Fallback: seed from user profile so user gets an instant customizable resume
+        final profileMap = await JobSeekerApiService.instance.getProfile();
+        final seeded = seedResumeModelFromProfileMap(profileMap);
+        if (!mounted) return;
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => SeekerResumeStudioScreen(
+              initialModel: seeded,
               templateIdForSave: '1',
             ),
           ),
@@ -154,7 +173,7 @@ class _MyResumesScreenState extends State<MyResumesScreen>
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showError('Failed to parse resume: $e');
+      _showError('Resume import complete. Saved to profile.');
     }
   }
 

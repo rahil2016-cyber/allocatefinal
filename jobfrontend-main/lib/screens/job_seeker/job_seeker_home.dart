@@ -9,6 +9,7 @@ import '../../models/top_company.dart';
 import '../../models/banner.dart' as banner_model;
 import '../../services/app_session.dart' as session;
 import '../../services/job_seeker_api_service.dart';
+import '../../services/resume_plan_service.dart';
 import '../../services/resume_demo_profiles_cache.dart';
 import '../../services/resume_html_thumbnail_cache.dart';
 import '../../services/banner_api_service.dart';
@@ -157,6 +158,7 @@ class _JobSeekerHomeScreenState extends State<JobSeekerHomeScreen>
       const JobSeekerProfileScreen(),
     ];
     _startSeekerTimeHeartbeat();
+    ResumePlanService.instance.fetchActivePlan();
   }
 
   @override
@@ -2633,31 +2635,48 @@ class _ResumeMakerSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final tt = Theme.of(context).textTheme;
-    const htmlSlots = kSeekerResumeHtmlTemplates;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Text(
-            'Resume templates',
-            style: tt.titleLarge?.copyWith(
-              fontWeight: FontWeight.w900,
-              color: AppColors.textPrimary,
-              height: 1.25,
-              fontSize: 20,
+    return ListenableBuilder(
+      listenable: ResumePlanService.instance,
+      builder: (context, _) {
+        final htmlSlots = ResumePlanService.instance.getAvailableTemplates();
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Resume templates',
+                    style: tt.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.textPrimary,
+                      height: 1.25,
+                      fontSize: 20,
+                    ),
+                  ),
+                  Text(
+                    '${htmlSlots.length} unlocked',
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        SizedBox(
-          height: 460,
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            scrollDirection: Axis.horizontal,
-            itemCount: htmlSlots.length,
-            itemBuilder: (context, index) {
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 460,
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                scrollDirection: Axis.horizontal,
+                itemCount: htmlSlots.length,
+                itemBuilder: (context, index) {
               final slot = htmlSlots[index];
               final key = slot['key'] ?? 't1_teal_sidebar';
               final label = slot['label'] ?? 'Template';
@@ -2680,6 +2699,8 @@ class _ResumeMakerSection extends StatelessWidget {
         ),
       ],
     );
+  },
+);
   }
 }
 

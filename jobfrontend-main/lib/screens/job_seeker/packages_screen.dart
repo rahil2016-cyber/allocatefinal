@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/job_seeker_api_service.dart';
+import '../../services/resume_plan_service.dart';
 import '../../services/phonepe_payment_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/network_user_message.dart';
@@ -106,6 +107,7 @@ class _JobSeekerPackagesScreenState extends State<JobSeekerPackagesScreen>
         ),
       );
       _showSuccess('Payment successful! Package activated.');
+      await ResumePlanService.instance.fetchActivePlan();
       await _load();
     } catch (e) {
       _showError(NetworkUserMessage.shortSummary(e));

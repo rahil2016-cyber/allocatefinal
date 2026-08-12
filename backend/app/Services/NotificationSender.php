@@ -165,6 +165,28 @@ class NotificationSender
         );
     }
 
+    public function jobExpiringSoon(User $employer, string $jobTitle, int $jobId, int $daysLeft = 3): void
+    {
+        $this->send(
+            $employer,
+            '⏰ Job Post Expiring Soon',
+            "Your job post '{$jobTitle}' will expire in {$daysLeft} day(s). Tap to view or manage your listing.",
+            'job_expiring_soon',
+            ['type' => 'company_job', 'job_id' => (string) $jobId, 'reference_id' => (string) $jobId],
+        );
+    }
+
+    public function jobExpired(User $employer, string $jobTitle, int $jobId): void
+    {
+        $this->send(
+            $employer,
+            '⌛ Job Post Expired',
+            "Your job post '{$jobTitle}' has expired after 1 month. Purchase a plan to repost or create a new listing.",
+            'job_expired',
+            ['type' => 'company_job', 'job_id' => (string) $jobId, 'reference_id' => (string) $jobId],
+        );
+    }
+
     // -----------------------------------------------------------------
     // Admin broadcast
     // -----------------------------------------------------------------

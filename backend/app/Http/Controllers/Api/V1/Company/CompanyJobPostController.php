@@ -126,7 +126,9 @@ class CompanyJobPostController extends Controller
             'description' => $validated['description'],
             'requirements' => $validated['requirements'] ?? null,
             'skills' => $validated['skills'] ?? null,
-            'application_deadline_at' => $validated['application_deadline_at'] ?? null,
+            'application_deadline_at' => isset($validated['application_deadline_at'])
+                ? min(now()->parse($validated['application_deadline_at']), now()->addDays(30))
+                : now()->addDays(30),
             'max_applications' => $validated['max_applications'] ?? null,
             'status' => $initial['status'],
             'published_at' => $initial['published_at'],

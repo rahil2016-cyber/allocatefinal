@@ -11,3 +11,6 @@ Artisan::command('inspire', function () {
 
 // Run subscription expiry notifications every day at 9:00 AM
 Schedule::command(NotifySubscriptionExpiry::class)->dailyAt('09:00');
+
+// Run 1-month job post expiration checks & employer alerts daily at 9:30 AM
+Schedule::command(\App\Console\Commands\CheckJobExpirationsCommand::class)->dailyAt('09:30');

@@ -18,27 +18,45 @@ class CheckJobExpirationsCommand extends Command
     {
         $this->info('Checking job post expirations...');
 
-        // 1. Send warning notification to employers whose jobs expire in 3 days (27 to 28 days after published_at or deadline in 3 days)
-        $expiringSoonJobs = JobPost::query()
+        // 1. Send warning notification 7 days before expiry
+        $jobs7Days = JobPost::query()
             ->where('status', JobPostStatus::Published)
             ->with(['company.user'])
             ->where(function ($q) {
-                $q->whereBetween('published_at', [now()->subDays(28), now()->subDays(27)])
-                  ->orWhereBetween('application_deadline_at', [now()->addDays(2), now()->addDays(3)]);
+                $q->whereBetween('published_at', [now()->subDays(24), now()->subDays(23)])
+                  ->orWhereBetween('application_deadline_at', [now()->addDays(6)->addHours(12), now()->addDays(7)->addHours(12)]);
             })
             ->get();
 
-        $warnCount = 0;
-        foreach ($expiringSoonJobs as $job) {
+        $warn7Count = 0;
+        foreach ($jobs7Days as $job) {
             $employerUser = $job->company?->user;
             if ($employerUser) {
-                $notifier->jobExpiringSoon($employerUser, $job->title, $job->id, 3);
-                $warnCount++;
+                $notifier->jobExpiringSoon($employerUser, $job->title, $job->id, 7);
+                $warn7Count++;
             }
         }
-        $this->info("Sent expiration warnings for {$warnCount} job(s).");
 
-        // 2. Find jobs that reached 30 days or past application_deadline_at and mark as Closed + notify employer
+        // 2. Send warning notification 2 days before expiry
+        $jobs2Days = JobPost::query()
+            ->where('status', JobPostStatus::Published)
+            ->with(['company.user'])
+            ->where(function ($q) {
+                $q->whereBetween('published_at', [now()->subDays(29), now()->subDays(28)])
+                  ->orWhereBetween('application_deadline_at', [now()->addDays(1)->addHours(12), now()->addDays(2)->addHours(12)]);
+            })
+            ->get();
+
+        $warn2Count = 0;
+        foreach ($jobs2Days as $job) {
+            $employerUser = $job->company?->user;
+            if ($employerUser) {
+                $notifier->jobExpiringSoon($employerUser, $job->title, $job->id, 2);
+                $warn2Count++;
+            }
+        }
+
+        // 3. Find jobs that reached 30 days or past application_deadline_at and mark as Closed + notify employer
         $expiredJobs = JobPost::query()
             ->where('status', JobPostStatus::Published)
             ->with(['company.user'])
@@ -62,8 +80,8 @@ class CheckJobExpirationsCommand extends Command
             $expiredCount++;
         }
 
-        $this->info("Successfully closed and notified employers for {$expiredCount} expired job(s).");
-        Log::info("[CheckJobExpirationsCommand] Warned {$warnCount} job(s), expired & closed {$expiredCount} job(s).");
+        $this->info("Expirations check completed: 7-day warnings: {$warn7Count}, 2-day warnings: {$warn2Count}, expired & closed: {$expiredCount}.");
+        Log::info("[CheckJobExpirationsCommand] 7-day warnings: {$warn7Count}, 2-day warnings: {$warn2Count}, expired & closed: {$expiredCount}.");
 
         return 0;
     }

@@ -55,20 +55,55 @@ final class JobPublishingService
     {
         try {
             $notifier = app(NotificationSender::class);
-            $query = \App\Models\JobSeekerProfile::query()->with('user');
+            $companyName = $job->company?->name ?? 'A top company';
 
-            if (filled($job->industry_type)) {
-                $query->where('industry_type', $job->industry_type);
+            // Query candidates matching industry_type, job roles, or location
+            $matchedUserIds = \App\Models\JobSeekerProfile::query()
+                ->where(function ($q) use ($job) {
+                    if (filled($job->industry_type)) {
+                        $q->orWhere('industry_type', $job->industry_type);
+                    }
+                    if (filled($job->role)) {
+                        $q->orWhereJsonContains('job_roles', $job->role);
+                    }
+                    if (filled($job->role_category)) {
+                        $q->orWhereJsonContains('job_roles', $job->role_category);
+                    }
+                    if (filled($job->location)) {
+                        $q->orWhere('city', 'LIKE', '%' . $job->location . '%')
+                          ->orWhere('state', 'LIKE', '%' . $job->location . '%')
+                          ->orWhereJsonContains('preferred_locations', $job->location);
+                    }
+                })
+                ->pluck('user_id')
+                ->filter()
+                ->unique()
+                ->all();
+
+            // If matched count is low, include recently active job seekers to ensure broad reach
+            if (count($matchedUserIds) < 50) {
+                $additionalUserIds = \App\Models\JobSeekerProfile::query()
+                    ->latest('updated_at')
+                    ->limit(500)
+                    ->pluck('user_id')
+                    ->filter()
+                    ->all();
+                $matchedUserIds = array_values(array_unique(array_merge($matchedUserIds, $additionalUserIds)));
             }
 
-            // Limit broadcast to top 200 matching active candidates to avoid timeout
-            $profiles = $query->limit(200)->get();
+            // Fetch active job seeker users (limit up to 500 to prevent notification timeout)
+            $users = \App\Models\User::query()
+                ->whereIn('id', array_slice($matchedUserIds, 0, 500))
+                ->where('role', \App\Enums\UserRole::JobSeeker->value)
+                ->get();
 
-            foreach ($profiles as $profile) {
-                if ($profile->user && $profile->user->is_active) {
-                    $notifier->newJobMatch($profile->user, $job->title, $job->id);
-                }
+            $sentCount = 0;
+            foreach ($users as $user) {
+                $notifier->newJobMatch($user, $job->title, $job->id, $companyName, $job->location);
+                $sentCount++;
             }
+
+            \Illuminate\Support\Facades\Log::info("[JobPublishingService] Sent job match notification for job #{$job->id} '{$job->title}' to {$sentCount} candidate(s).");
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[JobPublishingService] Failed to send job match notifications: ' . $e->getMessage());
         }

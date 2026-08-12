@@ -49,12 +49,16 @@ class NotificationSender
     // Job Seeker notifications
     // -----------------------------------------------------------------
 
-    public function newJobMatch(User $seeker, string $jobTitle, int $jobId): void
+    public function newJobMatch(User $seeker, string $jobTitle, int $jobId, ?string $companyName = null, ?string $location = null): void
     {
+        $body = filled($companyName)
+            ? "{$companyName} is hiring: {$jobTitle}" . (filled($location) ? " in {$location}" : "") . ". Tap to view and apply!"
+            : "A new job matching your profile is available: {$jobTitle}";
+
         $this->send(
             $seeker,
-            '🔔 New Job Matching You',
-            "A new job matching your profile is available: {$jobTitle}",
+            "💼 New Job Alert: {$jobTitle}",
+            $body,
             'new_job',
             ['type' => 'job', 'job_id' => (string) $jobId, 'reference_id' => (string) $jobId, 'referenceId' => (string) $jobId],
         );

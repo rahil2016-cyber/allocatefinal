@@ -27,7 +27,7 @@ class NotifySubscriptionExpiry extends Command
     {
         $warningDays = [3, 1];
 
-        $companies = Company::with(['user', 'subscriptionPayments'])->get();
+        $companies = Company::with(['owner', 'subscriptionPayments'])->get();
 
         $notified = 0;
         foreach ($companies as $company) {
@@ -36,8 +36,8 @@ class NotifySubscriptionExpiry extends Command
 
             $daysLeft = (int) Carbon::now()->diffInDays($expiresAt, false);
 
-            if (in_array($daysLeft, $warningDays, true) && $company->user !== null) {
-                $this->sender->subscriptionExpiringSoon($company->user, $daysLeft);
+            if (in_array($daysLeft, $warningDays, true) && $company->owner !== null) {
+                $this->sender->subscriptionExpiringSoon($company->owner, $daysLeft);
                 $notified++;
             }
         }

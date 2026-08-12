@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:395622351897:android:c1c469185f139ca2e61688",
         "android_client_info": {
-          "package_name": "com.joballocate.careers"
+          "package_name": "com.joballocate.in"
         }
       },
       "oauth_client": [
@@ -17,7 +17,7 @@
           "client_id": "395622351897-23v50uebjc5n3bucnv96lotncl7d119h.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.joballocate.careers",
+            "package_name": "com.joballocate.in",
             "certificate_hash": "a989a69b4081a71e56d48df412dfd4f2a8bac85c"
           }
         },
@@ -25,7 +25,7 @@
           "client_id": "395622351897-bt0ghs16un8vl1i96uv5t2u426ij18ei.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.joballocate.careers",
+            "package_name": "com.joballocate.in",
             "certificate_hash": "4d637ece021b3a30f8553ee980af0881de9715cc"
           }
         },
@@ -33,7 +33,7 @@
           "client_id": "395622351897-iei409fg5omcfstsrlh8kgb7vqc4j2o2.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.joballocate.careers",
+            "package_name": "com.joballocate.in",
             "certificate_hash": "94605c91749dbc85709150096585561ed9c49644"
           }
         },
@@ -41,7 +41,7 @@
           "client_id": "395622351897-lsgg58liqr9kn8g50ptnhdri2mc21c06.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
-            "package_name": "com.joballocate.careers",
+            "package_name": "com.joballocate.in",
             "certificate_hash": "9174971b0ac4951be3728d37914bdcc9e14732ba"
           }
         },

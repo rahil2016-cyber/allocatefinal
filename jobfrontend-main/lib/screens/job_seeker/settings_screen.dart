@@ -1,0 +1,327 @@
+import 'package:flutter/material.dart';
+import '../../services/app_session.dart';
+import '../../services/job_seeker_api_service.dart';
+import '../../utils/app_colors.dart';
+import '../common/legal_webview_screen.dart';
+import '../notifications/notification_inbox_page.dart';
+import 'my_resumes_screen.dart';
+import 'resume_templates_screen.dart';
+import 'job_seeker_profile_edit_sheet.dart';
+
+class SettingsScreen extends StatefulWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  void _openLegal(BuildContext context, {required String title, required String url}) {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => LegalWebViewScreen(title: title, url: url),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF4F6FA),
+      appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'Settings',
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: false,
+      ),
+      body: ListView(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        children: [
+          _SettingsTile(
+            icon: Icons.description_rounded,
+            title: 'Resume',
+            subtitle: 'Choose a template, edit, and download PDF (₹20 demo)',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => ResumeTemplatesScreen(
+                    userId: AppSession.userId ?? 'demo-user',
+                    token: AppSession.token ?? 'demo-token',
+                  ),
+                ),
+              );
+            },
+          ),
+          _SettingsTile(
+            icon: Icons.folder_copy_outlined,
+            title: 'My saved resumes',
+            subtitle: 'Drafts you saved and which one employers see when you apply',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => MyResumesScreen(
+                    userId: AppSession.userId ?? 'demo-user',
+                    token: AppSession.token ?? 'demo-token',
+                  ),
+                ),
+              );
+            },
+          ),
+          // Refer & earn and Blocked companies temporarily hidden from Settings.
+          _SettingsTile(
+            icon: Icons.person_outline_rounded,
+            title: 'Account Settings',
+            subtitle: 'Change your primary email address',
+            onTap: () => _showChangeEmailDialog(context),
+          ),
+          _SettingsTile(
+            icon: Icons.work_outline_rounded,
+            title: 'Career preferences',
+            subtitle: 'Update headline, location, salary, skills & industry preferences',
+            onTap: () => _openCareerPreferencesSheet(context),
+          ),
+          const SizedBox(height: 32),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24),
+            child: Text(
+              'App',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textHint,
+                letterSpacing: 1.1,
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          _SettingsTile(
+            icon: Icons.notifications_outlined,
+            title: 'Notifications',
+            subtitle: 'View alerts and manage notification inbox',
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (_) => const NotificationInboxPage(),
+                ),
+              );
+            },
+          ),
+          _SettingsTile(
+            icon: Icons.privacy_tip_outlined,
+            title: 'Privacy',
+            subtitle: 'Privacy policy, data protection & non-refundable terms',
+            onTap: () => _openLegal(
+              context,
+              title: 'Privacy Policy',
+              url: LegalWebViewScreen.privacyUrl,
+            ),
+          ),
+          _SettingsTile(
+            icon: Icons.gavel_outlined,
+            title: 'Terms & conditions',
+            subtitle: 'Platform rules, pricing and service charges',
+            onTap: () => _openLegal(
+              context,
+              title: 'Terms & Conditions',
+              url: LegalWebViewScreen.termsUrl,
+            ),
+          ),
+          _SettingsTile(
+            icon: Icons.language_rounded,
+            title: 'Language',
+            subtitle: 'Select your preferred language',
+            onTap: () => _showComingSoon(context, 'Language'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showComingSoon(BuildContext context, String feature) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('$feature — coming soon!'),
+        behavior: SnackBarBehavior.floating,
+        margin: const EdgeInsets.all(16),
+        backgroundColor: AppColors.primary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ),
+    );
+  }
+
+  Future<void> _showChangeEmailDialog(BuildContext context) async {
+    final emailCtrl = TextEditingController();
+    bool loading = false;
+    await showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) {
+          return AlertDialog(
+            title: const Text('Change Email'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Enter your new email address below. This will be updated in your profile.',
+                  style: TextStyle(fontSize: 13, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: emailCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'New Email Address',
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: loading ? null : () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: loading
+                    ? null
+                    : () async {
+                        final email = emailCtrl.text.trim();
+                        if (email.isEmpty || !email.contains('@')) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Please enter a valid email'), backgroundColor: Colors.red),
+                          );
+                          return;
+                        }
+                        setDialogState(() => loading = true);
+                        try {
+                          await JobSeekerApiService.instance.updateSeekerProfile({
+                            'email': email,
+                          });
+                          if (!ctx.mounted) return;
+                          Navigator.pop(ctx);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Email updated successfully!'), backgroundColor: Colors.green),
+                          );
+                        } catch (e) {
+                          setDialogState(() => loading = false);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+                          );
+                        }
+                      },
+                child: loading
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                      )
+                    : const Text('Update'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Future<void> _openCareerPreferencesSheet(BuildContext context) async {
+    try {
+      final profile = await JobSeekerApiService.instance.getSeekerProfile();
+      if (!mounted) return;
+      await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) => JobSeekerProfileEditSheet(
+          initial: profile,
+          onSaved: () {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Career preferences saved!'), backgroundColor: AppColors.success),
+              );
+            }
+          },
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Could not load profile: $e'), backgroundColor: AppColors.error),
+      );
+    }
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
+  const _SettingsTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        leading: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: AppColors.primary, size: 22),
+        ),
+        title: Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
+            color: Color(0xFF1A1A2E),
+          ),
+        ),
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 4),
+          child: Text(
+            subtitle,
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+              height: 1.4,
+            ),
+          ),
+        ),
+        trailing: Icon(
+          Icons.chevron_right_rounded,
+          color: AppColors.textHint,
+        ),
+        onTap: onTap,
+      ),
+    );
+  }
+}

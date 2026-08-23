@@ -1,0 +1,30 @@
+[
+  [
+    {
+      "relation": [
+        "delegate_permission/common.handle_all_urls"
+      ],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.joballocate.in",
+        "sha256_cert_fingerprints": [
+          "8A:B9:1A:0C:99:0D:F2:46:77:B2:02:93:D3:6C:9A:E3:60:26:A5:94:E7:B9:0E:8F:C4:FE:10:9E:E3:31:D6:C2",
+          "8A:B9:1A:DC:99:0D:F2:46:77:B2:02:93:D3:6C:9A:E3:60:26:A5:94:E7:B9:0E:BF:C4:FE:10:9E:E3:31:D6:C2"
+        ]
+      }
+    }
+  ],
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls",
+      "delegate_permission/common.get_login_creds"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.joballocate.in",
+      "sha256_cert_fingerprints": [
+        "8A:B9:1A:DC:99:0D:F2:46:77:B2:02:93:D3:6C:9A:E3:60:26:A5:94:E7:B9:0E:BF:C4:FE:10:9E:E3:31:D6:C2"
+      ]
+    }
+  }
+]

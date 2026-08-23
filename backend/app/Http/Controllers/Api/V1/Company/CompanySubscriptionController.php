@@ -104,7 +104,8 @@ class CompanySubscriptionController extends Controller
 
             $packageId = $activePackage?->id;
             $monthlyPriceInr = (int) ($activePackage?->monthly_price_inr ?? 499);
-            $packageTitle = (string) ($activePackage?->title ?? 'Company Subscription');
+            $packageTitle = (string) ($activePackage?->title ?? 'Corporate Package');
+            $jobCreditsGranted = (int) ($activePackage?->job_credits_granted ?? 1);
 
             $subscriptionMeta = [
                 'expires_at' => $expiresAt?->toIso8601String(),
@@ -116,7 +117,7 @@ class CompanySubscriptionController extends Controller
                     : ($expiresAt !== null ? 'expired' : 'none'),
             ];
 
-            if ($packageId === null) {
+                if ($packageId === null) {
                 return $this->ok([
                     'verified' => $verified,
                     'has_active_subscription' => false,
@@ -124,6 +125,7 @@ class CompanySubscriptionController extends Controller
                     'subscription' => $subscriptionMeta,
                     'package_title' => $packageTitle,
                     'monthly_price_inr' => $monthlyPriceInr,
+                    'job_credits_granted' => $jobCreditsGranted,
                     'first_month' => [
                         'already_purchased' => false,
                         'is_free_eligible' => false,
@@ -189,6 +191,7 @@ class CompanySubscriptionController extends Controller
                 'subscription' => $subscriptionMeta,
                 'package_title' => $packageTitle,
                 'monthly_price_inr' => $monthlyPriceInr,
+                'job_credits_granted' => $jobCreditsGranted,
                 'first_month' => [
                     'already_purchased' => $alreadyPurchasedFirstMonth,
                     'is_free_eligible' => false,
@@ -212,6 +215,7 @@ class CompanySubscriptionController extends Controller
                 'subscription' => $subscriptionMeta,
                 'package_title' => $packageTitle,
                 'monthly_price_inr' => $monthlyPriceInr,
+                'job_credits_granted' => $jobCreditsGranted,
                 'first_month' => [
                     'already_purchased' => true,
                     'is_free_eligible' => false,
@@ -237,6 +241,7 @@ class CompanySubscriptionController extends Controller
                 'subscription' => $subscriptionMeta,
                 'package_title' => $packageTitle,
                 'monthly_price_inr' => $monthlyPriceInr,
+                'job_credits_granted' => $jobCreditsGranted,
                 'first_month' => [
                     'already_purchased' => false,
                     'is_free_eligible' => false,
@@ -259,6 +264,7 @@ class CompanySubscriptionController extends Controller
             'subscription' => $subscriptionMeta,
             'package_title' => $packageTitle,
             'monthly_price_inr' => $monthlyPriceInr,
+            'job_credits_granted' => $jobCreditsGranted,
             'first_month' => [
                 'already_purchased' => false,
                 'is_free_eligible' => true,

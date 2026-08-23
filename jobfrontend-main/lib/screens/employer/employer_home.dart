@@ -114,16 +114,16 @@ class _EmployerHomeScreenState extends State<EmployerHomeScreen> {
                   return;
                 }
 
-                // First job is free; subsequent jobs require payment (₹399).
-                final hasJobs = dashboard.hasAnyJob;
-                if (hasJobs) {
+                // Block posting if out of credits
+                final jobCredits = dashboard.jobCredits;
+                if (jobCredits <= 0) {
                   if (!mounted) return;
                   final proceed = await showDialog<bool>(
                     context: context,
                     builder: (ctx) => AlertDialog(
-                      title: const Text('Post new job for ₹399?'),
+                      title: const Text('Insufficient Job Credits'),
                       content: const Text(
-                        'Your first job posting was free. Additional job postings cost ₹399 each.',
+                        'You have 0 job credits. Please purchase a package to post more jobs and instantly connect with candidates.',
                       ),
                       actions: [
                         TextButton(
@@ -132,12 +132,23 @@ class _EmployerHomeScreenState extends State<EmployerHomeScreen> {
                         ),
                         FilledButton(
                           onPressed: () => Navigator.pop(ctx, true),
-                          child: const Text('Continue'),
+                          child: const Text('View Packages'),
                         ),
                       ],
                     ),
                   );
-                  if (proceed != true) return;
+                  
+                  if (proceed == true && mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CompanySubscriptionScreen(),
+                      ),
+                    ).then((_) {
+                      if (mounted) _dashboardKey.currentState?.load();
+                    });
+                  }
+                  return;
                 }
 
                 final posted = await Navigator.of(context).push<bool>(

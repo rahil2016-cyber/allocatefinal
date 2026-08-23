@@ -8,6 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Models\JobPost;
 use App\Services\JobPublishingService;
 use App\Models\IndustryType;
+use App\Services\Cashfree\CashfreeClient;
+use App\Support\Identifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -18,7 +20,8 @@ class CompanyJobPostController extends Controller
     use ApiResponses;
 
     public function __construct(
-        private readonly JobPublishingService $publishing
+        private readonly JobPublishingService $publishing,
+        private readonly CashfreeClient $cashfree
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -55,17 +58,10 @@ class CompanyJobPostController extends Controller
             return $this->fail('Company profile not found.', null, 404);
         }
 
-        // First job is free; further posting requires an active subscription (30 days).
-        $totalJobsCount = \App\Models\JobPost::query()
-            ->where('company_id', $company->id)
-            ->count();
+        $numberOfJobs = (int) $request->input('number_of_jobs', 1);
 
-        if ($totalJobsCount >= 1 && ! $company->isPremium()) {
-            return $this->fail(
-                'Your subscription has expired or is inactive. Please renew your plan to post another job.',
-                null,
-                402
-            );
+        if ($company->job_credits < $numberOfJobs) {
+            return $this->fail('Insufficient job credits. Please purchase a package.', null, 402);
         }
 
         $validated = $request->validate([
@@ -108,8 +104,6 @@ class CompanyJobPostController extends Controller
         $slugBase = Str::slug($validated['title']);
         $slug = $this->uniqueJobSlug($company->id, $slugBase !== '' ? $slugBase : 'job');
 
-        $initial = $this->publishing->initialStatusForNewJob($company);
-
         $job = JobPost::create([
             'company_id' => $company->id,
             'title' => $validated['title'],
@@ -131,8 +125,8 @@ class CompanyJobPostController extends Controller
                 ? min(now()->parse($validated['application_deadline_at']), now()->addDays(30))
                 : now()->addDays(30),
             'max_applications' => $validated['max_applications'] ?? null,
-            'status' => $initial['status'],
-            'published_at' => $initial['published_at'],
+            'status' => JobPostStatus::Published,
+            'published_at' => now(),
             'assets_required' => $validated['assets_required'] ?? null,
             'languages' => $validated['languages'] ?? null,
             'incentive_detail' => $validated['incentive_detail'] ?? null,
@@ -152,26 +146,22 @@ class CompanyJobPostController extends Controller
             'interview_timings' => $validated['interview_timings'] ?? null,
         ]);
 
-        $message = $job->status === JobPostStatus::Published
-            ? 'Job published.'
-            : 'Job submitted for admin review.';
+        $company->decrement('job_credits', $numberOfJobs);
 
         $job->load(['company']);
 
-        if ($job->status === JobPostStatus::Published) {
-            $this->publishing->notifyMatchingJobSeekers($job);
-        }
+        $this->publishing->notifyMatchingJobSeekers($job);
 
         try {
             $employer = $request->user();
-            if ($employer && $employer->email && !\App\Support\Identifier::isSyntheticEmail($employer->email)) {
+            if ($employer && $employer->email && !Identifier::isSyntheticEmail($employer->email)) {
                 \Illuminate\Support\Facades\Mail::to($employer->email)->send(new \App\Mail\CompanyJobPostedMail($job));
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[CompanyJobPostController] Failed to send job posted email: ' . $e->getMessage());
         }
 
-        return $this->ok($job, $message, null, 201);
+        return $this->ok($job, 'Job published successfully.', null, 201);
     }
 
     public function update(Request $request, int $id): JsonResponse

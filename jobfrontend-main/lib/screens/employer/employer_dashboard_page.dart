@@ -39,10 +39,11 @@ class EmployerDashboardPageState extends State<EmployerDashboardPage> {
   int _hired = 0;
 
   bool get isVerified =>
-      (_company?['verification_status']?.toString() ?? '') ==
-      CompanyVerificationValue.verified;
+      _company != null && _company!['verification_status'] == 'verified';
 
   bool get hasAnyJob => _jobs.isNotEmpty;
+
+  int get jobCredits => ((_company?['job_credits'] ?? 0) as int);
 
   @override
   void initState() {
@@ -234,6 +235,25 @@ class EmployerDashboardPageState extends State<EmployerDashboardPage> {
                                   ),
                                 ],
                               ),
+                              const SizedBox(height: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: ((_company?['job_credits'] ?? 0) as int) <= 0
+                                      ? AppColors.error.withOpacity(0.1)
+                                      : AppColors.success.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  'Job Credits: ${_company?['job_credits'] ?? 0}',
+                                  style: textTheme.labelSmall?.copyWith(
+                                    color: ((_company?['job_credits'] ?? 0) as int) <= 0
+                                        ? AppColors.error
+                                        : AppColors.success,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -356,6 +376,8 @@ class EmployerDashboardPageState extends State<EmployerDashboardPage> {
     final title = j['title']?.toString() ?? 'Untitled Job';
     final status = j['status']?.toString() ?? 'draft';
     final isPublished = status == 'published';
+    final isExpired = status == 'expired';
+    final isPendingPayment = status == 'pending_payment';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -403,11 +425,13 @@ class EmployerDashboardPageState extends State<EmployerDashboardPage> {
                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
                     Text(
-                      status.toUpperCase(),
+                      status.toUpperCase().replaceAll('_', ' '),
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: FontWeight.w800,
-                        color: isPublished ? AppColors.success : Colors.orange,
+                        color: isPublished
+                            ? AppColors.success
+                            : (isExpired ? AppColors.error : Colors.orange),
                       ),
                     ),
                   ],

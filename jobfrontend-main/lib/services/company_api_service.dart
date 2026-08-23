@@ -109,6 +109,7 @@ class CompanyApiService {
     throw Exception('Invalid response');
   }
 
+
   /// PUT /company/job-posts/{id} — update fields, or send `{ "status": "closed" }` to close the posting.
   Future<Map<String, dynamic>> updateJobPost(
     int id,

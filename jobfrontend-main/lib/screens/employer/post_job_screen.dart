@@ -10,6 +10,7 @@ import '../../constants/employer_status_labels.dart';
 import '../../widgets/industry_type_dropdown.dart';
 import '../../constants/industry_roles_skills.dart';
 import '../../constants/industry_types.dart';
+import 'company_subscription_screen.dart';
 
 /// Maps UI dropdown values to API strings
 String _employmentTypeApi(String ui) {
@@ -2093,20 +2094,16 @@ class _PostJobScreenState extends State<PostJobScreen> {
       }
 
       final id = _editJobId;
-      Map<String, dynamic> result;
       if (id != null) {
-        result = await _api.updateJobPost(id, body);
+        await _api.updateJobPost(id, body);
       } else {
-        result = await _api.createJobPost(body);
+        await _api.createJobPost(body);
       }
       if (!mounted) return;
 
-      final status = result['status']?.toString() ?? '';
       final msg = id != null
           ? 'Job updated.'
-          : (status == 'published'
-              ? 'Job published.'
-              : 'Job submitted. It may appear as pending until approved.');
+          : 'Job published successfully.';
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -2120,6 +2117,32 @@ class _PostJobScreenState extends State<PostJobScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
+      final errorStr = e.toString().toLowerCase();
+      
+      if (errorStr.contains('402') || errorStr.contains('insufficient job credits')) {
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Insufficient Credits'),
+            content: const Text('You need a Job Credit to post a job. Please purchase a package.'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  Navigator.pop(ctx);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const CompanySubscriptionScreen()));
+                },
+                child: const Text('View Packages'),
+              ),
+            ],
+          ),
+        );
+        return;
+      }
+      
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(_isEdit ? 'Could not update job: $e' : 'Could not post job: $e'),

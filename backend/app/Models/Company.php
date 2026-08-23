@@ -39,6 +39,7 @@ class Company extends Model
         'logo_url',
         'verification_status',
         'is_top_company',
+        'job_credits',
         'verified_at',
         'rejection_reason',
     ];
@@ -47,6 +48,7 @@ class Company extends Model
     {
         return [
             'verified_at' => 'datetime',
+            'job_credits' => 'integer',
             'verification_status' => CompanyVerificationStatus::class,
             'team_members' => 'array',
             'is_top_company' => 'boolean',

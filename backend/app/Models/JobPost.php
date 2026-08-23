@@ -87,13 +87,13 @@ class JobPost extends Model
             ->where('status', JobPostStatus::Published)
             ->whereNotNull('application_deadline_at')
             ->where('application_deadline_at', '<=', now())
-            ->update(['status' => JobPostStatus::Closed->value]);
+            ->update(['status' => JobPostStatus::Expired->value]);
 
         static::query()
             ->where('status', JobPostStatus::Published)
             ->where('published_at', '<=', now()->subDays(30))
             ->update([
-                'status' => JobPostStatus::Closed->value,
+                'status' => JobPostStatus::Expired->value,
                 'updated_at' => now(),
             ]);
 

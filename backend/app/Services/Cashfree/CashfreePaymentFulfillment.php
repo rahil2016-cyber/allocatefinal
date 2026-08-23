@@ -207,6 +207,12 @@ class CashfreePaymentFulfillment
             'purchased_at' => now(),
         ]);
 
+        $company = $payment->company;
+        $package = $payment->package;
+        if ($company && $package && $package->job_credits_granted > 0) {
+            $company->increment('job_credits', $package->job_credits_granted);
+        }
+
         try {
             $user = $payment->company?->user;
             if ($user && $user->email && ! Identifier::isSyntheticEmail($user->email)) {

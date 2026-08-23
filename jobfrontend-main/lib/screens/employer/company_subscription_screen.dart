@@ -25,13 +25,7 @@ class _CompanySubscriptionScreenState extends State<CompanySubscriptionScreen>
   String? _error;
   Map<String, dynamic>? _offer;
 
-  static const _features = [
-    '1 job post',
-    '30 days listing',
-    'Candidate profile access',
-    'Priority listing',
-    'WhatsApp & email support',
-  ];
+
 
   @override
   void onNetworkRestored() => _load();
@@ -139,6 +133,15 @@ class _CompanySubscriptionScreenState extends State<CompanySubscriptionScreen>
     final hasActive = offer?['has_active_subscription'] == true;
     final canPurchase = offer?['can_purchase'] == true ||
         (verified && !hasActive);
+    final jobCreditsGranted = offer?['job_credits_granted'] as int? ?? 1;
+    
+    final features = [
+      '$jobCreditsGranted job post${jobCreditsGranted > 1 ? 's' : ''}',
+      '30 days listing',
+      'Candidate profile access',
+      'Priority listing',
+      'WhatsApp & email support',
+    ];
     final first = (offer?['first_month'] is Map)
         ? Map<String, dynamic>.from(offer!['first_month'] as Map)
         : <String, dynamic>{};
@@ -208,14 +211,14 @@ class _CompanySubscriptionScreenState extends State<CompanySubscriptionScreen>
                         padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
                         children: [
                           Text(
-                            'Employer packages',
+                            'Post Jobs & Hire Faster',
                             style: textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            'Post jobs and reach qualified candidates.',
+                            'Purchase a package to get job credits and connect with candidates.',
                             style: textTheme.bodyMedium?.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -261,7 +264,7 @@ class _CompanySubscriptionScreenState extends State<CompanySubscriptionScreen>
                               durationDays: (sub['duration_days'] is int)
                                   ? sub['duration_days'] as int
                                   : 30,
-                              features: _features,
+                              features: features,
                               featured: true,
                               verified: verified,
                               hasActive: hasActive,
@@ -514,8 +517,8 @@ class _EmployerPackageCard extends StatelessWidget {
                   height: 1.35,
                 ),
               ),
-            )
-          else if (hasActive)
+            ),
+          if (hasActive) ...[
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(12),
@@ -551,7 +554,7 @@ class _EmployerPackageCard extends StatelessWidget {
                                 : 'Active — expires in ${daysRemaining ?? 0} days.')
                             : 'Your plan is active.',
                         if (expiresLabel != null) 'Valid until $expiresLabel.',
-                        'You can purchase again after it expires.',
+                        'Purchase again to top up your job credits.',
                       ].join(' '),
                       style: textTheme.bodyMedium?.copyWith(
                         color: nearExpiry
@@ -564,13 +567,15 @@ class _EmployerPackageCard extends StatelessWidget {
                   ),
                 ],
               ),
-            )
-          else
+            ),
+            const SizedBox(height: 14),
+          ],
+          if (verified)
             SizedBox(
               width: double.infinity,
               height: 46,
               child: FilledButton(
-                onPressed: canPurchase ? onSelect : null,
+                onPressed: onSelect,
                 style: FilledButton.styleFrom(
                   backgroundColor: accent,
                   foregroundColor: Colors.white,
@@ -579,7 +584,7 @@ class _EmployerPackageCard extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  isExpired ? 'Renew plan' : 'Purchase',
+                  isExpired ? 'Renew plan' : 'Purchase Credits',
                   style: const TextStyle(fontWeight: FontWeight.w700),
                 ),
               ),

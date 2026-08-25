@@ -13,6 +13,7 @@ class JobPost extends Model
         'title',
         'slug',
         'location',
+        'preferred_locations',
         'employment_type',
         'experience_level',
         'industry_type',
@@ -33,6 +34,7 @@ class JobPost extends Model
         'assets_required',
         'languages',
         'incentive_detail',
+        'benefits',
         'job_timings',
         'working_days',
         'age_min',
@@ -52,6 +54,7 @@ class JobPost extends Model
     protected function casts(): array
     {
         return [
+            'preferred_locations' => 'array',
             'skills' => 'array',
             'published_at' => 'datetime',
             'application_deadline_at' => 'datetime',

@@ -87,8 +87,8 @@ function RefundPolicyPage() {
                 <p><strong>Address:</strong> Ram and Co Circle, Davanagere</p>
                 <p>
                   <strong>Contact number:</strong>{" "}
-                  <a href="tel:8884644432" className="font-bold text-[var(--primary)] underline">
-                    8884644432
+                  <a href="tel:9036980574" className="font-bold text-[var(--primary)] underline">
+                    9036980574
                   </a>
                 </p>
                 <p>

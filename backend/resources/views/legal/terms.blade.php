@@ -88,7 +88,7 @@
     </p>
     <ul>
         <li><strong>Address:</strong> Ram and Co Circle, Davanagere</li>
-        <li><strong>Contact number:</strong> <a href="tel:8884644432">8884644432</a></li>
+        <li><strong>Contact number:</strong> <a href="tel:9036980574">9036980574</a></li>
         <li><strong>Email:</strong> <a href="mailto:Joballocate2025@gmail.com"><strong>Joballocate2025@gmail.com</strong></a></li>
     </ul>
 @endsection

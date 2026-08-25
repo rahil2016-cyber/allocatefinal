@@ -100,9 +100,10 @@ final class ReferEarnService
         }
 
         try {
+            $lowerCode = strtolower($code);
             // Company subscription coupons are NOT valid at registration.
             $companyCoupon = CompanyCoupon::query()
-                ->whereRaw('lower(code) = ?', [$code])
+                ->whereRaw('lower(code) = ?', [$lowerCode])
                 ->where('is_active', true)
                 ->first();
 
@@ -123,7 +124,7 @@ final class ReferEarnService
 
             // Another user's personal referral code.
             $referrer = User::query()
-                ->whereRaw('lower(referral_code) = ?', [$code])
+                ->whereRaw('lower(referral_code) = ?', [$lowerCode])
                 ->first();
 
             if ($referrer) {
@@ -157,7 +158,7 @@ final class ReferEarnService
             // Admin promo code for audience.
             $promo = AudiencePromoCode::query()
                 ->where('audience', $audience)
-                ->whereRaw('lower(code) = ?', [$code])
+                ->whereRaw('lower(code) = ?', [$lowerCode])
                 ->first();
 
             if ($promo) {
@@ -180,7 +181,7 @@ final class ReferEarnService
             // Wrong-audience promo exists?
             $other = AudiencePromoCode::query()
                 ->where('audience', '!=', $audience)
-                ->whereRaw('lower(code) = ?', [$code])
+                ->whereRaw('lower(code) = ?', [$lowerCode])
                 ->where('is_active', true)
                 ->exists();
 

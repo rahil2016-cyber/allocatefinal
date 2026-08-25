@@ -83,6 +83,22 @@
           }
         },
         {
+          "client_id": "395622351897-9bo771ecl9fvrrh337uc78g0c578g1op.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.joballocate.in",
+            "certificate_hash": "9174971b0ac4951be3728d37914bdcc9e14732ba"
+          }
+        },
+        {
+          "client_id": "395622351897-ecl5f36e76v2ipf37itqe7s6er8icvam.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.joballocate.in",
+            "certificate_hash": "9a1d6fe292ccf4cb6dfc70cbe61ada5183fad883"
+          }
+        },
+        {
           "client_id": "395622351897-o4ukfl09c3hto9efoh0eov7tvbt5cgue.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

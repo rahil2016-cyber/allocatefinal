@@ -132,7 +132,7 @@ final class ReferEarnService
                     ? UserRole::Company
                     : UserRole::JobSeeker;
 
-                if ($referrer->role !== $expectedRole) {
+                if ($referrer->role !== $expectedRole->value) {
                     return [
                         'valid' => false,
                         'message' => $audience === AudiencePromoCode::AUDIENCE_COMPANY

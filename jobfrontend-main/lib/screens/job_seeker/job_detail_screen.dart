@@ -473,7 +473,13 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
             ],
           ),
           const SizedBox(height: 16),
-          _buildHeaderInfoRow(Icons.location_on_rounded, Colors.indigo.shade600, '${_job.location.isEmpty ? "Remote" : _job.location}'),
+          _buildHeaderInfoRow(Icons.location_on_rounded, Colors.indigo.shade600, () {
+            String locStr = _job.location.isEmpty ? "Remote" : _job.location;
+            if (_job.preferredLocations != null && _job.preferredLocations!.isNotEmpty) {
+              locStr += " (Also: ${_job.preferredLocations!.join(', ')})";
+            }
+            return locStr;
+          }()),
           const SizedBox(height: 8),
           _buildHeaderInfoRow(Icons.access_time_filled_rounded, Colors.indigo.shade600, experienceText),
           const SizedBox(height: 8),
@@ -788,6 +794,8 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                   _buildHighlightDetailRow('Role Category', _job.roleCategory!),
                 if (_job.functionalArea != null && _job.functionalArea!.isNotEmpty)
                   _buildHighlightDetailRow('Functional Area', _job.functionalArea!),
+                if (_job.benefits != null && _job.benefits!.isNotEmpty)
+                  _buildHighlightDetailRow('Company Benefits', _job.benefits!),
                 _buildHighlightDetailRow('Role', _job.role ?? _job.title),
               ],
             ),

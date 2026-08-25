@@ -12,6 +12,7 @@ class Job {
   final String title;
   final String companyName;
   final String location;
+  final List<String>? preferredLocations;
   final String jobType;
   final String experienceLevel;
   /// API `industry_type` key (e.g. `software_engineering_it`).
@@ -59,6 +60,7 @@ class Job {
     required this.title,
     required this.companyName,
     required this.location,
+    this.preferredLocations,
     required this.jobType,
     required this.experienceLevel,
     this.industryType,
@@ -125,6 +127,15 @@ class Job {
       }
     }
 
+    final prefsRaw = json['preferred_locations'];
+    List<String>? preferredLocs;
+    if (prefsRaw is List) {
+      preferredLocs = [];
+      for (final e in prefsRaw) {
+        if (e != null) preferredLocs.add(e.toString());
+      }
+    }
+
     DateTime createdAt = DateTime.now();
     final pub = json['published_at']?.toString();
     if (pub != null && pub.isNotEmpty) {
@@ -166,6 +177,7 @@ class Job {
       title: json['title']?.toString() ?? 'Job',
       companyName: companyName,
       location: json['location']?.toString() ?? '',
+      preferredLocations: preferredLocs,
       jobType: json['employment_type']?.toString() ?? 'full_time',
       experienceLevel: json['experience_level']?.toString() ?? 'mid_level',
       industryType: (itk != null && itk.isNotEmpty) ? itk : null,
@@ -218,12 +230,20 @@ class Job {
     if (skillsRaw is List) {
       skills = skillsRaw.map((e) => e.toString()).toList();
     }
+    
+    final prefsRaw = json['preferred_locations'];
+    List<String>? preferredLocs;
+    if (prefsRaw is List) {
+      preferredLocs = prefsRaw.map((e) => e.toString()).toList();
+    }
+
     final itk2 = json['industry_type']?.toString();
     return Job(
       id: json['id'].toString(),
       title: json['title']?.toString() ?? '',
       companyName: json['company_name']?.toString() ?? 'Unknown Company',
       location: json['location']?.toString() ?? '',
+      preferredLocations: preferredLocs,
       jobType: json['job_type']?.toString() ?? 'full_time',
       experienceLevel: json['experience_level']?.toString() ?? 'mid',
       industryType: (itk2 != null && itk2.isNotEmpty) ? itk2 : null,

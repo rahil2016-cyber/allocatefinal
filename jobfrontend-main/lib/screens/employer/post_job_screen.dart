@@ -108,6 +108,7 @@ class _PostJobScreenState extends State<PostJobScreen> {
   final _salaryMinController = TextEditingController();
   final _salaryMaxController = TextEditingController();
   final _skillsController = TextEditingController();
+  final _preferredLocationController = TextEditingController();
   final _benefitsController = TextEditingController();
   final _salaryInsightsController = TextEditingController();
   final _roleCategoryController = TextEditingController();
@@ -153,6 +154,7 @@ class _PostJobScreenState extends State<PostJobScreen> {
   String _experiencePreference = 'any';
 
   final List<String> _addedSkills = [];
+  final List<String> _preferredLocations = [];
   bool _submitting = false;
   bool _isVerified = false;
   final _companyAboutController = TextEditingController();
@@ -390,6 +392,16 @@ class _PostJobScreenState extends State<PostJobScreen> {
         if (s != null) {
           final t = s.toString().trim();
           if (t.isNotEmpty) _addedSkills.add(t);
+        }
+      }
+    }
+    
+    final prefs = j['preferred_locations'];
+    if (prefs is List) {
+      for (final p in prefs) {
+        if (p != null) {
+          final pt = p.toString().trim();
+          if (pt.isNotEmpty) _preferredLocations.add(pt);
         }
       }
     }
@@ -758,6 +770,47 @@ class _PostJobScreenState extends State<PostJobScreen> {
           ),
           onChanged: (_) => setState(() {}),
         ),
+
+        const SizedBox(height: 20),
+        _buildLabel('Additional Preferred Locations'),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                controller: _preferredLocationController,
+                decoration: const InputDecoration(
+                  hintText: 'e.g. Pune, Maharashtra',
+                  prefixIcon: Icon(Icons.location_city_rounded, color: AppColors.primary),
+                ),
+                onFieldSubmitted: (_) => _addPreferredLocation(),
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              icon: const Icon(Icons.add_circle, color: AppColors.primary, size: 36),
+              onPressed: _addPreferredLocation,
+            ),
+          ],
+        ),
+        if (_preferredLocations.isNotEmpty) ...[
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _preferredLocations.map((loc) {
+              return Chip(
+                label: Text(loc),
+                deleteIcon: const Icon(Icons.close, size: 16),
+                onDeleted: () {
+                  setState(() {
+                    _preferredLocations.remove(loc);
+                  });
+                },
+              );
+            }).toList(),
+          ),
+        ],
 
         const SizedBox(height: 20),
         Row(
@@ -1912,6 +1965,15 @@ class _PostJobScreenState extends State<PostJobScreen> {
     });
   }
 
+  void _addPreferredLocation() {
+    final t = _preferredLocationController.text.trim();
+    if (t.isEmpty) return;
+    setState(() {
+      if (!_preferredLocations.contains(t)) _preferredLocations.add(t);
+      _preferredLocationController.clear();
+    });
+  }
+
   int? _parseSalary(String raw) {
     final digits = raw.replaceAll(RegExp(r'[^\d]'), '');
     if (digits.isEmpty) return null;
@@ -2041,6 +2103,7 @@ class _PostJobScreenState extends State<PostJobScreen> {
         'title': _titleController.text.trim(),
         'description': _descController.text.trim(),
         'location': _locationController.text.trim().isEmpty ? null : _locationController.text.trim(),
+        'preferred_locations': _preferredLocations.isEmpty ? null : List<String>.from(_preferredLocations),
         'employment_type': _employmentTypeApi(_selectedJobType),
         'experience_level': _experienceApi(_selectedExperience),
         'industry_type': _industryType == 'none_of_above' ? _customIndustryController.text.trim() : _industryType,
@@ -2166,6 +2229,7 @@ class _PostJobScreenState extends State<PostJobScreen> {
     _salaryMinController.dispose();
     _salaryMaxController.dispose();
     _skillsController.dispose();
+    _preferredLocationController.dispose();
     _companyAboutController.dispose();
     _maxApplicationsController.dispose();
     _consultancyNameController.dispose();

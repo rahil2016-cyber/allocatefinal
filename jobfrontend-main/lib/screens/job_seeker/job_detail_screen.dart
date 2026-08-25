@@ -474,11 +474,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
           ),
           const SizedBox(height: 16),
           _buildHeaderInfoRow(Icons.location_on_rounded, Colors.indigo.shade600, () {
-            String locStr = _job.location.isEmpty ? "Remote" : _job.location;
-            if (_job.preferredLocations != null && _job.preferredLocations!.isNotEmpty) {
-              locStr += " (Also: ${_job.preferredLocations!.join(', ')})";
-            }
-            return locStr;
+            return _job.location.isEmpty ? "Remote" : _job.location;
           }()),
           const SizedBox(height: 8),
           _buildHeaderInfoRow(Icons.access_time_filled_rounded, Colors.indigo.shade600, experienceText),
@@ -874,6 +870,10 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
             const SizedBox(height: 12),
           ],
           _buildRequirementChipRow('Language Preference', _job.languages ?? 'Tamil, English'),
+          if (_job.preferredLocations != null && _job.preferredLocations!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _buildRequirementChipRow('Candidates are preferred from this location', _job.preferredLocations!.join(', ')),
+          ],
           if (_job.requirements.isNotEmpty) ...[
             const SizedBox(height: 12),
             const Divider(),

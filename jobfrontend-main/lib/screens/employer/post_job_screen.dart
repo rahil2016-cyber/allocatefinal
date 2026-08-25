@@ -772,7 +772,7 @@ class _PostJobScreenState extends State<PostJobScreen> {
         ),
 
         const SizedBox(height: 20),
-        _buildLabel('Additional Preferred Locations'),
+        _buildLabel('Candidate are preferred from this location'),
         const SizedBox(height: 8),
         Row(
           children: [

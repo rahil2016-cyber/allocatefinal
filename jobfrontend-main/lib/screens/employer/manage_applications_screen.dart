@@ -80,13 +80,6 @@ JsonResume _resumeMergedForEmployerView(_ApplicantRow a) {
   return j;
 }
 
-bool _applicantRowHasExternalResumeOnly(_ApplicantRow a) {
-  if (a.primaryResumeContent != null) return false;
-  final u = a.resumeUrl?.trim();
-  if (u == null || u.isEmpty) return false;
-  return (MediaUrl.resolve(u) ?? u).trim().isNotEmpty;
-}
-
 class _ApplicantRow {
   _ApplicantRow({
     required this.jobId,
@@ -113,6 +106,7 @@ class _ApplicantRow {
     this.educationLines = const [],
     this.primaryResumeContent,
     this.primaryResumeTemplateId,
+    this.primaryResumeSourceType,
     this.profilePhotoUrl,
   });
 
@@ -131,6 +125,7 @@ class _ApplicantRow {
   final String? primaryResumeTitle;
   final JsonResume? primaryResumeContent;
   final String? primaryResumeTemplateId;
+  final String? primaryResumeSourceType;
   final String? headline;
   final String? bio;
   final String? city;
@@ -227,6 +222,7 @@ class _ManageApplicationsScreenState extends State<ManageApplicationsScreen>
             var educationLines = <String>[];
             JsonResume? primaryResumeContent;
             String? primaryResumeTemplateId;
+            String? primaryResumeSourceType;
             if (u != null) {
               final prof = u['job_seeker_profile'];
               if (prof is Map) {
@@ -242,6 +238,7 @@ class _ManageApplicationsScreenState extends State<ManageApplicationsScreen>
                   final t = pr['title']?.toString().trim();
                   if (t != null && t.isNotEmpty) primaryResumeTitle = t;
                   primaryResumeTemplateId = pr['template_id']?.toString();
+                  primaryResumeSourceType = pr['source_type']?.toString();
                   final content = pr['content'];
                   primaryResumeContent = jsonResumePreviewFromDraftContent(content);
                 }
@@ -314,6 +311,7 @@ class _ManageApplicationsScreenState extends State<ManageApplicationsScreen>
               educationLines: educationLines,
               primaryResumeContent: primaryResumeContent,
               primaryResumeTemplateId: primaryResumeTemplateId,
+              primaryResumeSourceType: primaryResumeSourceType,
               profilePhotoUrl: photo,
             ));
           }
@@ -534,7 +532,7 @@ class _ManageApplicationsScreenState extends State<ManageApplicationsScreen>
                     'Primary resume (applications): ${a.primaryResumeTitle}',
                   ),
                 ],
-                if (_applicantRowHasExternalResumeOnly(a)) ...[
+                if (a.resumeUrl != null && a.resumeUrl!.trim().isNotEmpty && (MediaUrl.resolve(a.resumeUrl!) ?? a.resumeUrl!).trim().isNotEmpty) ...[
                   const SizedBox(height: 16),
                   FilledButton.icon(
                     onPressed: () {
@@ -542,10 +540,10 @@ class _ManageApplicationsScreenState extends State<ManageApplicationsScreen>
                       _openResume(a.resumeUrl!);
                     },
                     icon: const Icon(Icons.picture_as_pdf_rounded),
-                    label: const Text('Open resume / portfolio (PDF or link)'),
+                    label: const Text('Open uploaded resume (PDF or link)'),
                   ),
                 ],
-                if (a.primaryResumeContent != null) ...[
+                if (a.primaryResumeContent != null && a.primaryResumeSourceType != 'imported') ...[
                   const SizedBox(height: 24),
                   const Text(
                     'Application resume (in-app)',

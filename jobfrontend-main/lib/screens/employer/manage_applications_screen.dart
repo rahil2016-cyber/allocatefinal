@@ -1028,67 +1028,99 @@ class _ManageApplicationsScreenState extends State<ManageApplicationsScreen>
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
+          const SizedBox(height: 12),
+          Row(
             children: [
-              if (a.status == 'applied')
-                OutlinedButton(
-                  onPressed: () => _setStatus(
-                    a,
-                    'shortlisted',
-                    'Shortlist candidate',
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    foregroundColor: AppColors.accent,
-                    side: const BorderSide(color: AppColors.accent),
-                  ),
-                  child: const Text('Shortlist'),
+              _buildActionButton(
+                label: 'Shortlist',
+                icon: Icons.star_outline_rounded,
+                color: AppColors.primary,
+                onPressed: () => _setStatus(
+                  a,
+                  'shortlisted',
+                  'Shortlist candidate',
                 ),
-              if (a.status == 'applied' || a.status == 'shortlisted')
-                OutlinedButton(
-                  onPressed: () => _setStatus(
-                    a,
-                    'interview',
-                    'Move to interview',
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  child: const Text('Interview'),
+              ),
+              const SizedBox(width: 6),
+              _buildActionButton(
+                label: 'Interview',
+                icon: Icons.calendar_today_outlined,
+                color: AppColors.primary,
+                onPressed: () => _setStatus(
+                  a,
+                  'interview',
+                  'Move to interview',
                 ),
-              if (a.status != 'rejected' && a.status != 'hired')
-                OutlinedButton(
-                  onPressed: () => _setStatus(
-                    a,
-                    'rejected',
-                    'Reject candidate',
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    foregroundColor: AppColors.error,
-                    side: const BorderSide(color: AppColors.error),
-                  ),
-                  child: const Text('Reject'),
+              ),
+              const SizedBox(width: 6),
+              _buildActionButton(
+                label: 'Reject',
+                icon: Icons.cancel_outlined,
+                color: AppColors.error,
+                onPressed: () => _setStatus(
+                  a,
+                  'rejected',
+                  'Reject candidate',
                 ),
-              if (a.status != 'hired' && a.status != 'rejected')
-                FilledButton(
-                  onPressed: () => _setStatus(
-                    a,
-                    'hired',
-                    'Mark as hired',
-                  ),
-                  style: FilledButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                    backgroundColor: AppColors.success,
-                  ),
-                  child: const Text('Hire'),
+              ),
+              const SizedBox(width: 6),
+              _buildActionButton(
+                label: 'Hire',
+                icon: Icons.person_outline_rounded,
+                color: AppColors.success,
+                onPressed: () => _setStatus(
+                  a,
+                  'hired',
+                  'Mark as hired',
                 ),
+              ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton({
+    required String label,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onPressed,
+  }) {
+    return Expanded(
+      child: SizedBox(
+        height: 38,
+        child: OutlinedButton(
+          onPressed: onPressed,
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            foregroundColor: color,
+            side: BorderSide(color: color, width: 1.2),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            visualDensity: VisualDensity.compact,
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 16, color: color),
+                const SizedBox(width: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

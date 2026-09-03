@@ -63,8 +63,8 @@ function RefundPolicyPage() {
               <ul className="mt-2 list-disc pl-5 space-y-1">
                 <li>
                   To request a refund review, email{" "}
-                  <a href="mailto:Joballocate2025@gmail.com" className="font-bold text-[var(--primary)] underline">
-                    Joballocate2025@gmail.com
+                  <a href="mailto:info@joballocate.com" className="font-bold text-[var(--primary)] underline">
+                    info@joballocate.com
                   </a>{" "}
                   with your Payment ID, Order ID, Registered Email/Phone, and Reason for Refund.
                 </li>
@@ -93,8 +93,8 @@ function RefundPolicyPage() {
                 </p>
                 <p>
                   <strong>Email:</strong>{" "}
-                  <a href="mailto:Joballocate2025@gmail.com" className="font-bold text-[var(--primary)] underline">
-                    Joballocate2025@gmail.com
+                  <a href="mailto:info@joballocate.com" className="font-bold text-[var(--primary)] underline">
+                    info@joballocate.com
                   </a>
                 </p>
                 <p>

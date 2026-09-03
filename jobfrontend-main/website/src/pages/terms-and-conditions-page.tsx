@@ -126,8 +126,8 @@ function TermsAndConditionsPage() {
                 </li>
                 <li>
                   <strong>Email:</strong>{" "}
-                  <a href="mailto:Joballocate2025@gmail.com" className="font-bold text-[var(--primary)] underline">
-                    Joballocate2025@gmail.com
+                  <a href="mailto:info@joballocate.com" className="font-bold text-[var(--primary)] underline">
+                    info@joballocate.com
                   </a>
                 </li>
               </ul>

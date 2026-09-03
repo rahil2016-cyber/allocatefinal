@@ -2027,12 +2027,14 @@ class _PostJobScreenState extends State<PostJobScreen> {
       final alreadyPurchased = firstMap['already_purchased'] == true;
       if (alreadyPurchased) return true;
 
+      final price = offer['monthly_price_inr']?.toString() ?? '499';
+
       final proceedData = await showDialog<bool?>(
         context: context,
         builder: (ctx) {
           return AlertDialog(
             title: const Text('Job posting requires activation'),
-            content: const Text('Pay ₹399 to post jobs.'),
+            content: Text('Pay ₹$price to post jobs.'),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx, null),

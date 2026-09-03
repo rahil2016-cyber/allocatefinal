@@ -71,8 +71,8 @@ class AdminBannerAdController extends Controller
 
         $startsAt = $validated['starts_at'] ?? null;
         $status = ($validated['publish_now'] ?? false) ? 'active' : 'draft';
-        if (($validated['publish_now'] ?? false) && ! $startsAt) {
-            $startsAt = now()->toDateTimeString();
+        if ($validated['publish_now'] ?? false) {
+            $startsAt = now();
         }
 
         $row = BannerAd::query()->create([
@@ -116,8 +116,8 @@ class AdminBannerAdController extends Controller
         }
 
         if (array_key_exists('publish_now', $validated)) {
-            $row->status = $validated['publish_now'] ? 'active' : $row->status;
-            if ($validated['publish_now'] && ! $row->starts_at) {
+            if ($validated['publish_now']) {
+                $row->status = 'active';
                 $row->starts_at = now();
             }
         }
@@ -134,9 +134,7 @@ class AdminBannerAdController extends Controller
             return $this->fail('Banner not found.', null, 404);
         }
 
-        if (! $row->starts_at) {
-            $row->starts_at = now();
-        }
+        $row->starts_at = now();
         $row->status = 'active';
         $row->save();
 

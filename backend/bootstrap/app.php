@@ -14,14 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        // Prepend CORS middleware so it runs before routing/auth on every request,
-        // including error responses. This ensures the admin panel at
-        // www.joballocate.tech can always reach the API at joballocate.tech.
+        // HandleCors in the global stack covers every request (web, api, errors).
         $middleware->use([
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
-        $middleware->prependToGroup('api', \Illuminate\Http\Middleware\HandleCors::class);
-        $middleware->prependToGroup('web', \Illuminate\Http\Middleware\HandleCors::class);
 
         $middleware->alias([
             'role'  => \App\Http\Middleware\EnsureUserRole::class,
@@ -30,14 +26,22 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Throwable $e, $request) {
-            // Force JSON responses for API routes (prevents HTML 503 pages breaking Flutter JSON decoding).
             $isApi = $request->is('api/*') || $request->expectsJson();
             if (! $isApi) {
                 return null;
             }
 
-            if ($e instanceof \Illuminate\Auth\AuthenticationException ||
-                $e instanceof \Illuminate\Validation\ValidationException ||
+            // Return a proper 401 JSON instead of redirecting to a non-existent
+            // 'login' route (which would cause a secondary 500 RouteNotFoundException).
+            if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthenticated. Please provide a valid Bearer token.',
+                    'data'    => null,
+                ], 401);
+            }
+
+            if ($e instanceof \Illuminate\Validation\ValidationException ||
                 $e instanceof \Illuminate\Database\Eloquent\ModelNotFoundException ||
                 $e instanceof \Illuminate\Auth\Access\AuthorizationException) {
                 return null;

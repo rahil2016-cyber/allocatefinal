@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/media_url.dart';
+import 'banner_api_service.dart';
 
 /// Auth session + persistent storage (survives app restarts).
 class AppSession {
@@ -78,6 +79,7 @@ class AppSession {
 
   /// Remove session from memory and device storage.
   static Future<void> clear() async {
+    BannerApiService.instance.clearCache();
     _clearMemoryOnly();
     try {
       final p = await SharedPreferences.getInstance();

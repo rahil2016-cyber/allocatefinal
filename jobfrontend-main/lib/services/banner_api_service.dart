@@ -9,19 +9,38 @@ import 'app_session.dart';
 
 /// Banner service for managing promotional banners shown on the platform.
 ///
-/// Active banners are kept in memory for the app session and persisted to
-/// SharedPreferences so Home can paint instantly on reopen / tab return.
-/// Network refresh runs once per session (or when forced).
+/// Banners are role-specific. Each user role (job_seeker / employer) gets its
+/// own in-memory cache and its own SharedPreferences key so that switching
+/// accounts on the same device never leaks one role's banners into another.
 class BannerApiService {
   BannerApiService._();
   static final BannerApiService instance = BannerApiService._();
 
-  static const _prefsKey = 'cached_active_banners_v1';
+  // ─── Role-aware cache keys ────────────────────────────────────────────────
+  static const _prefsKeyJobSeeker = 'cached_banners_v2_job_seeker';
+  static const _prefsKeyEmployer  = 'cached_banners_v2_employer';
+  static const _prefsKeyAll       = 'cached_banners_v2_all';
+
+  String get _currentRole {
+    final role = AppSession.user?['role']?.toString() ?? '';
+    if (role == 'job_seeker') return 'job_seeker';
+    if (role == 'company' || role == 'employer') return 'employer';
+    return 'all';
+  }
+
+  String get _prefsKey {
+    switch (_currentRole) {
+      case 'job_seeker': return _prefsKeyJobSeeker;
+      case 'employer':   return _prefsKeyEmployer;
+      default:           return _prefsKeyAll;
+    }
+  }
 
   String get _base => ApiConfig.baseUrl;
 
-  List<PromoBanner>? _memoryCache;
-  bool _fetchedThisSession = false;
+  // Separate memory caches per role to prevent cross-role contamination.
+  final Map<String, List<PromoBanner>> _memoryCache = {};
+  final Map<String, bool> _fetchedThisSession = {};
 
   Map<String, String> get _publicHeaders => {
         'Accept': 'application/json',
@@ -43,14 +62,22 @@ class BannerApiService {
     };
   }
 
-  /// Instant in-memory list (may be empty).
+  /// Instant in-memory list for the current role (may be empty).
   List<PromoBanner> get memoryBanners =>
-      List<PromoBanner>.unmodifiable(_memoryCache ?? const []);
+      List<PromoBanner>.unmodifiable(_memoryCache[_currentRole] ?? const []);
 
-  /// Load disk cache into memory (no network). Safe to call on Home init.
+  /// Clear all cached banners (call on logout so the next user starts fresh).
+  void clearCache() {
+    _memoryCache.clear();
+    _fetchedThisSession.clear();
+  }
+
+  /// Load disk cache for the current role into memory (no network).
+  /// Safe to call on Home init.
   Future<List<PromoBanner>> loadCachedBanners() async {
-    if (_memoryCache != null) {
-      return List<PromoBanner>.unmodifiable(_memoryCache!);
+    final role = _currentRole;
+    if (_memoryCache.containsKey(role)) {
+      return List<PromoBanner>.unmodifiable(_memoryCache[role]!);
     }
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -62,14 +89,14 @@ class BannerApiService {
           .whereType<Map>()
           .map((e) => PromoBanner.fromJson(Map<String, dynamic>.from(e)))
           .toList();
-      _memoryCache = list;
+      _memoryCache[role] = list;
       return List<PromoBanner>.unmodifiable(list);
     } catch (_) {
       return const [];
     }
   }
 
-  Future<void> _persist(List<PromoBanner> banners) async {
+  Future<void> _persist(String role, List<PromoBanner> banners) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(
@@ -82,11 +109,11 @@ class BannerApiService {
   }
 
   Future<List<PromoBanner>> _fetchFromNetwork() async {
+    final role = _currentRole;
     String queryParams = '';
-    final role = AppSession.user?['role']?.toString();
     if (role == 'job_seeker') {
       queryParams = '?for=job_seeker';
-    } else if (role == 'employer' || role == 'company') {
+    } else if (role == 'employer') {
       queryParams = '?for=employer';
     }
     final uri = Uri.parse('$_base/banners$queryParams');
@@ -104,25 +131,28 @@ class BannerApiService {
         .toList();
   }
 
-  /// `GET /banners` — active banners with session + disk cache.
+  /// `GET /banners` — active banners with role-specific session + disk cache.
   ///
-  /// After the first successful fetch in this process, subsequent calls return
-  /// memory unless [forceRefresh] is true (pull-to-refresh / app reopen path).
+  /// Each role has its own cache. Switching accounts never returns stale banners
+  /// from a different role. Pass [forceRefresh] = true for pull-to-refresh.
   Future<List<PromoBanner>> getActiveBanners({bool forceRefresh = false}) async {
-    if (!forceRefresh && _fetchedThisSession && _memoryCache != null) {
-      return List<PromoBanner>.unmodifiable(_memoryCache!);
+    final role = _currentRole;
+    if (!forceRefresh &&
+        (_fetchedThisSession[role] == true) &&
+        _memoryCache.containsKey(role)) {
+      return List<PromoBanner>.unmodifiable(_memoryCache[role]!);
     }
 
     try {
       final fresh = await _fetchFromNetwork();
-      _memoryCache = fresh;
-      _fetchedThisSession = true;
-      await _persist(fresh);
+      _memoryCache[role] = fresh;
+      _fetchedThisSession[role] = true;
+      await _persist(role, fresh);
       return List<PromoBanner>.unmodifiable(fresh);
     } catch (e) {
       final cached = await loadCachedBanners();
       if (cached.isNotEmpty) {
-        _fetchedThisSession = true;
+        _fetchedThisSession[role] = true;
         return cached;
       }
       rethrow;

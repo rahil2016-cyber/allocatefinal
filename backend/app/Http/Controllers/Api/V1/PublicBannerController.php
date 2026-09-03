@@ -21,6 +21,17 @@ class PublicBannerController extends Controller
         $raw = $request->query('for');
         $for = is_string($raw) && in_array($raw, ['job_seeker', 'employer'], true) ? $raw : null;
 
+        if (!$for) {
+            $user = $request->user('sanctum');
+            if ($user) {
+                if ($user->role === 'job_seeker') {
+                    $for = 'job_seeker';
+                } elseif ($user->role === 'company') {
+                    $for = 'employer';
+                }
+            }
+        }
+
         $now = now();
         $q = BannerAd::query()
             ->where('status', 'active')

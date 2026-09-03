@@ -47,13 +47,11 @@ class PublicBannerController extends Controller
                 $query->whereNull('expires_at')->orWhere('expires_at', '>=', $now);
             });
 
-        // WORKAROUND: The React admin panel has swapped the values for the audience dropdown.
-        // It saves "Job seekers" as 'employer' and "Employers" as 'job_seeker'.
-        // To fix this without modifying the React frontend, we swap the queries here.
+        // Filter by audience: show banners for this audience AND banners marked 'all'
         if ($for === 'job_seeker') {
-            $q->whereIn('audience', ['all', 'employer']);
-        } elseif ($for === 'employer') {
             $q->whereIn('audience', ['all', 'job_seeker']);
+        } elseif ($for === 'employer') {
+            $q->whereIn('audience', ['all', 'employer']);
         }
 
         $rows = $q

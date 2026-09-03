@@ -82,7 +82,14 @@ class BannerApiService {
   }
 
   Future<List<PromoBanner>> _fetchFromNetwork() async {
-    final uri = Uri.parse('$_base/banners');
+    String queryParams = '';
+    final role = AppSession.user?['role']?.toString();
+    if (role == 'job_seeker') {
+      queryParams = '?for=job_seeker';
+    } else if (role == 'employer' || role == 'company') {
+      queryParams = '?for=employer';
+    }
+    final uri = Uri.parse('$_base/banners$queryParams');
     final r = await http.get(uri, headers: _authHeaders);
     final json = _decode(r);
     _ensureSuccess(json, r.statusCode);

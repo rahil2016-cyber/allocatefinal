@@ -14,11 +14,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Prepend CORS middleware so it runs before routing/auth on every request,
+        // including error responses. This ensures the admin panel at
+        // www.joballocate.tech can always reach the API at joballocate.tech.
         $middleware->use([
             \Illuminate\Http\Middleware\HandleCors::class,
         ]);
+        $middleware->prependToGroup('api', \Illuminate\Http\Middleware\HandleCors::class);
+        $middleware->prependToGroup('web', \Illuminate\Http\Middleware\HandleCors::class);
+
         $middleware->alias([
-            'role' => \App\Http\Middleware\EnsureUserRole::class,
+            'role'  => \App\Http\Middleware\EnsureUserRole::class,
             'leaky' => \App\Http\Middleware\ThrottleLeakyBucket::class,
         ]);
     })

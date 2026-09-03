@@ -33,16 +33,4 @@
     <Files "assetlinks.json">
         Header set Content-Type "application/json"
     </Files>
-
-    # CORS — allow the admin panel (www.joballocate.tech) and the mobile API
-    # to communicate with the backend (joballocate.tech).
-    Header always set Access-Control-Allow-Origin "*"
-    Header always set Access-Control-Allow-Methods "GET, POST, PUT, PATCH, DELETE, OPTIONS"
-    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, Accept, X-XSRF-TOKEN"
-    Header always set Access-Control-Max-Age "3600"
-
-    # Respond immediately to pre-flight OPTIONS requests (no PHP needed).
-    RewriteEngine On
-    RewriteCond %{REQUEST_METHOD} OPTIONS
-    RewriteRule ^ - [R=204,L]
 </IfModule>

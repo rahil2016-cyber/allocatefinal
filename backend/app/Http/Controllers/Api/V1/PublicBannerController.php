@@ -39,11 +39,11 @@ class PublicBannerController extends Controller
         if ($token) {
             $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
             if ($accessToken && $accessToken->tokenable) {
-                $role = $accessToken->tokenable->role ?? '';
+                $user = $accessToken->tokenable;
+                $role = $user->role ?? '';
                 if ($role === 'job_seeker') {
                     $for = 'job_seeker';
-                } elseif ($role === 'company') {
-                    // The User model uses role='company' for employer accounts.
+                } elseif (in_array($role, ['company', 'employer'], true) || $user->company()->exists()) {
                     $for = 'employer';
                 }
             }
@@ -63,8 +63,10 @@ class PublicBannerController extends Controller
         $query = BannerAd::query()
             ->where('status', 'active')
             // Publish date: null means "no schedule" (show immediately), or must have started.
+            // Tolerates timezone offset windows (+12h) for records created with local time pickers.
             ->where(function ($q) use ($now): void {
-                $q->whereNull('starts_at')->orWhere('starts_at', '<=', $now);
+                $q->whereNull('starts_at')
+                  ->orWhere('starts_at', '<=', $now->copy()->addHours(12));
             })
             // Expiry date: null means "never expires", or must not yet have expired.
             ->where(function ($q) use ($now): void {

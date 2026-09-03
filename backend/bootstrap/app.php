@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // Prevent Laravel Authenticate middleware from redirecting to a non-existent 'login' route.
+        $middleware->redirectGuestsTo(fn () => null);
+
         // HandleCors in the global stack covers every request (web, api, errors).
         $middleware->use([
             \Illuminate\Http\Middleware\HandleCors::class,
@@ -31,9 +34,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 return null;
             }
 
-            // Return a proper 401 JSON instead of redirecting to a non-existent
-            // 'login' route (which would cause a secondary 500 RouteNotFoundException).
-            if ($e instanceof \Illuminate\Auth\AuthenticationException) {
+            // Return a proper 401 JSON instead of redirecting to a non-existent 'login' route.
+            if ($e instanceof \Illuminate\Auth\AuthenticationException ||
+                ($e instanceof \Symfony\Component\Routing\Exception\RouteNotFoundException && str_contains($e->getMessage(), '[login]'))) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Unauthenticated. Please provide a valid Bearer token.',

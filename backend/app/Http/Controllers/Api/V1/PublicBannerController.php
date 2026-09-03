@@ -22,12 +22,17 @@ class PublicBannerController extends Controller
         $for = is_string($raw) && in_array($raw, ['job_seeker', 'employer'], true) ? $raw : null;
 
         if (!$for) {
-            $user = $request->user('sanctum');
-            if ($user) {
-                if ($user->role === 'job_seeker') {
-                    $for = 'job_seeker';
-                } elseif ($user->role === 'company') {
-                    $for = 'employer';
+            $token = $request->bearerToken();
+            if ($token) {
+                // Manually parse token since auth('sanctum')->user() might not work on public routes without middleware
+                $accessToken = \Laravel\Sanctum\PersonalAccessToken::findToken($token);
+                if ($accessToken && $accessToken->tokenable) {
+                    $user = $accessToken->tokenable;
+                    if ($user->role === 'job_seeker') {
+                        $for = 'job_seeker';
+                    } elseif ($user->role === 'company') {
+                        $for = 'employer';
+                    }
                 }
             }
         }
@@ -42,10 +47,13 @@ class PublicBannerController extends Controller
                 $query->whereNull('expires_at')->orWhere('expires_at', '>=', $now);
             });
 
+        // WORKAROUND: The React admin panel has swapped the values for the audience dropdown.
+        // It saves "Job seekers" as 'employer' and "Employers" as 'job_seeker'.
+        // To fix this without modifying the React frontend, we swap the queries here.
         if ($for === 'job_seeker') {
-            $q->whereIn('audience', ['all', 'job_seeker']);
-        } elseif ($for === 'employer') {
             $q->whereIn('audience', ['all', 'employer']);
+        } elseif ($for === 'employer') {
+            $q->whereIn('audience', ['all', 'job_seeker']);
         }
 
         $rows = $q

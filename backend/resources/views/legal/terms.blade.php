@@ -89,6 +89,6 @@
     <ul>
         <li><strong>Address:</strong> Ram and Co Circle, Davanagere</li>
         <li><strong>Contact number:</strong> <a href="tel:9036980574">9036980574</a></li>
-        <li><strong>Email:</strong> <a href="mailto:Joballocate2025@gmail.com"><strong>Joballocate2025@gmail.com</strong></a></li>
+        <li><strong>Email:</strong> <a href="mailto:info@joballocate.com"><strong>info@joballocate.com</strong></a></li>
     </ul>
 @endsection

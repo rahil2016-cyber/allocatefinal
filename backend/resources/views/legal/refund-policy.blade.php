@@ -37,7 +37,7 @@
     <h2>4. Refund Request Process &amp; Timeline</h2>
     <ul>
         <li>To request a refund review, email
-            <a href="mailto:Joballocate2025@gmail.com"><strong>Joballocate2025@gmail.com</strong></a>
+            <a href="mailto:info@joballocate.com"><strong>info@joballocate.com</strong></a>
             with your Payment ID, Order ID, Registered Email/Phone, and Reason for Refund.</li>
         <li>Refund requests must be submitted within <strong>7 business days</strong> of the original payment date.</li>
         <li>If approved, refunds will be processed back to the original payment source within <strong>5 to 7 working days</strong>.</li>
@@ -55,7 +55,7 @@
     <ul>
         <li><strong>Address:</strong> Ram and Co Circle, Davanagere</li>
         <li><strong>Contact number:</strong> <a href="tel:9036980574">9036980574</a></li>
-        <li><strong>Email:</strong> <a href="mailto:Joballocate2025@gmail.com"><strong>Joballocate2025@gmail.com</strong></a></li>
+        <li><strong>Email:</strong> <a href="mailto:info@joballocate.com"><strong>info@joballocate.com</strong></a></li>
         <li><strong>Website:</strong> <a href="https://joballocate.tech">https://joballocate.tech</a></li>
     </ul>
 @endsection

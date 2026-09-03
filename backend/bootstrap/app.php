@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->use([
+            \Illuminate\Http\Middleware\HandleCors::class,
+        ]);
         $middleware->alias([
             'role' => \App\Http\Middleware\EnsureUserRole::class,
             'leaky' => \App\Http\Middleware\ThrottleLeakyBucket::class,

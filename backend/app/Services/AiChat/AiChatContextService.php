@@ -48,6 +48,79 @@ class AiChatContextService
         return $block;
     }
 
+    /**
+     * Jobs to show as interactive cards in the Flutter chat UI (same payload as job board).
+     *
+     * @return Collection<int, JobPost>
+     */
+    public function resolveJobsForMessage(User $user, ?string $userMessage, ?int $jobId = null): Collection
+    {
+        JobPost::runAutoCloseJobs();
+
+        if ($user->hasRole(UserRole::JobSeeker)) {
+            return $this->resolveSeekerJobsForMessage($user, $userMessage, $jobId);
+        }
+
+        return collect();
+    }
+
+    /**
+     * @return Collection<int, JobPost>
+     */
+    private function resolveSeekerJobsForMessage(User $user, ?string $userMessage, ?int $jobId): Collection
+    {
+        if ($userMessage === null || trim($userMessage) === '') {
+            return collect();
+        }
+
+        $intents = $this->detectSeekerIntents($userMessage);
+        $profile = $user->jobSeekerProfile;
+
+        if (in_array('jobs_near_me', $intents, true)) {
+            $criteria = $this->resolveLocationCriteria(
+                $profile,
+                $this->parseLocationFromMessage($userMessage)
+            );
+            if ($criteria === null) {
+                return collect();
+            }
+
+            return $this->fetchJobsNearLocation($criteria, [], 15)['jobs'];
+        }
+
+        if (in_array('recommended_jobs', $intents, true)) {
+            return $this->fetchRecommendedJobs($profile, [], 12);
+        }
+
+        if (in_array('saved_jobs', $intents, true)) {
+            $saved = SavedJob::query()
+                ->where('user_id', $user->id)
+                ->latest('id')
+                ->limit(15)
+                ->pluck('job_post_id')
+                ->all();
+
+            if ($saved === []) {
+                return collect();
+            }
+
+            return $this->listedJobQuery()
+                ->whereIn('id', $saved)
+                ->latest('published_at')
+                ->get();
+        }
+
+        return collect();
+    }
+
+    private function listedJobQuery()
+    {
+        return JobPost::query()
+            ->with('company:id,name,slug,logo_url')
+            ->withCount('applications')
+            ->listed();
+    }
+
     private function seekerLiveDataContext(User $user, ?string $userMessage): string
     {
         if ($userMessage === null || trim($userMessage) === '') {
@@ -594,9 +667,7 @@ class AiChatContextService
                 continue;
             }
 
-            $batch = JobPost::query()
-                ->with('company:id,name')
-                ->listed()
+            $batch = $this->listedJobQuery()
                 ->when($excludeJobIds !== [], fn ($q) => $q->whereNotIn('id', $excludeJobIds))
                 ->where(function ($q) use ($variant): void {
                     $q->whereRaw('LOWER(location) LIKE ?', ['%'.mb_strtolower($variant).'%'])
@@ -623,9 +694,7 @@ class AiChatContextService
         if ($jobs->count() < $limit) {
             $prefix = substr($this->locationKey($place), 0, 4);
             if (strlen($prefix) >= 4) {
-                $fuzzyBatch = JobPost::query()
-                    ->with('company:id,name')
-                    ->listed()
+                $fuzzyBatch = $this->listedJobQuery()
                     ->when($excludeJobIds !== [], fn ($q) => $q->whereNotIn('id', $excludeJobIds))
                     ->where(function ($q) use ($prefix): void {
                         $like = '%'.$prefix.'%';
@@ -763,10 +832,7 @@ class AiChatContextService
      */
     private function fetchRecommendedJobs(?JobSeekerProfile $profile, array $appliedIds, int $limit): Collection
     {
-        $base = fn () => JobPost::query()
-            ->with('company:id,name')
-            ->listed()
-            ->when($appliedIds !== [], fn ($q) => $q->whereNotIn('id', $appliedIds));
+        $base = fn () => $this->listedJobQuery();
 
         $seen = [];
         $ordered = collect();

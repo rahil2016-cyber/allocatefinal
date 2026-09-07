@@ -532,7 +532,7 @@ class AiChatContextService
             ->with('company:id,name')
             ->listed()
             ->when($excludeJobIds !== [], fn ($q) => $q->whereNotIn('id', $excludeJobIds))
-            ->where(function ($q) use ($like, $place): void {
+            ->where(function ($q) use ($place): void {
                 $q->whereRaw('LOWER(location) LIKE ?', ['%'.mb_strtolower($place).'%'])
                     ->orWhereRaw('LOWER(CAST(preferred_locations AS CHAR)) LIKE ?', ['%'.mb_strtolower($place).'%']);
             })

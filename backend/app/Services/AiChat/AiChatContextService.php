@@ -169,14 +169,21 @@ class AiChatContextService
                 $lines[] = 'Skills: '.implode(', ', array_slice($skills, 0, 15));
             }
             $location = array_filter([
-                $profile->city,
                 $profile->district,
+                $profile->city,
                 $profile->state,
             ]);
             if ($location !== []) {
-                $lines[] = 'Location: '.implode(', ', $location);
+                $lines[] = 'District: '.($profile->district ?? 'Not set');
+                if (filled($profile->city)) {
+                    $lines[] = 'City: '.$profile->city;
+                }
+                if (filled($profile->state)) {
+                    $lines[] = 'State: '.$profile->state;
+                }
+                $lines[] = 'Nearby job search uses **district** (not whole state).';
             } else {
-                $lines[] = 'Location: Not set in profile (user should update profile for better nearby job results).';
+                $lines[] = 'District: Not set in profile (required for nearby job results).';
             }
         }
 
@@ -199,10 +206,10 @@ class AiChatContextService
         if ($criteria === null) {
             return implode("\n", [
                 '--- LIVE JOBS NEAR USER ---',
-                'User location is not set in profile and no city was mentioned in their message.',
+                'User district is not set in profile and no place was mentioned in their message.',
                 'Do NOT invent or guess jobs. Tell the user to:',
-                '1. Update city/district/state in Me → Profile, OR',
-                '2. Ask e.g. "jobs in Bengaluru" with a specific city name.',
+                '1. Set their **district** in Me → Profile (jobs near you use district, not whole state), OR',
+                '2. Ask e.g. "jobs in Davanagere" with a specific district or city name.',
             ]);
         }
 
@@ -211,9 +218,9 @@ class AiChatContextService
         if ($result['jobs']->isEmpty()) {
             return implode("\n", [
                 '--- LIVE JOBS NEAR USER ---',
-                "No published jobs found for: {$result['matched_label']}.",
-                'Do NOT show jobs from other cities or states.',
-                'Tell the user no openings match their area right now and suggest checking the Home tab or trying a nearby district.',
+                "No published jobs found in district/area: {$result['matched_label']}.",
+                'Do NOT show jobs from other districts or the whole state.',
+                'Tell the user no openings match their district right now and suggest checking the Home tab.',
             ]);
         }
 
@@ -422,6 +429,11 @@ class AiChatContextService
             return null;
         }
 
+        // "Near me" uses district only — not whole state. Require district or city.
+        if ($city === '' && $district === '') {
+            return null;
+        }
+
         return [
             'city' => $city,
             'district' => $district,
@@ -466,8 +478,7 @@ class AiChatContextService
     }
 
     /**
-     * Tiered search: city → district → state (same idea as the app location filter).
-     * Never mixes unrelated locations or falls back to random latest jobs.
+     * Tiered search: district first, then city — never whole state.
      *
      * @param  array{city: string, district: string, state: string, preferred: list<string>, explicit?: bool}  $criteria
      * @param  list<int>  $excludeJobIds
@@ -480,19 +491,17 @@ class AiChatContextService
         if (! empty($criteria['explicit'])) {
             $tiers[] = ['term' => $criteria['city'], 'level' => 'named place'];
         } else {
-            if ($criteria['city'] !== '') {
+            // District is the primary anchor for "jobs near me".
+            if ($criteria['district'] !== '') {
+                $tiers[] = ['term' => $criteria['district'], 'level' => 'district'];
+            }
+            if ($criteria['city'] !== '' && $criteria['city'] !== $criteria['district']) {
                 $tiers[] = ['term' => $criteria['city'], 'level' => 'city'];
             }
             foreach ($criteria['preferred'] as $pref) {
-                if ($pref !== '' && $pref !== $criteria['city']) {
+                if ($pref !== '' && $pref !== $criteria['district'] && $pref !== $criteria['city']) {
                     $tiers[] = ['term' => $pref, 'level' => 'preferred location'];
                 }
-            }
-            if ($criteria['district'] !== '' && $criteria['district'] !== $criteria['city']) {
-                $tiers[] = ['term' => $criteria['district'], 'level' => 'district'];
-            }
-            if ($criteria['state'] !== '') {
-                $tiers[] = ['term' => $criteria['state'], 'level' => 'state'];
             }
         }
 
@@ -507,14 +516,14 @@ class AiChatContextService
             }
         }
 
-        $label = $criteria['city'] !== ''
-            ? $criteria['city']
-            : ($criteria['district'] !== '' ? $criteria['district'] : $criteria['state']);
+        $label = $criteria['district'] !== ''
+            ? $criteria['district']
+            : $criteria['city'];
 
         return [
             'jobs' => collect(),
-            'matched_label' => $label !== '' ? $label : 'your area',
-            'match_level' => 'location',
+            'matched_label' => $label !== '' ? $label : 'your district',
+            'match_level' => 'district',
         ];
     }
 

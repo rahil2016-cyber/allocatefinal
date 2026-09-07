@@ -195,6 +195,7 @@ class AiChatContextService
         JobPost::runAutoCloseJobs();
 
         $profile = $user->jobSeekerProfile;
+        // Include jobs already applied to — mark them, do not hide them.
         $appliedIds = Application::query()
             ->where('user_id', $user->id)
             ->pluck('job_post_id')
@@ -209,11 +210,11 @@ class AiChatContextService
                 'User district is not set in profile and no place was mentioned in their message.',
                 'Do NOT invent or guess jobs. Tell the user to:',
                 '1. Set their **district** in Me → Profile (jobs near you use district, not whole state), OR',
-                '2. Ask e.g. "jobs in Davanagere" with a specific district or city name.',
+                '2. Ask e.g. "jobs in Davangere" with a specific district or city name.',
             ]);
         }
 
-        $result = $this->fetchJobsNearLocation($criteria, $appliedIds, 15);
+        $result = $this->fetchJobsNearLocation($criteria, [], 15);
 
         if ($result['jobs']->isEmpty()) {
             return implode("\n", [
@@ -228,7 +229,8 @@ class AiChatContextService
             $result['jobs'],
             '--- LIVE JOBS NEAR USER (from JobAllocate database) ---',
             "Matched by {$result['match_level']} for: {$result['matched_label']}. "
-            .'List ONLY these jobs (title, company, location, Job #ID). Do not add jobs that are not in this list.'
+            .'List ONLY these jobs (title, company, location, Job #ID). Mark jobs user already applied to. Do not add jobs not in this list.',
+            $appliedIds
         );
     }
 
@@ -478,6 +480,53 @@ class AiChatContextService
     }
 
     /**
+     * Common spelling variants for Indian district/city names.
+     *
+     * @return list<string>
+     */
+    private function locationSearchVariants(string $place): array
+    {
+        $place = $this->normalizePlace($place);
+        if ($place === '') {
+            return [];
+        }
+
+        $variants = [$place];
+        $key = mb_strtolower($place);
+
+        $aliases = [
+            'davanagere' => ['davangere'],
+            'davangere' => ['davanagere'],
+            'bengaluru' => ['bangalore', 'bengaluru urban'],
+            'bangalore' => ['bengaluru', 'bengaluru urban'],
+            'mysuru' => ['mysore'],
+            'mysore' => ['mysuru'],
+            'belagavi' => ['belgaum'],
+            'belgaum' => ['belagavi'],
+            'kalaburagi' => ['gulbarga'],
+            'gulbarga' => ['kalaburagi'],
+            'shivamogga' => ['shimoga'],
+            'shimoga' => ['shivamogga'],
+            'tumakuru' => ['tumkur'],
+            'tumkur' => ['tumakuru'],
+            'vijayapura' => ['bijapur'],
+            'bijapur' => ['vijayapura'],
+            'ballari' => ['bellary'],
+            'bellary' => ['ballari'],
+            'chikkamagaluru' => ['chikmagalur'],
+            'chikmagalur' => ['chikkamagaluru'],
+        ];
+
+        if (isset($aliases[$key])) {
+            foreach ($aliases[$key] as $alt) {
+                $variants[] = $alt;
+            }
+        }
+
+        return array_values(array_unique($variants));
+    }
+
+    /**
      * Tiered search: district first, then city — never whole state.
      *
      * @param  array{city: string, district: string, state: string, preferred: list<string>, explicit?: bool}  $criteria
@@ -532,44 +581,181 @@ class AiChatContextService
      */
     private function fetchJobsMatchingPlace(string $place, array $excludeJobIds, int $limit): Collection
     {
-        $place = $this->normalizePlace($place);
-        if ($place === '' || strlen($place) < 3) {
+        $variants = $this->locationSearchVariants($place);
+        if ($variants === []) {
             return collect();
         }
 
-        return JobPost::query()
-            ->with('company:id,name')
-            ->listed()
-            ->when($excludeJobIds !== [], fn ($q) => $q->whereNotIn('id', $excludeJobIds))
-            ->where(function ($q) use ($place): void {
-                $q->whereRaw('LOWER(location) LIKE ?', ['%'.mb_strtolower($place).'%'])
-                    ->orWhereRaw('LOWER(CAST(preferred_locations AS CHAR)) LIKE ?', ['%'.mb_strtolower($place).'%']);
-            })
-            ->latest('published_at')
-            ->limit($limit)
-            ->get()
-            ->filter(fn (JobPost $job) => $this->jobMatchesPlace($job, $place))
-            ->values();
+        $seen = [];
+        $jobs = collect();
+
+        foreach ($variants as $variant) {
+            if (strlen($variant) < 3) {
+                continue;
+            }
+
+            $batch = JobPost::query()
+                ->with('company:id,name')
+                ->listed()
+                ->when($excludeJobIds !== [], fn ($q) => $q->whereNotIn('id', $excludeJobIds))
+                ->where(function ($q) use ($variant): void {
+                    $q->whereRaw('LOWER(location) LIKE ?', ['%'.mb_strtolower($variant).'%'])
+                        ->orWhereRaw('LOWER(CAST(preferred_locations AS CHAR)) LIKE ?', ['%'.mb_strtolower($variant).'%']);
+                })
+                ->latest('published_at')
+                ->limit($limit)
+                ->get()
+                ->filter(fn (JobPost $job) => $this->jobMatchesPlace($job, $place));
+
+            foreach ($batch as $job) {
+                if (isset($seen[$job->id])) {
+                    continue;
+                }
+                $seen[$job->id] = true;
+                $jobs->push($job);
+                if ($jobs->count() >= $limit) {
+                    return $jobs->values();
+                }
+            }
+        }
+
+        // Fuzzy fallback: tolerate small spelling mistakes (e.g. Davanager → Davangere).
+        if ($jobs->count() < $limit) {
+            $prefix = substr($this->locationKey($place), 0, 4);
+            if (strlen($prefix) >= 4) {
+                $fuzzyBatch = JobPost::query()
+                    ->with('company:id,name')
+                    ->listed()
+                    ->when($excludeJobIds !== [], fn ($q) => $q->whereNotIn('id', $excludeJobIds))
+                    ->where(function ($q) use ($prefix): void {
+                        $like = '%'.$prefix.'%';
+                        $q->whereRaw('LOWER(location) LIKE ?', [$like])
+                            ->orWhereRaw('LOWER(CAST(preferred_locations AS CHAR)) LIKE ?', [$like]);
+                    })
+                    ->latest('published_at')
+                    ->limit(40)
+                    ->get()
+                    ->filter(fn (JobPost $job) => $this->jobMatchesPlace($job, $place));
+
+                foreach ($fuzzyBatch as $job) {
+                    if (isset($seen[$job->id])) {
+                        continue;
+                    }
+                    $seen[$job->id] = true;
+                    $jobs->push($job);
+                    if ($jobs->count() >= $limit) {
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $jobs->values();
     }
 
     private function jobMatchesPlace(JobPost $job, string $place): bool
     {
-        $needle = mb_strtolower($place);
-
-        if ($job->location !== null && str_contains(mb_strtolower($job->location), $needle)) {
+        if ($job->location !== null && $this->fuzzyPlaceMatches($place, $job->location)) {
             return true;
         }
 
         $preferred = $job->preferred_locations;
         if (is_array($preferred)) {
             foreach ($preferred as $loc) {
-                if (is_string($loc) && str_contains(mb_strtolower($loc), $needle)) {
+                if (is_string($loc) && $this->fuzzyPlaceMatches($place, $loc)) {
                     return true;
                 }
             }
         }
 
         return false;
+    }
+
+    /** Lowercase alphanumeric key for fuzzy compare. */
+    private function locationKey(string $value): string
+    {
+        $v = mb_strtolower($this->normalizePlace($value));
+
+        return preg_replace('/[^a-z0-9]/', '', $v) ?? $v;
+    }
+
+    /**
+     * True when [place] matches [haystack] exactly, via known alias, or close spelling.
+     */
+    private function fuzzyPlaceMatches(string $needle, string $haystack): bool
+    {
+        $needleKey = $this->locationKey($needle);
+        if ($needleKey === '') {
+            return false;
+        }
+
+        foreach ($this->locationSearchVariants($needle) as $variant) {
+            $variantKey = $this->locationKey($variant);
+            if ($variantKey === '') {
+                continue;
+            }
+            if ($this->textContainsLocationKey($haystack, $variantKey)) {
+                return true;
+            }
+        }
+
+        if ($this->textContainsLocationKey($haystack, $needleKey)) {
+            return true;
+        }
+
+        $parts = preg_split('/[,\|\/]/', mb_strtolower($haystack)) ?: [];
+        foreach ($parts as $part) {
+            $part = trim($part);
+            if ($part === '') {
+                continue;
+            }
+            if ($this->keysAreSimilar($needleKey, $this->locationKey($part))) {
+                return true;
+            }
+        }
+
+        return $this->keysAreSimilar($needleKey, $this->locationKey($haystack));
+    }
+
+    private function textContainsLocationKey(string $text, string $key): bool
+    {
+        if ($key === '') {
+            return false;
+        }
+
+        $hay = $this->locationKey($text);
+
+        return $hay !== '' && str_contains($hay, $key);
+    }
+
+    private function keysAreSimilar(string $a, string $b): bool
+    {
+        if ($a === '' || $b === '') {
+            return false;
+        }
+
+        if ($a === $b) {
+            return true;
+        }
+
+        if (str_contains($a, $b) || str_contains($b, $a)) {
+            return true;
+        }
+
+        $len = max(strlen($a), strlen($b));
+        if ($len < 4) {
+            return false;
+        }
+
+        // ~1 character wrong per 5 letters (Davanager ≈ Davangere).
+        $maxDistance = (int) max(1, floor($len / 5));
+        if (levenshtein($a, $b) <= $maxDistance) {
+            return true;
+        }
+
+        similar_text($a, $b, $percent);
+
+        return $percent >= 80.0;
     }
 
     /**
@@ -635,8 +821,9 @@ class AiChatContextService
 
     /**
      * @param  Collection<int, JobPost>  $jobs
+     * @param  list<int>  $appliedJobIds
      */
-    private function formatJobListings(Collection $jobs, string $heading, string $instruction): string
+    private function formatJobListings(Collection $jobs, string $heading, string $instruction, array $appliedJobIds = []): string
     {
         $lines = [$heading, $instruction, ''];
 
@@ -647,6 +834,8 @@ class AiChatContextService
             return implode("\n", $lines);
         }
 
+        $appliedSet = array_flip($appliedJobIds);
+
         foreach ($jobs->values() as $i => $job) {
             $company = $job->company?->name ?? 'Company';
             $loc = $job->location ?? 'Location not specified';
@@ -655,15 +844,17 @@ class AiChatContextService
 
             $detail = array_filter([$type, $exp]);
             $suffix = $detail !== [] ? ' — '.implode(', ', $detail) : '';
+            $appliedNote = isset($appliedSet[$job->id]) ? ' — **Already applied**' : '';
 
             $lines[] = sprintf(
-                '%d. [Job #%d] %s at %s — %s%s',
+                '%d. [Job #%d] %s at %s — %s%s%s',
                 $i + 1,
                 $job->id,
                 $job->title,
                 $company,
                 $loc,
-                $suffix
+                $suffix,
+                $appliedNote
             );
 
             if ($job->salary_min !== null || $job->salary_max !== null) {

@@ -39,6 +39,9 @@ JobAllocate features you should know:
 - Public job board is available; some features require login
 
 Rules:
+- When LIVE JOB LISTINGS, APPLICATIONS, or other verified data blocks are provided below, you MUST present that data directly to the user as a numbered list (title, company, location, Job #ID). Do NOT only tell them to "go to the app" or "use the search bar" when real data is already supplied.
+- If the user asks for jobs near them, jobs matching their profile, or their applications, use the live database results in the context — list every job/application shown.
+- If no jobs are found in the context, say so clearly and suggest updating profile location or checking the Home tab.
 - Do not invent JobAllocate policies, prices, or features not supported by the context provided.
 - If you do not have enough information, say you do not have access to that specific information and suggest where in the app the user can look.
 - Never claim that an action was completed (apply, shortlist, reject, post job, etc.) unless the backend actually performed it. Guide users on how to do it in the app instead.
@@ -75,7 +78,7 @@ SYS;
         }
 
         $history = $this->loadTrimmedHistory($conversation);
-        $contextBlock = $this->context->buildContextBlock($user, $jobId);
+        $contextBlock = $this->context->buildContextBlock($user, $jobId, $message);
 
         $messages = [
             ['role' => 'system', 'content' => $this->systemPrompt()],

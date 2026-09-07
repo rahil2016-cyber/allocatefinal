@@ -25,11 +25,19 @@ class AiChatProviderService
 
         $started = microtime(true);
 
+        $headers = [
+            'Authorization' => 'Bearer '.$apiKey,
+            'Content-Type' => 'application/json',
+        ];
+
+        // OpenRouter requires/recommends these (same as resume AI).
+        if (str_contains($url, 'openrouter.ai')) {
+            $headers['HTTP-Referer'] = (string) config('app.url', 'https://joballocate.tech');
+            $headers['X-Title'] = (string) config('app.name', 'JobAllocate').' AI Chat';
+        }
+
         $response = Http::timeout($timeout)
-            ->withHeaders([
-                'Authorization' => 'Bearer '.$apiKey,
-                'Content-Type' => 'application/json',
-            ])
+            ->withHeaders($headers)
             ->post($url, [
                 'model' => $model,
                 'messages' => $messages,

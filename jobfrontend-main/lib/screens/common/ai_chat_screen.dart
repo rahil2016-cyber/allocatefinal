@@ -116,10 +116,9 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bottomInset = MediaQuery.of(context).viewInsets.bottom;
-
     return Scaffold(
       backgroundColor: AppColors.background,
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: AppColors.primary,
         foregroundColor: Colors.white,
@@ -135,65 +134,76 @@ class _AiChatScreenState extends State<AiChatScreen> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: _messages.isEmpty && !_sending
-                ? _EmptyState(
-                    suggestions: _suggestions,
-                    onSuggestionTap: _send,
-                  )
-                : ListView.builder(
-                    controller: _scrollCtrl,
-                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                    itemCount: _messages.length + (_sending ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (_sending && index == _messages.length) {
-                        return const _TypingIndicator();
-                      }
-                      final msg = _messages[index];
-                      return _ChatBubble(message: msg);
-                    },
-                  ),
-          ),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Material(
-                color: AppColors.error.withOpacity(0.08),
-                borderRadius: BorderRadius.circular(12),
-                child: Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.error_outline, color: AppColors.error, size: 20),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _error!,
-                          style: const TextStyle(
-                            color: AppColors.error,
-                            fontSize: 13,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+                behavior: HitTestBehavior.translucent,
+                child: _messages.isEmpty && !_sending
+                    ? _EmptyState(
+                        suggestions: _suggestions,
+                        onSuggestionTap: _send,
+                      )
+                    : ListView.builder(
+                        controller: _scrollCtrl,
+                        keyboardDismissBehavior:
+                            ScrollViewKeyboardDismissBehavior.onDrag,
+                        padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                        itemCount: _messages.length + (_sending ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (_sending && index == _messages.length) {
+                            return const _TypingIndicator();
+                          }
+                          final msg = _messages[index];
+                          return _ChatBubble(message: msg);
+                        },
+                      ),
+              ),
+            ),
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
+                child: Material(
+                  color: AppColors.error.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(12),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: AppColors.error,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _error!,
+                            style: const TextStyle(
+                              color: AppColors.error,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
-                      ),
-                      if (_lastFailedText != null)
-                        TextButton(
-                          onPressed: _retry,
-                          child: const Text('Retry'),
-                        ),
-                    ],
+                        if (_lastFailedText != null)
+                          TextButton(
+                            onPressed: _retry,
+                            child: const Text('Retry'),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               ),
+            _InputBar(
+              controller: _inputCtrl,
+              sending: _sending,
+              onSend: () => _send(),
             ),
-          _InputBar(
-            controller: _inputCtrl,
-            sending: _sending,
-            bottomInset: bottomInset,
-            onSend: () => _send(),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -220,40 +230,105 @@ class _ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUser = message.role == AiChatRole.user;
-    return Align(
-      alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.82,
-        ),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          color: isUser ? AppColors.primary : AppColors.surface,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(isUser ? 16 : 4),
-            bottomRight: Radius.circular(isUser ? 4 : 16),
+    final maxWidth = MediaQuery.of(context).size.width * 0.85;
+
+    if (isUser) {
+      return Align(
+        alignment: Alignment.centerRight,
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 12),
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            gradient: AppColors.primaryGradient,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(18),
+              topRight: Radius.circular(18),
+              bottomLeft: Radius.circular(18),
+              bottomRight: Radius.circular(4),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.25),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
-          border: isUser
-              ? null
-              : Border.all(color: const Color(0xFFE2E8F0)),
+          child: Text(
+            message.text,
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 14,
+              height: 1.5,
+            ),
+          ),
+        ),
+      );
+    }
+
+    // AI answer — clear boxed card on the left
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        constraints: BoxConstraints(maxWidth: maxWidth),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFDCE6F0), width: 1.2),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 6,
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 10,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Text(
-          message.text,
-          style: TextStyle(
-            color: isUser ? Colors.white : AppColors.textPrimary,
-            fontSize: 14,
-            height: 1.45,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              decoration: BoxDecoration(
+                color: AppColors.accentLight,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(15),
+                  topRight: Radius.circular(15),
+                ),
+              ),
+              child: const Row(
+                children: [
+                  Icon(
+                    Icons.auto_awesome_rounded,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
+                  SizedBox(width: 6),
+                  Text(
+                    'JobAllocate AI',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              child: Text(
+                message.text,
+                style: const TextStyle(
+                  color: AppColors.textPrimary,
+                  fontSize: 14,
+                  height: 1.55,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -268,33 +343,38 @@ class _TypingIndicator extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFE2E8F0)),
+        margin: const EdgeInsets.only(bottom: 12),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.7,
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                color: AppColors.primary,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: const Color(0xFFDCE6F0)),
+        ),
+        child: const Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: AppColors.primary,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Text(
-              'Thinking…',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 13,
+              SizedBox(width: 10),
+              Text(
+                'Thinking…',
+                style: TextStyle(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -312,12 +392,12 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return ListView(
       padding: const EdgeInsets.all(24),
-      child: Column(
-        children: [
-          const SizedBox(height: 24),
-          Container(
+      children: [
+        const SizedBox(height: 16),
+        Center(
+          child: Container(
             width: 64,
             height: 64,
             decoration: BoxDecoration(
@@ -330,44 +410,45 @@ class _EmptyState extends StatelessWidget {
               size: 32,
             ),
           ),
-          const SizedBox(height: 20),
-          Text(
-            'How can I help you?',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.textPrimary,
-                ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          'How can I help you?',
+          textAlign: TextAlign.center,
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: AppColors.textPrimary,
+              ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Ask me about jobs, applications, interviews, or how to use JobAllocate.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: AppColors.textSecondary,
+            fontSize: 14,
+            height: 1.4,
           ),
-          const SizedBox(height: 8),
-          const Text(
-            'Ask me about jobs, applications, interviews, or how to use JobAllocate.',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-              height: 1.4,
-            ),
-          ),
-          const SizedBox(height: 28),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: suggestions.map((s) {
-              return ActionChip(
-                label: Text(s),
-                backgroundColor: AppColors.surface,
-                side: const BorderSide(color: Color(0xFFE2E8F0)),
-                labelStyle: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                ),
-                onPressed: () => onSuggestionTap(text: s),
-              );
-            }).toList(),
-          ),
-        ],
-      ),
+        ),
+        const SizedBox(height: 28),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          alignment: WrapAlignment.center,
+          children: suggestions.map((s) {
+            return ActionChip(
+              label: Text(s),
+              backgroundColor: AppColors.surface,
+              side: const BorderSide(color: Color(0xFFE2E8F0)),
+              labelStyle: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 13,
+              ),
+              onPressed: () => onSuggestionTap(text: s),
+            );
+          }).toList(),
+        ),
+      ],
     );
   }
 }
@@ -376,38 +457,28 @@ class _InputBar extends StatelessWidget {
   const _InputBar({
     required this.controller,
     required this.sending,
-    required this.bottomInset,
     required this.onSend,
   });
 
   final TextEditingController controller;
   final bool sending;
-  final double bottomInset;
   final VoidCallback onSend;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(12, 8, 12, 12 + bottomInset),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.06),
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
+    return Material(
+      color: AppColors.surface,
+      elevation: 4,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
               child: TextField(
                 controller: controller,
-                maxLines: 4,
+                maxLines: 3,
                 minLines: 1,
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => onSend(),

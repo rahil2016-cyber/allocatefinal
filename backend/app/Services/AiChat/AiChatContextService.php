@@ -57,8 +57,9 @@ class AiChatContextService
         $intents = $this->detectSeekerIntents($userMessage);
         $sections = [];
 
+        // Nearby jobs take priority — do not mix with profile recommendations.
         if (in_array('jobs_near_me', $intents, true)) {
-            $sections[] = $this->jobsNearUserSection($user);
+            return $this->jobsNearUserSection($user, $userMessage);
         }
 
         if (in_array('recommended_jobs', $intents, true)) {
@@ -182,46 +183,45 @@ class AiChatContextService
         return implode("\n", $lines);
     }
 
-    private function jobsNearUserSection(User $user): string
+    private function jobsNearUserSection(User $user, ?string $userMessage = null): string
     {
         JobPost::runAutoCloseJobs();
 
         $profile = $user->jobSeekerProfile;
-        $searchTerms = $this->locationSearchTerms($profile);
         $appliedIds = Application::query()
             ->where('user_id', $user->id)
             ->pluck('job_post_id')
             ->all();
 
-        if ($searchTerms === []) {
-            $fallback = $this->fetchListedJobs($appliedIds, 10);
+        $explicitPlace = $this->parseLocationFromMessage($userMessage);
+        $criteria = $this->resolveLocationCriteria($profile, $explicitPlace);
 
-            return $this->formatJobListings(
-                $fallback,
-                '--- LIVE JOBS (near you) ---',
-                'User asked for jobs near them but has no city/district/state in profile. Showing latest open jobs instead. Tell the user to update their profile location for better nearby results.'
-            );
+        if ($criteria === null) {
+            return implode("\n", [
+                '--- LIVE JOBS NEAR USER ---',
+                'User location is not set in profile and no city was mentioned in their message.',
+                'Do NOT invent or guess jobs. Tell the user to:',
+                '1. Update city/district/state in Me → Profile, OR',
+                '2. Ask e.g. "jobs in Bengaluru" with a specific city name.',
+            ]);
         }
 
-        $jobs = $this->fetchJobsByLocationTerms($searchTerms, $appliedIds, 15);
+        $result = $this->fetchJobsNearLocation($criteria, $appliedIds, 15);
 
-        if ($jobs->isEmpty()) {
-            $jobs = $this->fetchListedJobs($appliedIds, 10);
-            $area = implode(', ', $searchTerms);
-
-            return $this->formatJobListings(
-                $jobs,
-                '--- LIVE JOBS (near you) ---',
-                "No jobs matched location \"{$area}\" exactly. Showing other open jobs. Suggest the user try the Home tab search or broaden their location in profile."
-            );
+        if ($result['jobs']->isEmpty()) {
+            return implode("\n", [
+                '--- LIVE JOBS NEAR USER ---',
+                "No published jobs found for: {$result['matched_label']}.",
+                'Do NOT show jobs from other cities or states.',
+                'Tell the user no openings match their area right now and suggest checking the Home tab or trying a nearby district.',
+            ]);
         }
-
-        $area = implode(', ', array_slice($searchTerms, 0, 3));
 
         return $this->formatJobListings(
-            $jobs,
+            $result['jobs'],
             '--- LIVE JOBS NEAR USER (from JobAllocate database) ---',
-            "Matched using profile location: {$area}. You MUST list every job below with its number, title, company, location, and Job #ID. Do not only tell the user to open the app."
+            "Matched by {$result['match_level']} for: {$result['matched_label']}. "
+            .'List ONLY these jobs (title, company, location, Job #ID). Do not add jobs that are not in this list.'
         );
     }
 
@@ -384,67 +384,183 @@ class AiChatContextService
     }
 
     /**
-     * @return list<string>
+     * @return array{city: string, district: string, state: string, preferred: list<string>}|null
      */
-    private function locationSearchTerms(?JobSeekerProfile $profile): array
+    private function resolveLocationCriteria(?JobSeekerProfile $profile, ?string $explicitPlace): ?array
     {
+        if ($explicitPlace !== null && $explicitPlace !== '') {
+            return [
+                'city' => $explicitPlace,
+                'district' => '',
+                'state' => '',
+                'preferred' => [],
+                'explicit' => true,
+            ];
+        }
+
         if ($profile === null) {
-            return [];
+            return null;
         }
 
-        $terms = [];
-        foreach ([$profile->city, $profile->district, $profile->state] as $value) {
-            if (is_string($value) && trim($value) !== '') {
-                $terms[] = trim($value);
-            }
-        }
+        $city = $this->normalizePlace($profile->city);
+        $district = $this->normalizePlace($profile->district);
+        $state = $this->normalizePlace($profile->state);
 
+        $preferred = [];
         if (is_array($profile->preferred_locations)) {
             foreach ($profile->preferred_locations as $loc) {
-                if (is_string($loc) && trim($loc) !== '') {
-                    $terms[] = trim($loc);
+                if (is_string($loc)) {
+                    $n = $this->normalizePlace($loc);
+                    if ($n !== '') {
+                        $preferred[] = $n;
+                    }
                 }
             }
         }
 
-        return array_values(array_unique($terms));
+        if ($city === '' && $district === '' && $state === '' && $preferred === []) {
+            return null;
+        }
+
+        return [
+            'city' => $city,
+            'district' => $district,
+            'state' => $state,
+            'preferred' => array_values(array_unique($preferred)),
+            'explicit' => false,
+        ];
     }
 
-    /**
-     * @param  list<string>  $terms
-     * @param  list<int>  $excludeJobIds
-     */
-    private function fetchJobsByLocationTerms(array $terms, array $excludeJobIds, int $limit): Collection
+    private function parseLocationFromMessage(?string $message): ?string
     {
-        $query = JobPost::query()
-            ->with('company:id,name')
-            ->listed()
-            ->when($excludeJobIds !== [], fn ($q) => $q->whereNotIn('id', $excludeJobIds))
-            ->where(function ($q) use ($terms): void {
-                foreach ($terms as $term) {
-                    $like = '%'.$term.'%';
-                    $q->orWhere('location', 'like', $like)
-                        ->orWhere('preferred_locations', 'like', $like);
+        if ($message === null || trim($message) === '') {
+            return null;
+        }
+
+        $patterns = [
+            '/\b(?:jobs?|work|openings?|vacancies)\s+(?:in|at|near)\s+([a-zA-Z][a-zA-Z\s\-\.]{1,45})/iu',
+            '/\b(?:in|at|near)\s+([a-zA-Z][a-zA-Z\s\-\.]{1,45})(?:\s*\?|$)/iu',
+        ];
+
+        foreach ($patterns as $pattern) {
+            if (preg_match($pattern, $message, $matches)) {
+                $place = $this->normalizePlace($matches[1]);
+                if ($place !== '' && strlen($place) >= 3) {
+                    return $place;
                 }
-            })
-            ->latest('published_at')
-            ->limit($limit);
+            }
+        }
 
-        return $query->get();
+        return null;
+    }
+
+    private function normalizePlace(?string $value): string
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        $v = trim(preg_replace('/\s+/', ' ', $value) ?? $value);
+
+        return $v;
+    }
+
+    /**
+     * Tiered search: city → district → state (same idea as the app location filter).
+     * Never mixes unrelated locations or falls back to random latest jobs.
+     *
+     * @param  array{city: string, district: string, state: string, preferred: list<string>, explicit?: bool}  $criteria
+     * @param  list<int>  $excludeJobIds
+     * @return array{jobs: Collection<int, JobPost>, matched_label: string, match_level: string}
+     */
+    private function fetchJobsNearLocation(array $criteria, array $excludeJobIds, int $limit): array
+    {
+        $tiers = [];
+
+        if (! empty($criteria['explicit'])) {
+            $tiers[] = ['term' => $criteria['city'], 'level' => 'named place'];
+        } else {
+            if ($criteria['city'] !== '') {
+                $tiers[] = ['term' => $criteria['city'], 'level' => 'city'];
+            }
+            foreach ($criteria['preferred'] as $pref) {
+                if ($pref !== '' && $pref !== $criteria['city']) {
+                    $tiers[] = ['term' => $pref, 'level' => 'preferred location'];
+                }
+            }
+            if ($criteria['district'] !== '' && $criteria['district'] !== $criteria['city']) {
+                $tiers[] = ['term' => $criteria['district'], 'level' => 'district'];
+            }
+            if ($criteria['state'] !== '') {
+                $tiers[] = ['term' => $criteria['state'], 'level' => 'state'];
+            }
+        }
+
+        foreach ($tiers as $tier) {
+            $jobs = $this->fetchJobsMatchingPlace($tier['term'], $excludeJobIds, $limit);
+            if ($jobs->isNotEmpty()) {
+                return [
+                    'jobs' => $jobs,
+                    'matched_label' => $tier['term'],
+                    'match_level' => $tier['level'],
+                ];
+            }
+        }
+
+        $label = $criteria['city'] !== ''
+            ? $criteria['city']
+            : ($criteria['district'] !== '' ? $criteria['district'] : $criteria['state']);
+
+        return [
+            'jobs' => collect(),
+            'matched_label' => $label !== '' ? $label : 'your area',
+            'match_level' => 'location',
+        ];
     }
 
     /**
      * @param  list<int>  $excludeJobIds
      */
-    private function fetchListedJobs(array $excludeJobIds, int $limit): Collection
+    private function fetchJobsMatchingPlace(string $place, array $excludeJobIds, int $limit): Collection
     {
+        $place = $this->normalizePlace($place);
+        if ($place === '' || strlen($place) < 3) {
+            return collect();
+        }
+
         return JobPost::query()
             ->with('company:id,name')
             ->listed()
             ->when($excludeJobIds !== [], fn ($q) => $q->whereNotIn('id', $excludeJobIds))
+            ->where(function ($q) use ($like, $place): void {
+                $q->whereRaw('LOWER(location) LIKE ?', ['%'.mb_strtolower($place).'%'])
+                    ->orWhereRaw('LOWER(CAST(preferred_locations AS CHAR)) LIKE ?', ['%'.mb_strtolower($place).'%']);
+            })
             ->latest('published_at')
             ->limit($limit)
-            ->get();
+            ->get()
+            ->filter(fn (JobPost $job) => $this->jobMatchesPlace($job, $place))
+            ->values();
+    }
+
+    private function jobMatchesPlace(JobPost $job, string $place): bool
+    {
+        $needle = mb_strtolower($place);
+
+        if ($job->location !== null && str_contains(mb_strtolower($job->location), $needle)) {
+            return true;
+        }
+
+        $preferred = $job->preferred_locations;
+        if (is_array($preferred)) {
+            foreach ($preferred as $loc) {
+                if (is_string($loc) && str_contains(mb_strtolower($loc), $needle)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /**

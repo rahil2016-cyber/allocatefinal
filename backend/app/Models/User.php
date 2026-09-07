@@ -78,6 +78,11 @@ class User extends Authenticatable
         return $this->hasMany(Notification::class);
     }
 
+    public function aiConversations(): HasMany
+    {
+        return $this->hasMany(AiConversation::class);
+    }
+
     public function hasRole(UserRole $role): bool
     {
         return $this->role === $role->value;

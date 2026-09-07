@@ -70,6 +70,16 @@ class AppServiceProvider extends ServiceProvider
             ];
         });
 
+        // AI chat assistant (authenticated).
+        RateLimiter::for('ai-chat', function (Request $request) {
+            $perMinute = max(1, (int) config('ai_chat.rate_limit', 20));
+            $key = $request->user()?->id ?: $request->ip();
+
+            return Limit::perMinute($perMinute)
+                ->by('ai-chat|'.$key)
+                ->response(fn (Request $request, array $headers) => $this->tooManyAttempts($headers, 'ai_chat'));
+        });
+
         // Referral / promo validation (public).
         RateLimiter::for('auth-refer-validate', function (Request $request) {
             return [
@@ -89,6 +99,7 @@ class AppServiceProvider extends ServiceProvider
             'password_reset' => 'Too many password reset attempts. Please wait a minute and try again.',
             'password_reset_hour' => 'Password reset limit reached. Please try again later.',
             'password_change', 'password_change_hour' => 'Too many password change attempts. Please wait and try again.',
+            'ai_chat' => 'Too many AI requests. Please wait a moment and try again.',
             default => 'Too many requests. Please wait a moment and try again.',
         };
 

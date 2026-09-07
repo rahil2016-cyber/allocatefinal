@@ -9,6 +9,7 @@ import '../../widgets/apply_job_sheet.dart';
 import '../../utils/app_colors.dart';
 import '../../constants/industry_types.dart';
 import 'similar_jobs_screen.dart';
+import '../common/ai_chat_screen.dart';
 
 class JobDetailScreen extends StatefulWidget {
   final Job job;
@@ -280,6 +281,18 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                   ),
                   centerTitle: true,
                   actions: [
+                    IconButton(
+                      tooltip: 'Ask AI about this job',
+                      icon: const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 22),
+                      onPressed: () {
+                        final jobId = int.tryParse(_job.id);
+                        Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                            builder: (_) => AiChatScreen(jobId: jobId),
+                          ),
+                        );
+                      },
+                    ),
                     IconButton(
                       icon: Icon(
                         _isBookmarked ? Icons.bookmark_rounded : Icons.bookmark_border_rounded,

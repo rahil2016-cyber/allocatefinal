@@ -54,6 +54,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/services.dart';
 import '../../services/refer_earn_api_service.dart';
 import '../../widgets/notification_bell.dart';
+import '../../widgets/ai_chat_fab.dart';
 
 import './career_prep/feedback_rate_screen.dart';
 import '../common/about_screen.dart';
@@ -233,11 +234,16 @@ class _JobSeekerHomeScreenState extends State<JobSeekerHomeScreen>
           userId: widget.userId,
           token: widget.token,
         ),
-        body: SafeArea(
-          child: IndexedStack(
-            index: _currentIndex,
-            children: _pages,
-          ),
+        body: Stack(
+          children: [
+            SafeArea(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _pages,
+              ),
+            ),
+            const AiChatFab(bottomOffset: 16),
+          ],
         ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(

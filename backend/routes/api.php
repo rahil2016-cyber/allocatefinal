@@ -39,6 +39,7 @@ use App\Http\Controllers\Api\V1\JobSeeker\SeekerApplicationController;
 use App\Http\Controllers\Api\V1\JobSeeker\SeekerJobDiscoveryController;
 use App\Http\Controllers\Api\V1\JobSeeker\SeekerSavedJobController;
 use App\Http\Controllers\Api\V1\JobSeeker\JobReportController;
+use App\Http\Controllers\Api\V1\AiChatController;
 use App\Http\Controllers\Api\V1\MeController;
 use App\Http\Controllers\Api\V1\PublicIndustryTypeController;
 use App\Http\Controllers\Api\V1\PublicBannerController;
@@ -95,6 +96,13 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
         Route::post('auth/set-password', [AuthController::class, 'setPassword'])
             ->middleware('throttle:auth-password-change');
         Route::get('me', MeController::class);
+
+        // ── AI chat assistant (all authenticated users) ─────────────────
+        Route::prefix('ai')->middleware('throttle:ai-chat')->group(function () {
+            Route::post('chat', [AiChatController::class, 'chat']);
+            Route::get('conversations/{conversationId}', [AiChatController::class, 'show'])
+                ->whereUuid('conversationId');
+        });
 
         // ── FCM device tokens (all authenticated users) ───────────────────
         Route::post('device-token', [DeviceTokenController::class, 'store']);

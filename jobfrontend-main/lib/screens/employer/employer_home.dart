@@ -6,6 +6,7 @@ import 'post_job_screen.dart';
 import 'manage_applications_screen.dart';
 import 'employer_profile_screen.dart';
 import 'employer_dashboard_page.dart';
+import '../../widgets/ai_chat_fab.dart';
 
 class EmployerHomeScreen extends StatefulWidget {
   const EmployerHomeScreen({super.key, this.token});
@@ -46,7 +47,14 @@ class _EmployerHomeScreenState extends State<EmployerHomeScreen> {
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        body: pages[_currentIndex],
+        body: Stack(
+          children: [
+            pages[_currentIndex],
+            AiChatFab(
+              bottomOffset: _currentIndex == 0 ? 88 : 16,
+            ),
+          ],
+        ),
         bottomNavigationBar: Container(
           decoration: BoxDecoration(
             color: AppColors.surface,

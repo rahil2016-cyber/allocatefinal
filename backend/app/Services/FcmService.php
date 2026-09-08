@@ -128,7 +128,7 @@ class FcmService
             $payload['message']['data'] = array_map('strval', $data);
         }
 
-        return $this->post($accessToken, $payload);
+        return $this->post($accessToken, $payload, $fcmToken);
     }
 
     /**
@@ -217,7 +217,7 @@ class FcmService
     // HTTP helpers
     // -----------------------------------------------------------------
 
-    private function post(string $accessToken, array $payload): bool
+    private function post(string $accessToken, array $payload, string $fcmToken): bool
     {
         $url  = "https://fcm.googleapis.com/v1/projects/{$this->projectId}/messages:send";
         $body = json_encode($payload);

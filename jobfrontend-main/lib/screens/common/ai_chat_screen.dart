@@ -6,6 +6,7 @@ import '../../services/app_session.dart';
 import '../../services/job_seeker_api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/network_user_message.dart';
+import '../../widgets/ai_bot_avatar.dart';
 import '../../widgets/apply_job_sheet.dart';
 import '../../widgets/job_card.dart';
 import '../job_seeker/job_detail_screen.dart';
@@ -297,13 +298,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
       backgroundColor: AppColors.background,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        backgroundColor: const Color(0xFF4F46E5),
         foregroundColor: Colors.white,
         elevation: 0,
         title: const Row(
           children: [
-            Icon(Icons.auto_awesome_rounded, size: 22),
-            SizedBox(width: 8),
+            AiBotAvatar(size: 30),
+            SizedBox(width: 10),
             Text(
               'JobAllocate AI',
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
@@ -520,12 +521,8 @@ class _ChatBubble extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(
-                    Icons.auto_awesome_rounded,
-                    size: 16,
-                    color: AppColors.primary,
-                  ),
-                  const SizedBox(width: 6),
+                  const AiBotAvatar(size: 24),
+                  const SizedBox(width: 8),
                   const Expanded(
                     child: Text(
                       'JobAllocate AI',
@@ -654,12 +651,14 @@ class _TypingIndicator extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: const Color(0xFFDCE6F0)),
         ),
-        child: const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
+              const AiBotAvatar(size: 28),
+              const SizedBox(width: 10),
+              const SizedBox(
                 width: 18,
                 height: 18,
                 child: CircularProgressIndicator(
@@ -667,8 +666,8 @@ class _TypingIndicator extends StatelessWidget {
                   color: AppColors.primary,
                 ),
               ),
-              SizedBox(width: 10),
-              Text(
+              const SizedBox(width: 10),
+              const Text(
                 'Thinking…',
                 style: TextStyle(
                   color: AppColors.textSecondary,
@@ -700,17 +699,18 @@ class _EmptyState extends StatelessWidget {
         const SizedBox(height: 16),
         Center(
           child: Container(
-            width: 64,
-            height: 64,
+            padding: const EdgeInsets.all(6),
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(20),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF8B5CF6).withValues(alpha: 0.35),
+                  blurRadius: 24,
+                  spreadRadius: 2,
+                ),
+              ],
             ),
-            child: const Icon(
-              Icons.auto_awesome_rounded,
-              color: Colors.white,
-              size: 32,
-            ),
+            child: const AiBotAvatar(size: 88),
           ),
         ),
         const SizedBox(height: 20),

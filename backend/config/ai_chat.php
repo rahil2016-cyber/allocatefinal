@@ -23,7 +23,7 @@ return [
 
     'max_tokens' => (int) env('AI_MAX_TOKENS', 1024),
 
-    'timeout' => (int) env('AI_TIMEOUT', 60),
+    'timeout' => (int) env('AI_TIMEOUT', 90),
 
     'rate_limit' => (int) env('AI_CHAT_RATE_LIMIT', 20),
 

@@ -31,11 +31,15 @@ class AiChatApiService {
     if (rawJobs is! List) return jobs;
     for (final item in rawJobs) {
       if (item is! Map) continue;
-      final map = Map<String, dynamic>.from(item);
-      jobs.add(AiChatJobResult(
-        job: Job.fromApi(map),
-        hasApplied: map['has_applied'] == true,
-      ));
+      try {
+        final map = Map<String, dynamic>.from(item);
+        jobs.add(AiChatJobResult(
+          job: Job.fromApi(map),
+          hasApplied: map['has_applied'] == true,
+        ));
+      } catch (_) {
+        // Skip malformed job payloads — still show AI text reply.
+      }
     }
     return jobs;
   }

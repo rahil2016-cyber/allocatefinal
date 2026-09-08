@@ -6,6 +6,8 @@ use App\Models\AiConversation;
 use App\Models\AiMessage;
 use App\Models\Application;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Str;
 
 class AiChatService
@@ -111,13 +113,7 @@ SYS;
 
         $reply = $this->provider->chat($messages);
 
-        AiMessage::query()->create([
-            'conversation_id' => $conversation->id,
-            'role' => 'assistant',
-            'message' => $reply,
-            'metadata' => $serializedJobs !== [] ? ['jobs' => $serializedJobs] : null,
-            'created_at' => now(),
-        ]);
+        $this->saveAssistantMessage($conversation, $reply, $serializedJobs);
 
         $conversation->touch();
 
@@ -171,5 +167,37 @@ SYS;
             'role' => $m->role,
             'message' => $m->message,
         ], $rows);
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $serializedJobs
+     */
+    private function saveAssistantMessage(
+        AiConversation $conversation,
+        string $reply,
+        array $serializedJobs,
+    ): void {
+        $payload = [
+            'conversation_id' => $conversation->id,
+            'role' => 'assistant',
+            'message' => $reply,
+            'created_at' => now(),
+        ];
+
+        if ($serializedJobs !== [] && Schema::hasColumn('ai_messages', 'metadata')) {
+            $payload['metadata'] = ['jobs' => $serializedJobs];
+        }
+
+        try {
+            AiMessage::query()->create($payload);
+        } catch (\Throwable $e) {
+            Log::error('[AiChat] Failed to save assistant message', [
+                'conversation_id' => $conversation->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            unset($payload['metadata']);
+            AiMessage::query()->create($payload);
+        }
     }
 }

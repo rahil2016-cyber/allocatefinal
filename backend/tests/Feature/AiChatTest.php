@@ -41,7 +41,7 @@ class AiChatTest extends TestCase
         $response->assertOk()
             ->assertJsonPath('success', true)
             ->assertJsonPath('data.message', 'Hello! How can I help you with JobAllocate?')
-            ->assertJsonStructure(['data' => ['conversation_id']]);
+            ->assertJsonStructure(['data' => ['conversation_id', 'jobs']]);
 
         $this->assertDatabaseHas('ai_messages', [
             'role' => 'user',

@@ -13,12 +13,14 @@ class AiMessage extends Model
         'conversation_id',
         'role',
         'message',
+        'metadata',
         'created_at',
     ];
 
     protected function casts(): array
     {
         return [
+            'metadata' => 'array',
             'created_at' => 'datetime',
         ];
     }

@@ -56,6 +56,7 @@ class AiChatController extends Controller
         return $this->ok([
             'message' => $result['reply'],
             'conversation_id' => $conversation->uuid,
+            'jobs' => $result['jobs'],
         ]);
     }
 
@@ -69,10 +70,11 @@ class AiChatController extends Controller
 
         $messages = $conversation->messages()
             ->orderBy('created_at')
-            ->get(['role', 'message', 'created_at'])
+            ->get(['role', 'message', 'metadata', 'created_at'])
             ->map(fn ($m) => [
                 'role' => $m->role,
                 'message' => $m->message,
+                'jobs' => is_array($m->metadata) ? ($m->metadata['jobs'] ?? []) : [],
                 'created_at' => $m->created_at?->toIso8601String(),
             ]);
 

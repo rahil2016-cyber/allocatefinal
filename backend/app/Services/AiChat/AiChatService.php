@@ -4,6 +4,7 @@ namespace App\Services\AiChat;
 
 use App\Models\AiConversation;
 use App\Models\AiMessage;
+use App\Models\Application;
 use App\Models\User;
 use Illuminate\Support\Str;
 
@@ -12,6 +13,7 @@ class AiChatService
     public function __construct(
         private readonly AiChatProviderService $provider,
         private readonly AiChatContextService $context,
+        private readonly AiChatJobSerializer $jobSerializer,
     ) {}
 
     public function systemPrompt(): string
@@ -39,7 +41,8 @@ JobAllocate features you should know:
 - Public job board is available; some features require login
 
 Rules:
-- When LIVE JOB LISTINGS, APPLICATIONS, or other verified data blocks are provided below, you MUST present that data directly to the user as a numbered list (title, company, location, Job #ID). Do NOT only tell them to "go to the app" or "use the search bar" when real data is already supplied.
+- When LIVE JOB LISTINGS are provided, the mobile app shows interactive job cards with Apply buttons under your message. Reply in ONE or TWO short sentences only (e.g. "I found 5 jobs in Davangere — tap Apply on any job below."). NEVER list job titles, companies, salaries, skills, or numbered job lists in your text when cards are shown.
+- Location matching tolerates small spelling differences (e.g. Davanagere vs Davangere). Trust the job list from the backend.
 - If the user asks for jobs near them, jobs matching their profile, or their applications, use the live database results in the context — list every job/application shown.
 - If no jobs are found in the context, say so clearly and suggest updating profile location or checking the Home tab.
 - Do not invent JobAllocate policies, prices, or features not supported by the context provided.
@@ -55,7 +58,7 @@ SYS;
     }
 
     /**
-     * @return array{conversation: AiConversation, reply: string}
+     * @return array{conversation: AiConversation, reply: string, jobs: list<array<string, mixed>>}
      */
     public function handleMessage(
         User $user,
@@ -80,10 +83,24 @@ SYS;
         $history = $this->loadTrimmedHistory($conversation);
         $contextBlock = $this->context->buildContextBlock($user, $jobId, $message);
 
+        $jobs = $this->context->resolveJobsForMessage($user, $message, $jobId);
+        $appliedIds = Application::query()
+            ->where('user_id', $user->id)
+            ->pluck('job_post_id')
+            ->all();
+        $serializedJobs = $this->jobSerializer->serialize($jobs, $appliedIds);
+
         $messages = [
             ['role' => 'system', 'content' => $this->systemPrompt()],
             ['role' => 'system', 'content' => "Verified user context (do not repeat verbatim unless helpful):\n".$contextBlock],
         ];
+
+        if ($serializedJobs !== []) {
+            $messages[] = [
+                'role' => 'system',
+                'content' => 'IMPORTANT: The JobAllocate app will render '.count($serializedJobs).' job card(s) with Apply buttons directly below your reply. Do not list jobs in text — only give a brief intro sentence.',
+            ];
+        }
 
         foreach ($history as $row) {
             $messages[] = [
@@ -98,6 +115,7 @@ SYS;
             'conversation_id' => $conversation->id,
             'role' => 'assistant',
             'message' => $reply,
+            'metadata' => $serializedJobs !== [] ? ['jobs' => $serializedJobs] : null,
             'created_at' => now(),
         ]);
 
@@ -106,6 +124,7 @@ SYS;
         return [
             'conversation' => $conversation,
             'reply' => $reply,
+            'jobs' => $serializedJobs,
         ];
     }
 

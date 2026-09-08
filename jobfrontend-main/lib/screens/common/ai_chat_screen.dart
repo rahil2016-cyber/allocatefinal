@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import '../../models/job.dart';
 import '../../services/ai_chat_api_service.dart';
+import '../../services/ai_chat_storage.dart';
 import '../../services/app_session.dart';
+import '../../services/job_seeker_api_service.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/network_user_message.dart';
+import '../../widgets/apply_job_sheet.dart';
+import '../../widgets/job_card.dart';
+import '../job_seeker/job_detail_screen.dart';
 
 class AiChatScreen extends StatefulWidget {
   const AiChatScreen({super.key, this.jobId});
@@ -19,8 +25,168 @@ class _AiChatScreenState extends State<AiChatScreen> {
   final _messages = <_UiMessage>[];
   String? _conversationId;
   bool _sending = false;
+  bool _loadingHistory = true;
   String? _error;
   String? _lastFailedText;
+  final Set<String> _savedJobIds = {};
+  final Set<String> _appliedJobIds = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedAndApplied();
+    _restoreConversation();
+  }
+
+  Future<void> _restoreConversation() async {
+    if (!AppSession.isLoggedIn) {
+      if (mounted) setState(() => _loadingHistory = false);
+      return;
+    }
+
+    try {
+      final savedId = await AiChatStorage.loadConversationId();
+      if (savedId == null) {
+        if (mounted) setState(() => _loadingHistory = false);
+        return;
+      }
+
+      final history = await AiChatApiService.instance.loadConversation(savedId);
+      if (!mounted) return;
+
+      setState(() {
+        _conversationId = history.conversationId;
+        _messages
+          ..clear()
+          ..addAll(
+            history.messages.map(
+              (m) => m.role == AiChatRole.user
+                  ? _UiMessage.user(m.text)
+                  : _UiMessage.assistant(
+                      m.text,
+                      jobs: _isEmployer ? const [] : m.jobs,
+                    ),
+            ),
+          );
+        for (final m in history.messages) {
+          for (final item in m.jobs) {
+            if (item.hasApplied) _appliedJobIds.add(item.job.id);
+          }
+        }
+        _loadingHistory = false;
+      });
+      _scrollToBottom();
+    } catch (_) {
+      await AiChatStorage.clearConversationId();
+      if (mounted) setState(() => _loadingHistory = false);
+    }
+  }
+
+  Future<void> _persistConversationId(String? id) async {
+    if (id == null || id.isEmpty) return;
+    await AiChatStorage.saveConversationId(id);
+  }
+
+  Future<void> _startNewChat() async {
+    await AiChatStorage.clearConversationId();
+    if (!mounted) return;
+    setState(() {
+      _conversationId = null;
+      _messages.clear();
+      _error = null;
+      _lastFailedText = null;
+    });
+  }
+
+  Future<void> _loadSavedAndApplied() async {
+    if (!AppSession.isLoggedIn || _isEmployer) return;
+    try {
+      final saved = await JobSeekerApiService.instance.listSavedJobs(perPage: 100);
+      final apps =
+          await JobSeekerApiService.instance.listMyApplications(perPage: 100);
+      if (!mounted) return;
+      setState(() {
+        _savedJobIds
+          ..clear()
+          ..addAll(saved.map((j) => j.id));
+        _appliedJobIds
+          ..clear()
+          ..addAll(apps.map((a) => a.jobId));
+      });
+    } catch (_) {}
+  }
+
+  Future<void> _refreshAppliedIds() async {
+    if (!AppSession.isLoggedIn) return;
+    try {
+      final apps =
+          await JobSeekerApiService.instance.listMyApplications(perPage: 100);
+      if (mounted) {
+        setState(() {
+          _appliedJobIds
+            ..clear()
+            ..addAll(apps.map((a) => a.jobId));
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _toggleSaveJob(Job job) async {
+    try {
+      final isSaved = _savedJobIds.contains(job.id);
+      if (isSaved) {
+        await JobSeekerApiService.instance.unsaveJob(job.id);
+      } else {
+        await JobSeekerApiService.instance.saveJob(job.id);
+      }
+      if (!mounted) return;
+      setState(() {
+        if (isSaved) {
+          _savedJobIds.remove(job.id);
+        } else {
+          _savedJobIds.add(job.id);
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(NetworkUserMessage.shortSummary(e))),
+      );
+    }
+  }
+
+  void _markApplied(String jobId) {
+    setState(() => _appliedJobIds.add(jobId));
+  }
+
+  Future<void> _openJobDetail(Job job, {required bool hasApplied}) async {
+    final token = AppSession.token ?? '';
+    final userId = AppSession.user?['id']?.toString() ?? 'demo-user';
+    final isSaved = _savedJobIds.contains(job.id);
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => JobDetailScreen(
+          job: job,
+          userId: userId,
+          token: token,
+          isBookmarked: isSaved,
+          hasApplied: hasApplied || _appliedJobIds.contains(job.id),
+        ),
+      ),
+    );
+    if (mounted) {
+      await _refreshAppliedIds();
+      await _loadSavedAndApplied();
+    }
+  }
+
+  Future<void> _applyToJob(Job job) async {
+    final ok = await showApplyJobSheet(context, job);
+    if (ok && mounted) {
+      _markApplied(job.id);
+      await _refreshAppliedIds();
+    }
+  }
 
   bool get _isEmployer {
     final role = AppSession.user?['role']?.toString() ?? '';
@@ -39,6 +205,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
     }
     return const [
       'Find jobs matching my profile',
+      'Show jobs near me',
       'Show my applications',
       'Help me understand this job',
       'What should I prepare for my interview?',
@@ -90,9 +257,19 @@ class _AiChatScreenState extends State<AiChatScreen> {
       );
 
       if (!mounted) return;
+      final convId = response.conversationId ?? _conversationId;
+      if (convId != null && convId.isNotEmpty) {
+        await _persistConversationId(convId);
+      }
       setState(() {
-        _conversationId = response.conversationId ?? _conversationId;
-        _messages.add(_UiMessage.assistant(response.message));
+        _conversationId = convId ?? _conversationId;
+        for (final item in response.jobs) {
+          if (item.hasApplied) _appliedJobIds.add(item.job.id);
+        }
+        _messages.add(_UiMessage.assistant(
+          response.message,
+          jobs: _isEmployer ? const [] : response.jobs,
+        ));
         _sending = false;
       });
       _scrollToBottom();
@@ -133,6 +310,14 @@ class _AiChatScreenState extends State<AiChatScreen> {
             ),
           ],
         ),
+        actions: [
+          if (_messages.isNotEmpty || _conversationId != null)
+            IconButton(
+              tooltip: 'New chat',
+              onPressed: _sending ? null : _startNewChat,
+              icon: const Icon(Icons.add_comment_outlined),
+            ),
+        ],
       ),
       body: SafeArea(
         child: Column(
@@ -141,7 +326,13 @@ class _AiChatScreenState extends State<AiChatScreen> {
               child: GestureDetector(
                 onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
                 behavior: HitTestBehavior.translucent,
-                child: _messages.isEmpty && !_sending
+                child: _loadingHistory
+                    ? const Center(
+                        child: CircularProgressIndicator(
+                          color: AppColors.primary,
+                        ),
+                      )
+                    : _messages.isEmpty && !_sending
                     ? _EmptyState(
                         suggestions: _suggestions,
                         onSuggestionTap: _send,
@@ -157,7 +348,15 @@ class _AiChatScreenState extends State<AiChatScreen> {
                             return const _TypingIndicator();
                           }
                           final msg = _messages[index];
-                          return _ChatBubble(message: msg);
+                          return _ChatBubble(
+                            message: msg,
+                            isEmployer: _isEmployer,
+                            savedJobIds: _savedJobIds,
+                            appliedJobIds: _appliedJobIds,
+                            onJobTap: _openJobDetail,
+                            onJobApply: _applyToJob,
+                            onJobBookmark: _toggleSaveJob,
+                          );
                         },
                       ),
               ),
@@ -210,22 +409,41 @@ class _AiChatScreenState extends State<AiChatScreen> {
 }
 
 class _UiMessage {
-  const _UiMessage({required this.role, required this.text});
+  const _UiMessage({
+    required this.role,
+    required this.text,
+    this.jobs = const [],
+  });
 
   final AiChatRole role;
   final String text;
+  final List<AiChatJobResult> jobs;
 
   factory _UiMessage.user(String text) =>
       _UiMessage(role: AiChatRole.user, text: text);
 
-  factory _UiMessage.assistant(String text) =>
-      _UiMessage(role: AiChatRole.assistant, text: text);
+  factory _UiMessage.assistant(String text, {List<AiChatJobResult> jobs = const []}) =>
+      _UiMessage(role: AiChatRole.assistant, text: text, jobs: jobs);
 }
 
 class _ChatBubble extends StatelessWidget {
-  const _ChatBubble({required this.message});
+  const _ChatBubble({
+    required this.message,
+    required this.isEmployer,
+    required this.savedJobIds,
+    required this.appliedJobIds,
+    required this.onJobTap,
+    required this.onJobApply,
+    required this.onJobBookmark,
+  });
 
   final _UiMessage message;
+  final bool isEmployer;
+  final Set<String> savedJobIds;
+  final Set<String> appliedJobIds;
+  final Future<void> Function(Job job, {required bool hasApplied}) onJobTap;
+  final Future<void> Function(Job job) onJobApply;
+  final Future<void> Function(Job job) onJobBookmark;
 
   @override
   Widget build(BuildContext context) {
@@ -267,12 +485,13 @@ class _ChatBubble extends StatelessWidget {
       );
     }
 
-    // AI answer — clear boxed card on the left
-    return Align(
-      alignment: Alignment.centerLeft,
+    // AI answer with optional job boxes — each job in its own tappable card.
+    final jobs = isEmployer ? const <AiChatJobResult>[] : message.jobs;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 14),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        constraints: BoxConstraints(maxWidth: maxWidth),
+        width: double.infinity,
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
@@ -286,39 +505,58 @@ class _ChatBubble extends StatelessWidget {
           ],
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: AppColors.accentLight,
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(15),
-                  topRight: Radius.circular(15),
-                ),
+                borderRadius: jobs.isEmpty
+                    ? BorderRadius.circular(15)
+                    : const BorderRadius.only(
+                        topLeft: Radius.circular(15),
+                        topRight: Radius.circular(15),
+                      ),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.auto_awesome_rounded,
                     size: 16,
                     color: AppColors.primary,
                   ),
-                  SizedBox(width: 6),
-                  Text(
-                    'JobAllocate AI',
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                  const SizedBox(width: 6),
+                  const Expanded(
+                    child: Text(
+                      'JobAllocate AI',
+                      style: TextStyle(
+                        color: AppColors.primary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
+                  if (jobs.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '${jobs.length} job${jobs.length == 1 ? '' : 's'}',
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+              padding: EdgeInsets.fromLTRB(14, 12, 14, jobs.isEmpty ? 14 : 10),
               child: Text(
                 message.text,
                 style: const TextStyle(
@@ -328,6 +566,70 @@ class _ChatBubble extends StatelessWidget {
                 ),
               ),
             ),
+            if (jobs.isNotEmpty) ...[
+              const Divider(height: 1, thickness: 1, color: Color(0xFFE8EEF4)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 4),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.work_outline_rounded,
+                      size: 16,
+                      color: AppColors.primary.withValues(alpha: 0.85),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Tap a job to view details or apply',
+                      style: TextStyle(
+                        color: AppColors.textSecondary,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ...jobs.map((item) {
+                final job = item.job;
+                final hasApplied =
+                    item.hasApplied || appliedJobIds.contains(job.id);
+                final isSaved = savedJobIds.contains(job.id);
+                return Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF8FAFC),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: const Color(0xFFCBD5E1),
+                        width: 1.2,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.06),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(13),
+                      child: JobCardWidget(
+                        job: job,
+                        margin: EdgeInsets.zero,
+                        layout: JobCardLayout.chat,
+                        hasApplied: hasApplied,
+                        isBookmarked: isSaved,
+                        isNoLongerAccepting: job.isJobExpired,
+                        onTap: () => onJobTap(job, hasApplied: hasApplied),
+                        onApply: () => onJobApply(job),
+                        onBookmark: () => onJobBookmark(job),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ],
           ],
         ),
       ),

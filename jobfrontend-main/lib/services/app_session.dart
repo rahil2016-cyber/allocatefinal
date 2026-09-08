@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../utils/media_url.dart';
+import 'ai_chat_storage.dart';
 import 'banner_api_service.dart';
 
 /// Auth session + persistent storage (survives app restarts).
@@ -84,6 +85,7 @@ class AppSession {
     try {
       final p = await SharedPreferences.getInstance();
       await _clearPrefs(p);
+      await AiChatStorage.clearAllForLogout();
     } catch (_) {}
   }
 

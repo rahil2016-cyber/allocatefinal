@@ -202,8 +202,16 @@ class AiChatContextService
             $intents[] = 'recommended_jobs';
         }
 
+        if (preg_match('/\b(show|list|see|get|give|fetch|search)\s+(me\s+)?(some\s+|more\s+)?jobs?\b/', $m)) {
+            $intents[] = 'recommended_jobs';
+        }
+
         if (preg_match('/\b(jobs?|vacancies|vacancy|openings?|hiring)\b/', $m) && $intents === []) {
             $intents[] = 'recommended_jobs';
+        }
+
+        if (preg_match('/\b(jobs?|work|openings?)\s+(?:in|at|near)\s+[a-z]/', $m)) {
+            $intents[] = 'jobs_near_me';
         }
 
         return array_values(array_unique($intents));

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import '../models/job.dart';
 import '../utils/api_json_decode.dart';
 import 'app_session.dart';
 
@@ -24,6 +25,20 @@ class AiChatApiService {
   }
 
   Map<String, dynamic> _decode(http.Response r) => decodeApiJsonObject(r);
+
+  List<AiChatJobResult> _parseJobs(dynamic rawJobs) {
+    final jobs = <AiChatJobResult>[];
+    if (rawJobs is! List) return jobs;
+    for (final item in rawJobs) {
+      if (item is! Map) continue;
+      final map = Map<String, dynamic>.from(item);
+      jobs.add(AiChatJobResult(
+        job: Job.fromApi(map),
+        hasApplied: map['has_applied'] == true,
+      ));
+    }
+    return jobs;
+  }
 
   void _ensureSuccess(Map<String, dynamic> json, int status) {
     if (status >= 200 && status < 300 && json['success'] == true) return;
@@ -62,9 +77,12 @@ class AiChatApiService {
       throw Exception("Sorry, I'm having trouble connecting right now. Please try again.");
     }
 
+    final jobs = _parseJobs(data['jobs']);
+
     return AiChatResponse(
       message: data['message']?.toString() ?? '',
       conversationId: data['conversation_id']?.toString(),
+      jobs: jobs,
     );
   }
 
@@ -96,6 +114,7 @@ class AiChatApiService {
         messages.add(AiChatMessage(
           role: role == 'assistant' ? AiChatRole.assistant : AiChatRole.user,
           text: text,
+          jobs: _parseJobs(item['jobs']),
         ));
       }
     }
@@ -111,17 +130,34 @@ class AiChatApiService {
 enum AiChatRole { user, assistant }
 
 class AiChatMessage {
-  const AiChatMessage({required this.role, required this.text});
+  const AiChatMessage({
+    required this.role,
+    required this.text,
+    this.jobs = const [],
+  });
 
   final AiChatRole role;
   final String text;
+  final List<AiChatJobResult> jobs;
 }
 
 class AiChatResponse {
-  const AiChatResponse({required this.message, this.conversationId});
+  const AiChatResponse({
+    required this.message,
+    this.conversationId,
+    this.jobs = const [],
+  });
 
   final String message;
   final String? conversationId;
+  final List<AiChatJobResult> jobs;
+}
+
+class AiChatJobResult {
+  const AiChatJobResult({required this.job, this.hasApplied = false});
+
+  final Job job;
+  final bool hasApplied;
 }
 
 class AiConversationHistory {

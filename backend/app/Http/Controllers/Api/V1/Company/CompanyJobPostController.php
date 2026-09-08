@@ -5,11 +5,12 @@ namespace App\Http\Controllers\Api\V1\Company;
 use App\Enums\JobPostStatus;
 use App\Http\Concerns\ApiResponses;
 use App\Http\Controllers\Controller;
+use App\Mail\CompanyJobPostedMail;
 use App\Models\JobPost;
 use App\Services\JobPublishingService;
+use App\Services\Mail\AppMailer;
 use App\Models\IndustryType;
 use App\Services\Cashfree\CashfreeClient;
-use App\Support\Identifier;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -159,9 +160,7 @@ class CompanyJobPostController extends Controller
 
         try {
             $employer = $request->user();
-            if ($employer && $employer->email && !Identifier::isSyntheticEmail($employer->email)) {
-                \Illuminate\Support\Facades\Mail::to($employer->email)->send(new \App\Mail\CompanyJobPostedMail($job));
-            }
+            app(AppMailer::class)->sendToUser($employer, new CompanyJobPostedMail($job));
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[CompanyJobPostController] Failed to send job posted email: ' . $e->getMessage());
         }

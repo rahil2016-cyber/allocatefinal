@@ -4,13 +4,12 @@ namespace App\Services\Cashfree;
 
 use App\Mail\CompanySubscriptionSuccessMail;
 use App\Mail\JobSeekerPaymentSuccessMail;
+use App\Services\Mail\AppMailer;
 use App\Models\CompanySubscriptionPayment;
 use App\Models\JobSeekerProfile;
 use App\Models\SeekerPackagePurchase;
-use App\Support\Identifier;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Mail;
 
 class CashfreePaymentFulfillment
 {
@@ -214,10 +213,10 @@ class CashfreePaymentFulfillment
         }
 
         try {
-            $user = $payment->company?->user;
-            if ($user && $user->email && ! Identifier::isSyntheticEmail($user->email)) {
-                Mail::to($user->email)->send(new CompanySubscriptionSuccessMail($payment->fresh()));
-            }
+            app(AppMailer::class)->sendToUser(
+                $payment->company?->user,
+                new CompanySubscriptionSuccessMail($payment->fresh())
+            );
         } catch (\Throwable $e) {
             Log::warning('[Cashfree] Failed to send company subscription email: '.$e->getMessage());
         }
@@ -280,13 +279,9 @@ class CashfreePaymentFulfillment
 
     protected function sendSeekerSuccessMail(SeekerPackagePurchase $purchase): void
     {
-        try {
-            $user = $purchase->user;
-            if ($user && $user->email && ! Identifier::isSyntheticEmail($user->email)) {
-                Mail::to($user->email)->send(new JobSeekerPaymentSuccessMail($purchase));
-            }
-        } catch (\Throwable $e) {
-            Log::warning('[Cashfree] Failed to send seeker payment email: '.$e->getMessage());
-        }
+        app(AppMailer::class)->sendToUser(
+            $purchase->user,
+            new JobSeekerPaymentSuccessMail($purchase)
+        );
     }
 }

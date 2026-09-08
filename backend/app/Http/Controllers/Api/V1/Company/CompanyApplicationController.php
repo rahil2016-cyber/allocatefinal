@@ -5,8 +5,10 @@ namespace App\Http\Controllers\Api\V1\Company;
 use App\Enums\ApplicationStatus;
 use App\Http\Concerns\ApiResponses;
 use App\Http\Controllers\Controller;
+use App\Mail\JobApplicationStatusUpdatedMail;
 use App\Models\Application;
 use App\Models\JobPost;
+use App\Services\Mail\AppMailer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -110,6 +112,7 @@ class CompanyApplicationController extends Controller
             $seeker = $application->user;
             if ($seeker) {
                 $notifier = app(\App\Services\NotificationSender::class);
+                $mailer = app(AppMailer::class);
                 $statusVal = is_object($application->status) ? $application->status->value : (string) $application->status;
                 $jobTitle = $application->jobPost->title ?? 'Job';
 
@@ -129,6 +132,8 @@ class CompanyApplicationController extends Controller
                         $notifier->applicationRejected($seeker, $jobTitle, $application->id);
                         break;
                 }
+
+                $mailer->sendToUser($seeker, new JobApplicationStatusUpdatedMail($application));
             }
         } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::warning('[CompanyApplicationController] Failed to send push notification: ' . $e->getMessage());

@@ -6,9 +6,13 @@ use App\Enums\ApplicationStatus;
 use App\Enums\JobPostStatus;
 use App\Http\Concerns\ApiResponses;
 use App\Http\Controllers\Controller;
+use App\Mail\EmployerJobApplicationNotificationMail;
+use App\Mail\JobApplicationStatusUpdatedMail;
+use App\Mail\JobSeekerApplicationSubmittedMail;
 use App\Models\Application;
 use App\Models\JobPost;
 use App\Models\JobSeekerProfile;
+use App\Services\Mail\AppMailer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -103,13 +107,16 @@ class SeekerApplicationController extends Controller
 
             try {
                 $notifier = app(\App\Services\NotificationSender::class);
+                $mailer = app(AppMailer::class);
                 $seeker = $application->user;
                 if ($seeker) {
                     $notifier->applicationSubmitted($seeker, $job->title, $job->company->name ?? 'Company', $application->id);
+                    $mailer->sendToUser($seeker, new JobSeekerApplicationSubmittedMail($application));
                 }
                 $employer = $job->company?->owner;
                 if ($employer) {
                     $notifier->newApplicationReceived($employer, $job->title, $application->id);
+                    $mailer->sendToUser($employer, new EmployerJobApplicationNotificationMail($application));
                 }
             } catch (\Throwable $e) {
                 \Illuminate\Support\Facades\Log::warning('[SeekerApplicationController] Failed to send push notification: ' . $e->getMessage());

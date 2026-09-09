@@ -95,6 +95,27 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
     }
   }
 
+  Future<void> _emailHR() async {
+    final email = _job.contactEmail ?? '';
+    if (email.isEmpty) {
+      _showError('No HR contact email provided');
+      return;
+    }
+    final emailUrl = Uri(
+      scheme: 'mailto',
+      path: email,
+      queryParameters: {
+        'subject': 'Job Application for ${_job.title}',
+        'body': 'Hi, I would like to apply for the ${_job.title} position.',
+      },
+    );
+    if (await canLaunchUrl(emailUrl)) {
+      await launchUrl(emailUrl);
+    } else {
+      _showError('Could not open email app');
+    }
+  }
+
   Future<void> _contactHR() async {
     final pref = _job.contactPreference ?? 'phone_call';
     if (pref == 'whatsapp') {
@@ -1059,7 +1080,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
             ),
             const SizedBox(height: 6),
             InkWell(
-              onTap: _contactHR,
+              onTap: _emailHR,
               child: Container(
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -1069,6 +1090,7 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                   border: Border.all(color: Colors.indigo.shade200),
                 ),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     const Icon(
                       Icons.email_rounded,
@@ -1076,13 +1098,72 @@ class _JobDetailScreenState extends State<JobDetailScreen> {
                       color: Colors.indigo,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      _job.contactEmail!,
-                      style: const TextStyle(fontSize: 13, color: Colors.indigo, fontWeight: FontWeight.bold),
+                    Expanded(
+                      child: Text(
+                        _job.contactEmail!.replaceAll('@', '@\u200B').replaceAll('.', '.\u200B'),
+                        style: const TextStyle(fontSize: 13, color: Colors.indigo, fontWeight: FontWeight.bold),
+                        softWrap: true,
+                      ),
                     ),
-                    const Spacer(),
+                    const SizedBox(width: 8),
                     const Text(
                       'Email HR',
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.indigo,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          if (_job.contactPhone != null && _job.contactPhone!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            const Text(
+              'HR Contact Number:',
+              style: TextStyle(fontSize: 12, color: AppColors.textHint, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            InkWell(
+              onTap: () async {
+                final phone = _job.contactPhone!.trim();
+                final phoneUrl = Uri(scheme: 'tel', path: phone);
+                if (await canLaunchUrl(phoneUrl)) {
+                  await launchUrl(phoneUrl);
+                } else {
+                  _showError('Could not start phone call');
+                }
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                decoration: BoxDecoration(
+                  color: Colors.indigo.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.indigo.shade200),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.phone_rounded,
+                      size: 16,
+                      color: Colors.indigo,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _job.contactPhone!,
+                        style: const TextStyle(fontSize: 13, color: Colors.indigo, fontWeight: FontWeight.bold),
+                        softWrap: true,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Call HR',
                       style: TextStyle(
                         fontSize: 11,
                         color: Colors.indigo,

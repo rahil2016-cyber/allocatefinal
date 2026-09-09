@@ -81,11 +81,20 @@ class AiChatContextService
                 $profile,
                 $this->parseLocationFromMessage($userMessage)
             );
-            if ($criteria === null) {
-                return collect();
+            if ($criteria !== null) {
+                $nearJobs = $this->fetchJobsNearLocation($criteria, [], 15)['jobs'];
+                if ($nearJobs->isNotEmpty()) {
+                    return $nearJobs;
+                }
             }
 
-            return $this->fetchJobsNearLocation($criteria, [], 15)['jobs'];
+            // Fallback: If no jobs found in requested location, return recommended/popular jobs
+            $fallback = $this->fetchRecommendedJobs($profile, [], 10);
+            if ($fallback->isNotEmpty()) {
+                return $fallback;
+            }
+
+            return $this->listedJobQuery()->latest('published_at')->limit(10)->get();
         }
 
         if (in_array('recommended_jobs', $intents, true)) {
@@ -298,11 +307,26 @@ class AiChatContextService
         $result = $this->fetchJobsNearLocation($criteria, [], 15);
 
         if ($result['jobs']->isEmpty()) {
+            $fallbackJobs = $this->fetchRecommendedJobs($profile, $appliedIds, 10);
+            if ($fallbackJobs->isEmpty()) {
+                $fallbackJobs = $this->listedJobQuery()->latest('published_at')->limit(10)->get();
+            }
+
+            if ($fallbackJobs->isNotEmpty()) {
+                return $this->formatJobListings(
+                    $fallbackJobs,
+                    '--- LIVE JOBS (LOCATION FALLBACK) ---',
+                    "No published jobs were found directly in: {$result['matched_label']}. "
+                    ."Showing alternative open jobs on JobAllocate instead. "
+                    ."Explain in 1-2 sentences: 'I couldn\'t find active job openings in {$result['matched_label']} right now, but here are some available jobs on JobAllocate you might be interested in:'",
+                    $appliedIds
+                );
+            }
+
             return implode("\n", [
                 '--- LIVE JOBS NEAR USER ---',
                 "No published jobs found in district/area: {$result['matched_label']}.",
-                'Do NOT show jobs from other districts or the whole state.',
-                'Tell the user no openings match their district right now and suggest checking the Home tab.',
+                'Tell the user no openings match right now and suggest checking back later.',
             ]);
         }
 

@@ -8,15 +8,14 @@ class AiChatStorage {
 
   static const _prefix = 'ai_chat_conversation_v1_';
 
-  static String? _prefsKey() {
-    final uid = AppSession.userId;
-    if (uid == null || uid.isEmpty) return null;
+  static String _prefsKey() {
+    final uid = AppSession.currentUserId;
+    if (uid == null || uid.isEmpty) return '${_prefix}active';
     return '$_prefix$uid';
   }
 
   static Future<String?> loadConversationId() async {
     final key = _prefsKey();
-    if (key == null) return null;
     final prefs = await SharedPreferences.getInstance();
     final id = prefs.getString(key);
     if (id == null || id.isEmpty) return null;

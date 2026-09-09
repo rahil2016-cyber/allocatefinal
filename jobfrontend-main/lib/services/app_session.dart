@@ -26,11 +26,14 @@ class AppSession {
   /// Updates the cached user object and notifies photo listeners if URL changed.
   static void updateUser(Map<String, dynamic> newUser) {
     user = Map<String, dynamic>.from(newUser);
+    userId = user?['id']?.toString() ?? userId;
     final photo = user?['profile_photo_url']?.toString().trim() ??
         user?['profile_photo']?.toString().trim() ?? '';
     profilePhotoNotifier.value = MediaUrl.resolve(photo);
     persist().catchError((_) {});
   }
+
+  static String? get currentUserId => userId ?? user?['id']?.toString();
 
   static bool get isLoggedIn => token != null && token!.isNotEmpty;
 

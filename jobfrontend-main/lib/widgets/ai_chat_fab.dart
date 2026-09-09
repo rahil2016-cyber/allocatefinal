@@ -33,42 +33,21 @@ class AiChatFab extends StatelessWidget {
       child: Material(
         elevation: 6,
         shadowColor: AppColors.primary.withValues(alpha: 0.35),
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(30),
         child: InkWell(
           onTap: () => _open(context),
-          borderRadius: BorderRadius.circular(28),
+          borderRadius: BorderRadius.circular(30),
           child: Container(
-            padding: const EdgeInsets.fromLTRB(10, 8, 14, 8),
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF6366F1),
-                  Color(0xFF0EA5E9),
-                  Color(0xFF8B5CF6),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(
-                color: Colors.white.withValues(alpha: 0.2),
-                width: 1,
-              ),
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(30),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const AiBotAvatar(size: 32),
-                const SizedBox(width: 8),
-                const Text(
-                  'Ask AI',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
+            child: const Icon(
+              Icons.chat_bubble_rounded,
+              color: Colors.white,
+              size: 26,
             ),
           ),
         ),

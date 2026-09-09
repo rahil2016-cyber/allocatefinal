@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:speech_to_text/speech_to_text.dart' as stt;
 import '../../models/job.dart';
 import '../../services/ai_chat_api_service.dart';
 import '../../services/ai_chat_storage.dart';
@@ -21,6 +22,9 @@ class AiChatScreen extends StatefulWidget {
 }
 
 class _AiChatScreenState extends State<AiChatScreen> {
+  static final List<_UiMessage> _memCacheMessages = [];
+  static String? _memCacheConversationId;
+
   final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   final _messages = <_UiMessage>[];
@@ -35,6 +39,11 @@ class _AiChatScreenState extends State<AiChatScreen> {
   @override
   void initState() {
     super.initState();
+    if (_memCacheMessages.isNotEmpty) {
+      _messages.addAll(_memCacheMessages);
+      _conversationId = _memCacheConversationId;
+      _loadingHistory = false;
+    }
     _loadSavedAndApplied();
     _restoreConversation();
   }
@@ -47,7 +56,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
     try {
       final savedId = await AiChatStorage.loadConversationId();
-      if (savedId == null) {
+      if (savedId == null || savedId.isEmpty) {
         if (mounted) setState(() => _loadingHistory = false);
         return;
       }
@@ -74,11 +83,20 @@ class _AiChatScreenState extends State<AiChatScreen> {
             if (item.hasApplied) _appliedJobIds.add(item.job.id);
           }
         }
+        _memCacheMessages
+          ..clear()
+          ..addAll(_messages);
+        _memCacheConversationId = _conversationId;
         _loadingHistory = false;
       });
       _scrollToBottom();
-    } catch (_) {
-      await AiChatStorage.clearConversationId();
+    } catch (e) {
+      final err = e.toString().toLowerCase();
+      if (err.contains('404') || err.contains('not found')) {
+        await AiChatStorage.clearConversationId();
+        _memCacheMessages.clear();
+        _memCacheConversationId = null;
+      }
       if (mounted) setState(() => _loadingHistory = false);
     }
   }
@@ -90,6 +108,8 @@ class _AiChatScreenState extends State<AiChatScreen> {
 
   Future<void> _startNewChat() async {
     await AiChatStorage.clearConversationId();
+    _memCacheMessages.clear();
+    _memCacheConversationId = null;
     if (!mounted) return;
     setState(() {
       _conversationId = null;
@@ -271,6 +291,10 @@ class _AiChatScreenState extends State<AiChatScreen> {
           response.message,
           jobs: _isEmployer ? const [] : response.jobs,
         ));
+        _memCacheMessages
+          ..clear()
+          ..addAll(_messages);
+        _memCacheConversationId = _conversationId;
         _sending = false;
       });
       _scrollToBottom();
@@ -335,6 +359,7 @@ class _AiChatScreenState extends State<AiChatScreen> {
                       )
                     : _messages.isEmpty && !_sending
                     ? _EmptyState(
+                        userName: AppSession.user?['name']?.toString() ?? '',
                         suggestions: _suggestions,
                         onSuggestionTap: _send,
                       )
@@ -684,19 +709,42 @@ class _TypingIndicator extends StatelessWidget {
 
 class _EmptyState extends StatelessWidget {
   const _EmptyState({
+    required this.userName,
     required this.suggestions,
     required this.onSuggestionTap,
   });
 
+  final String userName;
   final List<String> suggestions;
   final void Function({String? text}) onSuggestionTap;
 
+  static const _suggestionIcons = <IconData>[
+    Icons.search_rounded,
+    Icons.location_on_rounded,
+    Icons.description_rounded,
+    Icons.chat_bubble_rounded,
+    Icons.lightbulb_rounded,
+    Icons.settings_rounded,
+  ];
+
+  static const _suggestionIconColors = <Color>[
+    Color(0xFF3B5BDB),
+    Color(0xFF3B5BDB),
+    Color(0xFF3B5BDB),
+    Color(0xFF3B5BDB),
+    Color(0xFFF59E0B),
+    Color(0xFF3B5BDB),
+  ];
+
   @override
   Widget build(BuildContext context) {
+    final displayName = userName.isNotEmpty
+        ? userName.split(' ').first
+        : 'there';
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       children: [
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
         Center(
           child: Container(
             padding: const EdgeInsets.all(6),
@@ -713,9 +761,9 @@ class _EmptyState extends StatelessWidget {
             child: const AiBotAvatar(size: 88),
           ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         Text(
-          'How can I help you?',
+          'Hello, $displayName! \u{1F44B}',
           textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w800,
@@ -724,7 +772,7 @@ class _EmptyState extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         const Text(
-          'Ask me about jobs, applications, interviews, or how to use JobAllocate.',
+          "I'm your AI career assistant. Ask me anything about jobs, applications, interviews, or how to use JobAllocate.",
           textAlign: TextAlign.center,
           style: TextStyle(
             color: AppColors.textSecondary,
@@ -733,29 +781,81 @@ class _EmptyState extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 28),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          alignment: WrapAlignment.center,
-          children: suggestions.map((s) {
-            return ActionChip(
-              label: Text(s),
-              backgroundColor: AppColors.surface,
-              side: const BorderSide(color: Color(0xFFE2E8F0)),
-              labelStyle: const TextStyle(
+        // Try asking header
+        Row(
+          children: [
+            const Icon(Icons.bolt_rounded, color: Color(0xFF3B5BDB), size: 20),
+            const SizedBox(width: 4),
+            Text(
+              'Try asking',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
                 color: AppColors.textPrimary,
-                fontSize: 13,
               ),
-              onPressed: () => onSuggestionTap(text: s),
-            );
-          }).toList(),
+            ),
+          ],
         ),
+        const SizedBox(height: 12),
+        // Suggestion list items
+        ...suggestions.asMap().entries.map((entry) {
+          final i = entry.key;
+          final s = entry.value;
+          final iconColor = i < _suggestionIconColors.length
+              ? _suggestionIconColors[i]
+              : const Color(0xFF3B5BDB);
+          final icon = i < _suggestionIcons.length
+              ? _suggestionIcons[i]
+              : Icons.help_outline_rounded;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(14),
+                onTap: () => onSuggestionTap(text: s),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFEEF2FF),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(icon, color: iconColor, size: 18),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          s,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      const Icon(
+                        Icons.chevron_right_rounded,
+                        color: AppColors.textHint,
+                        size: 20,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          );
+        }),
       ],
     );
   }
 }
 
-class _InputBar extends StatelessWidget {
+class _InputBar extends StatefulWidget {
   const _InputBar({
     required this.controller,
     required this.sending,
@@ -765,6 +865,68 @@ class _InputBar extends StatelessWidget {
   final TextEditingController controller;
   final bool sending;
   final VoidCallback onSend;
+
+  @override
+  State<_InputBar> createState() => _InputBarState();
+}
+
+class _InputBarState extends State<_InputBar> {
+  final stt.SpeechToText _speech = stt.SpeechToText();
+  bool _isListening = false;
+
+  Future<void> _toggleMic() async {
+    if (_isListening) {
+      await _speech.stop();
+      if (mounted) setState(() => _isListening = false);
+      return;
+    }
+
+    // Re-initialize every time for reliability
+    final available = await _speech.initialize(
+      onError: (e) {
+        debugPrint('Speech error: ${e.errorMsg}');
+        if (mounted) setState(() => _isListening = false);
+      },
+      onStatus: (status) {
+        debugPrint('Speech status: $status');
+        if ((status == 'done' || status == 'notListening') && mounted) {
+          setState(() => _isListening = false);
+        }
+      },
+      debugLogging: false,
+    );
+
+    if (!available) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Microphone not available. Check app permissions.')),
+        );
+      }
+      return;
+    }
+
+    if (mounted) setState(() => _isListening = true);
+
+    await _speech.listen(
+      onResult: (result) {
+        if (!mounted) return;
+        widget.controller.text = result.recognizedWords;
+        widget.controller.selection = TextSelection.fromPosition(
+          TextPosition(offset: widget.controller.text.length),
+        );
+      },
+      listenFor: const Duration(seconds: 30),
+      pauseFor: const Duration(seconds: 4),
+      partialResults: true,
+      cancelOnError: true,
+    );
+  }
+
+  @override
+  void dispose() {
+    _speech.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -779,14 +941,16 @@ class _InputBar extends StatelessWidget {
           children: [
             Expanded(
               child: TextField(
-                controller: controller,
+                controller: widget.controller,
                 maxLines: 3,
                 minLines: 1,
                 textInputAction: TextInputAction.send,
-                onSubmitted: (_) => onSend(),
+                onSubmitted: (_) => widget.onSend(),
                 decoration: InputDecoration(
-                  hintText: 'Type your message…',
-                  hintStyle: const TextStyle(color: AppColors.textHint),
+                  hintText: _isListening ? 'Listening…' : 'Type your message…',
+                  hintStyle: TextStyle(
+                    color: _isListening ? AppColors.primary : AppColors.textHint,
+                  ),
                   filled: true,
                   fillColor: AppColors.background,
                   contentPadding: const EdgeInsets.symmetric(
@@ -797,15 +961,23 @@ class _InputBar extends StatelessWidget {
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
                   ),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                      color: _isListening ? AppColors.primary : AppColors.textHint,
+                    ),
+                    tooltip: _isListening ? 'Stop listening' : 'Voice input',
+                    onPressed: _toggleMic,
+                  ),
                 ),
               ),
             ),
             const SizedBox(width: 8),
             Material(
-              color: sending ? AppColors.textHint : AppColors.primary,
+              color: widget.sending ? AppColors.textHint : AppColors.primary,
               borderRadius: BorderRadius.circular(24),
               child: InkWell(
-                onTap: sending ? null : onSend,
+                onTap: widget.sending ? null : widget.onSend,
                 borderRadius: BorderRadius.circular(24),
                 child: const Padding(
                   padding: EdgeInsets.all(12),

@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:printing/printing.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/company_api_service.dart';
 import '../../services/resume_pdf_export.dart';
 import '../../utils/app_colors.dart';
 import '../../utils/media_url.dart';
+import '../common/pdf_view_screen.dart';
 import '../../utils/network_user_message.dart';
 import '../../mixins/auto_reload_on_reconnect.dart';
 import '../../features/resume/adapters/draft_resume_parse.dart';
@@ -663,29 +665,19 @@ class _ManageApplicationsScreenState extends State<ManageApplicationsScreen>
 
   Future<void> _openResume(String url) async {
     final resolved = (MediaUrl.resolve(url) ?? url).trim();
-    if (resolved.isEmpty) return;
-    final u = Uri.tryParse(resolved);
-    if (u == null) return;
-    try {
-      if (await canLaunchUrl(u)) {
-        final ok = await launchUrl(
-          u,
-          mode: LaunchMode.externalApplication,
-        );
-        if (ok || !mounted) return;
-      }
-    } catch (_) {}
-    try {
-      if (await canLaunchUrl(u)) {
-        await launchUrl(u, mode: LaunchMode.platformDefault);
-        return;
-      }
-    } catch (_) {}
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Could not open link. Try copying: $resolved'),
-        backgroundColor: AppColors.error,
+    if (resolved.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No valid resume URL found.')),
+      );
+      return;
+    }
+    await Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PdfViewScreen(
+          title: 'Candidate Resume',
+          url: resolved,
+        ),
       ),
     );
   }

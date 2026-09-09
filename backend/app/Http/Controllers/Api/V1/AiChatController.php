@@ -80,13 +80,13 @@ class AiChatController extends Controller
             return $this->fail('Conversation not found.', null, 404);
         }
 
-        $columns = ['role', 'message', 'created_at'];
+        $columns = ['id', 'role', 'message', 'created_at'];
         if (Schema::hasColumn('ai_messages', 'metadata')) {
             $columns[] = 'metadata';
         }
 
         $messages = $conversation->messages()
-            ->orderBy('created_at')
+            ->orderBy('id', 'asc')
             ->get($columns)
             ->map(fn ($m) => [
                 'role' => $m->role,

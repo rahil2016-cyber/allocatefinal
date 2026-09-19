@@ -193,7 +193,7 @@ class _ResumeSelectionScreenState extends State<ResumeSelectionScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Purchase Basic (4), Premium (8), or Professional (13) to select and unlock resumes.',
+                          'Purchase a resume plan to select and unlock your resume templates.',
                           textAlign: TextAlign.center,
                           style: tt.bodyMedium?.copyWith(color: AppColors.textSecondary),
                         ),

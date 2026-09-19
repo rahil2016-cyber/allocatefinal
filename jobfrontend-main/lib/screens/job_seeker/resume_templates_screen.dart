@@ -173,9 +173,9 @@ class ResumeTemplatesScreen extends StatelessWidget {
                         const SizedBox(height: 8),
                         Text(
                           !plan.hasActivePlan
-                              ? 'Buy a plan to unlock resumes: Basic 4 · Premium 8 · Professional 13.'
+                              ? 'Buy a resume plan to unlock and customize resume templates.'
                               : !plan.isSelectionComplete
-                                  ? 'Select your $allowedCount resume templates to unlock editing & downloads.'
+                                  ? 'Select your $allowedCount resume template(s) to unlock editing & downloads.'
                                   : 'Selected templates include free PDF download. Upgrade to unlock more.',
                           style: tt.bodyMedium?.copyWith(
                             color: AppColors.textSecondary,

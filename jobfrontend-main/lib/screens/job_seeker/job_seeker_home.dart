@@ -179,6 +179,11 @@ class _JobSeekerHomeScreenState extends State<JobSeekerHomeScreen>
     ];
     _startSeekerTimeHeartbeat();
     ResumePlanService.instance.fetchActivePlan();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        checkAndShowBiometricSetupPrompt(context);
+      }
+    });
   }
 
   @override

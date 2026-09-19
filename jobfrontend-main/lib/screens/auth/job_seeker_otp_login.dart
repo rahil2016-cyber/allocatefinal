@@ -9,6 +9,8 @@ import '../../widgets/app_logo.dart';
 import '../../widgets/brand_dream_job_tagline.dart';
 import 'register_screen.dart';
 import 'forgot_password_screen.dart';
+import '../../services/biometric_auth_service.dart';
+
 class JobSeekerOtpLoginScreen extends StatefulWidget {
   const JobSeekerOtpLoginScreen({super.key});
 
@@ -21,7 +23,21 @@ class _JobSeekerOtpLoginScreenState extends State<JobSeekerOtpLoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _obscurePassword = true;
+  bool _isBiometricAvailable = false;
   final ApiService _apiService = ApiService();
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricSupport();
+  }
+
+  Future<void> _checkBiometricSupport() async {
+    final enabled = await BiometricAuthService.instance.isBiometricEnabled();
+    if (mounted) {
+      setState(() => _isBiometricAvailable = enabled);
+    }
+  }
 
   void _showSnackBar(String message, {bool isError = true}) {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -33,6 +49,35 @@ class _JobSeekerOtpLoginScreenState extends State<JobSeekerOtpLoginScreen> {
         margin: const EdgeInsets.all(16),
       ),
     );
+  }
+
+  Future<void> _loginWithBiometric() async {
+    setState(() => _isLoading = true);
+    try {
+      final res = await BiometricAuthService.instance.loginWithBiometrics();
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (res != null) {
+        Navigator.of(context).pushReplacement(
+          PageRouteBuilder(
+            settings: const RouteSettings(name: JobSeekerHomeScreen.routeName),
+            pageBuilder: (context, animation, secondaryAnimation) => JobSeekerHomeScreen(
+              userId: AppSession.userId,
+              token: AppSession.token,
+            ),
+            transitionsBuilder: (context, animation, secondaryAnimation, child) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
+        _showSnackBar(e.toString().replaceAll('Exception: ', ''));
+      }
+    }
   }
 
   Future<void> _login() async {
@@ -219,6 +264,29 @@ class _JobSeekerOtpLoginScreenState extends State<JobSeekerOtpLoginScreen> {
                 onPressed: _login,
                 isLoading: _isLoading,
               ),
+
+              if (_isBiometricAvailable) ...[
+                const SizedBox(height: 12),
+                OutlinedButton.icon(
+                  onPressed: _isLoading ? null : _loginWithBiometric,
+                  icon: const Icon(Icons.fingerprint_rounded, color: AppColors.primary),
+                  label: Text(
+                    '🔐 Login with Fingerprint / Face ID',
+                    style: GoogleFonts.plusJakartaSans(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                  ),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 52),
+                    side: const BorderSide(color: AppColors.primary, width: 1.5),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ],
 
               const SizedBox(height: 24),
               Center(

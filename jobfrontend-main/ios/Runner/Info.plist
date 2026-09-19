@@ -114,5 +114,7 @@
 		<string>We need your location to help you quickly fill in your city and head office address.</string>
 		<key>NSLocationAlwaysUsageDescription</key>
 		<string>We need your location to help you quickly fill in your city and head office address.</string>
+		<key>NSFaceIDUsageDescription</key>
+		<string>Use Face ID to securely log in to JobAllocate.</string>
 	</dict>
 </plist>

@@ -55,7 +55,7 @@ class ResumePlanService extends ChangeNotifier {
               .where((e) => e.isNotEmpty)
               .toList();
           _selectedTemplateIds =
-              list.length > _allowedTemplateCount ? <String>[] : list;
+              list.length > _allowedTemplateCount ? list.take(_allowedTemplateCount).toList() : list;
         } else {
           _selectedTemplateIds = [];
         }
@@ -70,8 +70,15 @@ class ResumePlanService extends ChangeNotifier {
       final expiresAt = expiresRaw != null
           ? DateTime.tryParse(expiresRaw.toString())
           : null;
+
+      final dynamicLimitRaw = profile['resume_builds_remaining'] ?? profile['allowed_count'] ?? profile['resume_builds_included'];
+      final dynamicLimit = dynamicLimitRaw is int
+          ? dynamicLimitRaw
+          : int.tryParse(dynamicLimitRaw?.toString() ?? '');
+      final limit = dynamicLimit ?? (key != null ? templateLimitForPackage(key) : 0);
+
       final active = key != null &&
-          templateLimitForPackage(key) > 0 &&
+          limit > 0 &&
           expiresAt != null &&
           expiresAt.isAfter(DateTime.now());
 
@@ -83,7 +90,8 @@ class ResumePlanService extends ChangeNotifier {
         return;
       }
 
-      _setActivePlanKey(key);
+      _activePackageKey = key;
+      _allowedTemplateCount = limit;
       final sel = profile['selected_template_ids'];
       if (sel is List) {
         final list = sel
@@ -91,7 +99,7 @@ class ResumePlanService extends ChangeNotifier {
             .where((e) => e.isNotEmpty)
             .toList();
         _selectedTemplateIds =
-            list.length > _allowedTemplateCount ? <String>[] : list;
+            list.length > _allowedTemplateCount ? list.take(_allowedTemplateCount).toList() : list;
       } else {
         _selectedTemplateIds = [];
       }

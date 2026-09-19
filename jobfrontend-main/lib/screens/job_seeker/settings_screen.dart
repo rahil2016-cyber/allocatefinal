@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../services/app_session.dart';
+import '../../services/biometric_auth_service.dart';
 import '../../services/job_seeker_api_service.dart';
 import '../../utils/app_colors.dart';
 import '../common/legal_webview_screen.dart';
@@ -16,6 +17,57 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  bool _biometricSupported = false;
+  bool _biometricEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometricStatus();
+  }
+
+  Future<void> _checkBiometricStatus() async {
+    final supported = await BiometricAuthService.instance.isBiometricSupported();
+    final enabled = await BiometricAuthService.instance.isBiometricEnabled();
+    if (mounted) {
+      setState(() {
+        _biometricSupported = supported;
+        _biometricEnabled = enabled;
+      });
+    }
+  }
+
+  Future<void> _toggleBiometric(bool enable) async {
+    final bio = BiometricAuthService.instance;
+    if (enable) {
+      final token = AppSession.token;
+      final userPayload = AppSession.user;
+      if (token == null || token.isEmpty || userPayload == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please log in again to configure biometric authentication.')),
+        );
+        return;
+      }
+      final success = await bio.enableBiometric(bearerToken: token, userPayload: userPayload);
+      if (mounted) {
+        setState(() => _biometricEnabled = success);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(success ? 'Biometric login enabled successfully.' : 'Could not enable biometric login.'),
+          ),
+        );
+      }
+    } else {
+      await bio.disableBiometric();
+      if (mounted) {
+        setState(() => _biometricEnabled = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Biometric login disabled.')),
+        );
+      }
+    }
+  }
+
   void _openLegal(BuildContext context, {required String title, required String url}) {
     Navigator.of(context).push(
       MaterialPageRoute<void>(
@@ -44,6 +96,18 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
+          if (_biometricSupported)
+            _SettingsTile(
+              icon: Icons.fingerprint_rounded,
+              title: 'Biometric Login',
+              subtitle: 'Use Fingerprint, Face ID, or device passcode to log in faster',
+              onTap: () => _toggleBiometric(!_biometricEnabled),
+              trailing: Switch(
+                value: _biometricEnabled,
+                activeTrackColor: AppColors.primary,
+                onChanged: (val) => _toggleBiometric(val),
+              ),
+            ),
           _SettingsTile(
             icon: Icons.description_rounded,
             title: 'Resume',
@@ -265,12 +329,14 @@ class _SettingsTile extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.trailing,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -316,7 +382,7 @@ class _SettingsTile extends StatelessWidget {
             ),
           ),
         ),
-        trailing: Icon(
+        trailing: trailing ?? Icon(
           Icons.chevron_right_rounded,
           color: AppColors.textHint,
         ),

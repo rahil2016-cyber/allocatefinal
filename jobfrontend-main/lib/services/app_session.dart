@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/media_url.dart';
 import 'ai_chat_storage.dart';
 import 'banner_api_service.dart';
+import 'biometric_auth_service.dart';
 
 /// Auth session + persistent storage (survives app restarts).
 class AppSession {
@@ -89,6 +90,7 @@ class AppSession {
       final p = await SharedPreferences.getInstance();
       await _clearPrefs(p);
       await AiChatStorage.clearAllForLogout();
+      await BiometricAuthService.instance.onLogout();
     } catch (_) {}
   }
 

@@ -6,6 +6,7 @@ import 'post_job_screen.dart';
 import 'manage_applications_screen.dart';
 import 'employer_profile_screen.dart';
 import 'employer_dashboard_page.dart';
+import '../../widgets/biometric_setup_dialog.dart';
 
 
 class EmployerHomeScreen extends StatefulWidget {
@@ -23,6 +24,16 @@ class _EmployerHomeScreenState extends State<EmployerHomeScreen> {
 
   final GlobalKey<EmployerDashboardPageState> _dashboardKey =
       GlobalKey<EmployerDashboardPageState>();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        checkAndShowBiometricSetupPrompt(context);
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

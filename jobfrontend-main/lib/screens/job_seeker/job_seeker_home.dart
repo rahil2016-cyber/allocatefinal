@@ -37,6 +37,7 @@ import '../../widgets/seeker_html_template_swatch.dart';
 import 'spotlight_employers_jobs_screen.dart';
 import '../../utils/resume_draft_utils.dart';
 import 'settings_screen.dart';
+import '../../widgets/biometric_setup_dialog.dart';
 import './career_prep/interview_qa_screen.dart';
 import './career_prep/career_article_feed_screen.dart';
 import './career_prep/seeker_ai_coach_screen.dart';

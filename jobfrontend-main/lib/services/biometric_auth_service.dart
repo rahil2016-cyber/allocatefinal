@@ -120,6 +120,27 @@ class BiometricAuthService {
     } catch (_) {}
   }
 
+  /// Performs OS biometric/device-credential verification only (no network call).
+  /// Use as a local "lock screen" gate (e.g. on app startup).
+  /// Returns `true` if the user authenticated successfully, `false` otherwise.
+  Future<bool> verifyBiometric() async {
+    try {
+      return await _localAuth.authenticate(
+        localizedReason: 'Verify your identity to access JobAllocate',
+        options: const AuthenticationOptions(
+          stickyAuth: true,
+          useErrorDialogs: true,
+          biometricOnly: false,
+        ),
+      );
+    } on PlatformException catch (e) {
+      debugPrint('Biometric verification failed: $e');
+      return false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Performs OS biometric authentication, retrieves stored token, and validates against PHP GET /me endpoint.
   Future<Map<String, dynamic>?> loginWithBiometrics() async {
     try {

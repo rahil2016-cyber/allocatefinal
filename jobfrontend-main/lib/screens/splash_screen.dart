@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import '../config/api_config.dart';
 import '../services/app_session.dart';
+import '../services/biometric_auth_service.dart';
 import '../services/fcm_flutter_service.dart';
 import '../widgets/app_logo.dart';
 import 'employer/employer_home.dart';
@@ -33,9 +34,38 @@ class _SplashScreenState extends State<SplashScreen> {
       minDisplay,
     ]);
 
+    if (!mounted) return;
+
+    // If there is a stored session, check if biometric gate is required.
     if (AppSession.isLoggedIn) {
-      // Ensure device is registered for system tray / notification center pushes.
-      // FCM init may still be racing; ignore failures.
+      debugPrint('[SplashScreen] Session found - token exists, checking biometric gate...');
+      final biometricEnabled =
+          await BiometricAuthService.instance.isBiometricEnabled();
+      debugPrint('[SplashScreen] Biometric enabled: $biometricEnabled');
+
+      if (biometricEnabled) {
+        // User has biometric enabled → must verify identity before auto-login.
+        // Uses local-only OS biometric prompt (no network call needed).
+        debugPrint('[SplashScreen] Prompting biometric verification...');
+        final verified =
+            await BiometricAuthService.instance.verifyBiometric();
+        debugPrint('[SplashScreen] Biometric verified: $verified');
+        if (!verified) {
+          // Biometric cancelled or failed — do NOT auto-login.
+          // Clear in-memory session so isLoggedIn becomes false.
+          AppSession.token = null;
+          AppSession.userId = null;
+          AppSession.user = null;
+          debugPrint('[SplashScreen] Biometric failed/cancelled → going to login screen');
+        }
+        // If verified, keep the session already loaded from SharedPreferences.
+      }
+    } else {
+      debugPrint('[SplashScreen] No stored session found → going to login screen');
+    }
+
+    // Ensure device is registered for push notifications.
+    if (AppSession.isLoggedIn) {
       // ignore: unawaited_futures
       FcmFlutterService.instance.registerTokenAfterLogin();
     }

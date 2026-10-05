@@ -116,7 +116,9 @@ function RegisterForm() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
-  // Step 0 -> Step 1: Send OTP
+  const [isFirebaseSession, setIsFirebaseSession] = useState(false);
+
+  // Step 0 -> Step 1: Send Real SMS OTP via Firebase (or backend fallback)
   const handleInitiateRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
@@ -139,6 +141,20 @@ function RegisterForm() {
     setIsLoading(true);
     setError(null);
 
+    // 1. Try Firebase Phone SMS first (Real SMS to user's phone, identical to mobile app)
+    try {
+      const { sendFirebasePhoneOtp } = await import("@/lib/firebase/phoneAuth");
+      await sendFirebasePhoneOtp(identifier.trim(), "recaptcha-container");
+      setIsFirebaseSession(true);
+      setCountdown(60);
+      setStep(1);
+      setIsLoading(false);
+      return;
+    } catch (fbErr: any) {
+      console.warn("Firebase Phone Auth fallback to backend SMS:", fbErr);
+    }
+
+    // 2. Fallback to direct backend API send-otp
     try {
       const res = await apiClient.post("/auth/send-otp", {
         identifier: identifier.trim(),
@@ -146,6 +162,7 @@ function RegisterForm() {
         role,
       });
 
+      setIsFirebaseSession(false);
       if (res.data?.data?.mock_otp) {
         setOtp(res.data.data.mock_otp);
       }
@@ -169,6 +186,47 @@ function RegisterForm() {
     setIsLoading(true);
     setError(null);
 
+    // If verified via Firebase
+    if (isFirebaseSession) {
+      try {
+        const { verifyFirebasePhoneOtp } = await import("@/lib/firebase/phoneAuth");
+        const idToken = await verifyFirebasePhoneOtp(otp.trim());
+
+        const fbPayload: any = {
+          id_token: idToken,
+          role,
+          name: name.trim(),
+          email: email.trim() || undefined,
+          state: selectedState,
+          district: selectedDistrict,
+          city: city.trim() || undefined,
+          referral_code: referralCode.trim() || undefined,
+        };
+
+        if (role === "company") {
+          fbPayload.company_name = companyName.trim();
+          fbPayload.company_kind = companyKind;
+          fbPayload.industry = industry.trim() || undefined;
+          fbPayload.website = website.trim() || undefined;
+          fbPayload.gst_number = gstNumber.trim() || undefined;
+        }
+
+        const fbRes = await apiClient.post("/auth/firebase-authenticate", fbPayload);
+        const fbData = fbRes.data?.data || fbRes.data;
+
+        if (fbData?.token && fbData?.user) {
+          login(fbData.token, fbData.user);
+          setStep(2);
+          return;
+        }
+      } catch (fbVerifyErr: any) {
+        setError(fbVerifyErr.response?.data?.message || fbVerifyErr.message || "Invalid Firebase SMS code. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Backend OTP verification
     try {
       const payload: any = {
         identifier: identifier.trim(),
@@ -196,8 +254,6 @@ function RegisterForm() {
 
       if (data?.token && data?.user) {
         login(data.token, data.user);
-
-        // Advance to password creation or complete
         setStep(2);
       } else {
         setError(res.data?.message || "Verification failed. Please try again.");
@@ -295,7 +351,10 @@ function RegisterForm() {
         </span>
       </div>
 
-      <Card className="p-6 sm:p-8 space-y-5 shadow-xl border-slate-200/90 rounded-3xl">
+      <Card className="p-6 sm:p-8 space-y-5 shadow-xl border-slate-200/90 rounded-3xl relative">
+        {/* Invisible Firebase reCAPTCHA container */}
+        <div id="recaptcha-container" />
+
         {/* Error Alert */}
         {error && (
           <div className="rounded-xl bg-red-50 p-3.5 text-xs text-red-700 font-medium flex items-center gap-2.5 border border-red-200">

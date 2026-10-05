@@ -70,21 +70,38 @@ function LoginForm() {
     return () => clearTimeout(timer);
   }, [countdown]);
 
+  const [isFirebaseSession, setIsFirebaseSession] = useState(false);
+
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier) {
-      setError("Please enter your mobile number or email");
+      setError("Please enter your mobile number");
       return;
     }
     setIsLoading(true);
     setError(null);
 
+    // 1. Try Firebase Phone SMS first (Real SMS to user's phone, identical to mobile app)
+    try {
+      const { sendFirebasePhoneOtp } = await import("@/lib/firebase/phoneAuth");
+      await sendFirebasePhoneOtp(identifier.trim(), "recaptcha-container-login");
+      setIsFirebaseSession(true);
+      setOtpSent(true);
+      setCountdown(60);
+      setIsLoading(false);
+      return;
+    } catch (fbErr: any) {
+      console.warn("Firebase Phone Auth fallback to backend SMS:", fbErr);
+    }
+
+    // 2. Fallback to direct backend API send-otp
     try {
       const res = await apiClient.post("/auth/send-otp", {
         identifier: identifier.trim(),
         intent: "login",
         role,
       });
+      setIsFirebaseSession(false);
       setOtpSent(true);
       setCountdown(60);
 
@@ -107,6 +124,31 @@ function LoginForm() {
     setIsLoading(true);
     setError(null);
 
+    // If verified via Firebase
+    if (isFirebaseSession) {
+      try {
+        const { verifyFirebasePhoneOtp } = await import("@/lib/firebase/phoneAuth");
+        const idToken = await verifyFirebasePhoneOtp(otp.trim());
+
+        const fbRes = await apiClient.post("/auth/firebase-authenticate", {
+          id_token: idToken,
+          role,
+        });
+
+        const fbData = fbRes.data?.data || fbRes.data;
+        if (fbData?.token && fbData?.user) {
+          login(fbData.token, fbData.user);
+          router.push(role === "company" ? "/employer/dashboard" : "/seeker/dashboard");
+          return;
+        }
+      } catch (fbVerifyErr: any) {
+        setError(fbVerifyErr.response?.data?.message || fbVerifyErr.message || "Invalid Firebase SMS code. Please try again.");
+        setIsLoading(false);
+        return;
+      }
+    }
+
+    // Backend OTP verification
     try {
       const response = await apiClient.post("/auth/verify-otp", {
         identifier: identifier.trim(),
@@ -206,7 +248,10 @@ function LoginForm() {
           </button>
         </div>
 
-        <Card className="p-6 space-y-4 shadow-lg border-slate-200">
+        <Card className="p-6 space-y-4 shadow-lg border-slate-200 relative">
+          {/* Invisible Firebase reCAPTCHA container */}
+          <div id="recaptcha-container-login" />
+
           {error && (
             <div className="rounded-lg bg-red-50 p-3 text-xs text-red-700 font-medium flex items-center gap-2">
               <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />

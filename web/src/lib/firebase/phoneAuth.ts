@@ -1,4 +1,4 @@
-// Firebase Configuration matching the Flutter App (joballocate)
+// Firebase Configuration matching the mobile app (joballocate)
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 
@@ -8,7 +8,6 @@ const firebaseConfig = {
   projectId: "joballocate",
   storageBucket: "joballocate.firebasestorage.app",
   messagingSenderId: "395622351897",
-  appId: "1:395622351897:web:c1c469185f139ca2e61688",
 };
 
 // Initialize Firebase once
@@ -23,15 +22,21 @@ declare global {
 }
 
 /**
- * Setup invisible reCAPTCHA verifier for Phone Auth
+ * Setup invisible reCAPTCHA verifier for Phone Auth with proper cleanup
  */
 export function setupRecaptcha(containerId = "recaptcha-container"): RecaptchaVerifier {
   if (typeof window === "undefined") {
     throw new Error("Cannot initialize recaptcha on server.");
   }
 
+  // Clear any existing verifier instance to prevent DOM/re-render collisions
   if (window.recaptchaVerifier) {
-    return window.recaptchaVerifier;
+    try {
+      window.recaptchaVerifier.clear();
+    } catch {
+      // ignore
+    }
+    window.recaptchaVerifier = undefined;
   }
 
   const verifier = new RecaptchaVerifier(auth, containerId, {
@@ -40,7 +45,12 @@ export function setupRecaptcha(containerId = "recaptcha-container"): RecaptchaVe
       // reCAPTCHA solved automatically
     },
     "expired-callback": () => {
-      // Response expired
+      try {
+        if (window.recaptchaVerifier) window.recaptchaVerifier.clear();
+      } catch {
+        // ignore
+      }
+      window.recaptchaVerifier = undefined;
     },
   });
 
@@ -71,9 +81,22 @@ export function formatToE164(phone: string): string {
 export async function sendFirebasePhoneOtp(rawPhone: string, containerId = "recaptcha-container"): Promise<ConfirmationResult> {
   const e164Phone = formatToE164(rawPhone);
   const verifier = setupRecaptcha(containerId);
-  const confirmationResult = await signInWithPhoneNumber(auth, e164Phone, verifier);
-  window.confirmationResult = confirmationResult;
-  return confirmationResult;
+  try {
+    const confirmationResult = await signInWithPhoneNumber(auth, e164Phone, verifier);
+    window.confirmationResult = confirmationResult;
+    return confirmationResult;
+  } catch (err: any) {
+    // Clean up verifier on error so subsequent attempts get a fresh instance
+    if (window.recaptchaVerifier) {
+      try {
+        window.recaptchaVerifier.clear();
+      } catch {
+        // ignore
+      }
+      window.recaptchaVerifier = undefined;
+    }
+    throw err;
+  }
 }
 
 /**

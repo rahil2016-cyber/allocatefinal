@@ -151,7 +151,11 @@ function RegisterForm() {
       setIsLoading(false);
       return;
     } catch (fbErr: any) {
-      console.warn("Firebase Phone Auth fallback to backend SMS:", fbErr);
+      console.warn("Firebase Phone Auth notice:", fbErr);
+
+      if (fbErr?.code === "auth/unauthorized-domain") {
+        console.warn("Domain joballocate.com is pending authorization in Firebase Console.");
+      }
     }
 
     // 2. Fallback to direct backend API send-otp
@@ -165,6 +169,9 @@ function RegisterForm() {
       setIsFirebaseSession(false);
       if (res.data?.data?.mock_otp) {
         setOtp(res.data.data.mock_otp);
+      } else {
+        // Pre-fill demo OTP (123456 matches mobile app ApiService.demoOtp)
+        setOtp("123456");
       }
       setCountdown(60);
       setStep(1);
@@ -186,6 +193,9 @@ function RegisterForm() {
     setIsLoading(true);
     setError(null);
 
+    const cleanDigits = identifier.replace(/\D/g, "").slice(-10);
+    const resolvedEmail = email.trim() || `user_${cleanDigits}@joballocate.com`;
+
     // If verified via Firebase
     if (isFirebaseSession) {
       try {
@@ -196,7 +206,7 @@ function RegisterForm() {
           id_token: idToken,
           role,
           name: name.trim(),
-          email: email.trim() || undefined,
+          email: resolvedEmail,
           state: selectedState,
           district: selectedDistrict,
           city: city.trim() || undefined,
@@ -237,7 +247,7 @@ function RegisterForm() {
         state: selectedState,
         district: selectedDistrict,
         city: city.trim() || undefined,
-        email: email.trim() || undefined,
+        email: resolvedEmail,
         referral_code: referralCode.trim() || undefined,
       };
 

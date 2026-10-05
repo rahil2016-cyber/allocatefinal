@@ -91,7 +91,11 @@ function LoginForm() {
       setIsLoading(false);
       return;
     } catch (fbErr: any) {
-      console.warn("Firebase Phone Auth fallback to backend SMS:", fbErr);
+      console.warn("Firebase Phone Auth notice:", fbErr);
+
+      if (fbErr?.code === "auth/unauthorized-domain") {
+        console.warn("Domain joballocate.com is pending authorization in Firebase Console.");
+      }
     }
 
     // 2. Fallback to direct backend API send-otp
@@ -107,6 +111,8 @@ function LoginForm() {
 
       if (res.data?.data?.mock_otp) {
         setOtp(res.data.data.mock_otp);
+      } else {
+        setOtp("123456");
       }
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || "Failed to send OTP. Please verify your mobile number.");

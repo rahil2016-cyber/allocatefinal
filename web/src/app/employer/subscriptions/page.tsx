@@ -68,16 +68,44 @@ export default function EmployerSubscriptionsPage() {
 
   const handlePurchase = async () => {
     setPurchasing(true);
+    setSuccessMessage(null);
     try {
       const res = await apiClient.post("/company/subscription/purchase", {});
-      if (res.data?.success) {
+      const data = res.data?.data || res.data;
+
+      if (data?.is_free) {
+        setSuccessMessage("🎉 Free First Month activated successfully! Your job credits have been added.");
+        return;
+      }
+
+      if (data?.payment_session_id) {
+        // Launch Cashfree modal
+        const { launchCashfreeCheckout } = await import("@/lib/payment/cashfree");
+        await launchCashfreeCheckout({
+          paymentSessionId: data.payment_session_id,
+          environment: data.environment === "sandbox" ? "sandbox" : "production",
+          onSuccess: async () => {
+            // Confirm payment with backend
+            try {
+              await apiClient.post("/company/subscription/confirm-status", {
+                merchant_order_id: data.merchant_order_id,
+              });
+              setSuccessMessage("🎉 Payment successful! Your employer package has been activated.");
+            } catch {
+              setSuccessMessage("Payment received! Activating your package...");
+            }
+          },
+          onFailure: (err) => {
+            alert(err?.message || "Payment was cancelled or could not be completed.");
+          },
+        });
+      } else if (res.data?.success) {
         setSuccessMessage("Package activated successfully! Your job credits have been updated.");
       } else {
         setSuccessMessage("Package order generated. Please proceed to payment.");
       }
-    } catch {
-      // Direct notification for demo or fallback
-      setSuccessMessage("Subscription request submitted. An executive will confirm your activation.");
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || "Failed to initialize payment.");
     } finally {
       setPurchasing(false);
     }

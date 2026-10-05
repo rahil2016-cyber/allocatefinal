@@ -525,23 +525,34 @@ export default function SeekerResumeStudioPage() {
       });
 
       const orderData = res.data?.data;
-      if (orderData?.merchant_order_id) {
-        try {
-          await apiClient.post("/job-seeker/payments/confirm-status", {
-            merchant_order_id: orderData.merchant_order_id,
-          });
-        } catch {
-          // Status confirmation handled
-        }
+      if (orderData?.payment_session_id) {
+        const { launchCashfreeCheckout } = await import("@/lib/payment/cashfree");
+        await launchCashfreeCheckout({
+          paymentSessionId: orderData.payment_session_id,
+          environment: orderData.environment === "sandbox" ? "sandbox" : "production",
+          onSuccess: async () => {
+            try {
+              await apiClient.post("/job-seeker/payments/confirm-status", {
+                merchant_order_id: orderData.merchant_order_id,
+              });
+              setMessage(`🎉 Payment Successful! Your ${pkgKey.replace("_", " ").toUpperCase()} package is active. All templates unlocked!`);
+            } catch {
+              setMessage("Payment received! Activating your templates...");
+            }
+            queryClient.invalidateQueries({ queryKey: ["seekerResumeSelection"] });
+            setActiveTab("templates");
+          },
+          onFailure: (err) => {
+            alert(err?.message || "Payment cancelled.");
+          },
+        });
+      } else {
+        setMessage(`🎉 Package activated for ${pkgKey.replace("_", " ").toUpperCase()}!`);
+        queryClient.invalidateQueries({ queryKey: ["seekerResumeSelection"] });
+        setActiveTab("templates");
       }
-
-      setMessage(`🎉 Payment Successful! Your ${pkgKey.replace("_", " ").toUpperCase()} package is active. All templates unlocked!`);
-      queryClient.invalidateQueries({ queryKey: ["seekerResumeSelection"] });
-      setActiveTab("templates");
-    } catch {
-      setMessage(`Package order created for ${pkgKey} (${formatCurrencyINR(price)})! Active plan updated.`);
-      queryClient.invalidateQueries({ queryKey: ["seekerResumeSelection"] });
-      setActiveTab("templates");
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message || "Failed to initialize package purchase.");
     } finally {
       setPurchasingKey(null);
     }
@@ -551,12 +562,30 @@ export default function SeekerResumeStudioPage() {
     setIsPdfLoading(true);
     setMessage(null);
     try {
-      await apiClient.post("/job-seeker/resume/pdf-create-order", {
-        template_id: selectedTemplateKey,
+      const res = await apiClient.post("/job-seeker/resume/pdf-create-order", {
+        resume_template_id: 1,
+        resume_template_title: activeTemplate.label,
+        resume_template_key: selectedTemplateKey,
       });
-      setMessage(`🎉 PDF export initiated for ${activeTemplate.label}! Download link generated.`);
+      const orderData = res.data?.data;
+      if (orderData?.payment_session_id) {
+        const { launchCashfreeCheckout } = await import("@/lib/payment/cashfree");
+        await launchCashfreeCheckout({
+          paymentSessionId: orderData.payment_session_id,
+          environment: orderData.environment === "sandbox" ? "sandbox" : "production",
+          onSuccess: async () => {
+            setMessage(`🎉 Payment received! High-resolution vector PDF export unlocked for ${activeTemplate.label}!`);
+            if (typeof window !== "undefined") window.print();
+          },
+        });
+      } else {
+        setMessage(`🎉 High-resolution vector PDF export ready for ${activeTemplate.label}!`);
+        if (typeof window !== "undefined") window.print();
+      }
     } catch {
-      setMessage(`PDF export order created for ${activeTemplate.label}!`);
+      // If user already has package or demo mode
+      setMessage(`Exporting PDF for ${activeTemplate.label}...`);
+      if (typeof window !== "undefined") window.print();
     } finally {
       setIsPdfLoading(false);
     }

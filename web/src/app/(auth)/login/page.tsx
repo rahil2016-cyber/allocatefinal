@@ -60,24 +60,39 @@ function LoginForm() {
     }
   };
 
+  const [countdown, setCountdown] = useState(0);
+
+  React.useEffect(() => {
+    let timer: any;
+    if (countdown > 0) {
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    }
+    return () => clearTimeout(timer);
+  }, [countdown]);
+
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!identifier) {
-      setError("Please enter your mobile number");
+      setError("Please enter your mobile number or email");
       return;
     }
     setIsLoading(true);
     setError(null);
 
     try {
-      await apiClient.post("/auth/send-otp", {
-        mobile: identifier,
+      const res = await apiClient.post("/auth/send-otp", {
+        identifier: identifier.trim(),
+        intent: "login",
         role,
       });
       setOtpSent(true);
+      setCountdown(60);
+
+      if (res.data?.data?.mock_otp) {
+        setOtp(res.data.data.mock_otp);
+      }
     } catch (err: any) {
-      // If send-otp API is handled via Firebase on client, prompt user for OTP entry
-      setOtpSent(true);
+      setError(err.response?.data?.message || err.message || "Failed to send OTP. Please verify your mobile number.");
     } finally {
       setIsLoading(false);
     }
@@ -85,13 +100,18 @@ function LoginForm() {
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!otp || otp.length !== 6) {
+      setError("Please enter the 6-digit OTP code");
+      return;
+    }
     setIsLoading(true);
     setError(null);
 
     try {
       const response = await apiClient.post("/auth/verify-otp", {
-        mobile: identifier,
-        otp,
+        identifier: identifier.trim(),
+        code: otp.trim(),
+        intent: "login",
         role,
       });
 
@@ -99,11 +119,14 @@ function LoginForm() {
       if (data?.data?.token && data?.data?.user) {
         login(data.data.token, data.data.user);
         router.push(role === "company" ? "/employer/dashboard" : "/seeker/dashboard");
+      } else if (data?.token && data?.user) {
+        login(data.token, data.user);
+        router.push(role === "company" ? "/employer/dashboard" : "/seeker/dashboard");
       } else {
         setError(data?.message || "Invalid OTP code. Please try again.");
       }
     } catch (err: any) {
-      setError(err.message || "Failed to verify OTP. Please try again.");
+      setError(err.response?.data?.message || err.message || "Failed to verify OTP. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -279,13 +302,29 @@ function LoginForm() {
                 Verify OTP & Sign In
               </Button>
 
-              <button
-                type="button"
-                onClick={() => setOtpSent(false)}
-                className="text-xs text-[#174A7E] hover:underline w-full text-center font-medium block"
-              >
-                Change mobile number or resend OTP
-              </button>
+              <div className="flex items-center justify-between text-xs pt-1">
+                {countdown > 0 ? (
+                  <span className="text-slate-400 font-medium">Resend OTP in {countdown}s</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleSendOtp}
+                    className="font-bold text-[#174A7E] hover:underline"
+                  >
+                    Resend SMS OTP
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOtpSent(false);
+                    setOtp("");
+                  }}
+                  className="text-slate-500 hover:text-slate-700 underline"
+                >
+                  Change number
+                </button>
+              </div>
             </form>
           )}
 

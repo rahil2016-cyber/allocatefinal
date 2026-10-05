@@ -22,11 +22,13 @@ return [
 
     // Explicit allowed origins — no wildcard so Authorization headers are safe.
     'allowed_origins' => [
+        'https://joballocate.com',        // production web domain
+        'https://www.joballocate.com',    // production www web domain
         'https://www.joballocate.tech',   // production admin / web frontend
-        'https://joballocate.tech',        // canonical API host (same-origin web requests)
-        'http://localhost',                // local development
-        'http://localhost:3000',           // Next.js dev server
-        'http://localhost:8080',           // generic local dev
+        'https://joballocate.tech',       // canonical API host (same-origin web requests)
+        'http://localhost',               // local development
+        'http://localhost:3000',          // Next.js dev server
+        'http://localhost:8080',          // generic local dev
         'http://127.0.0.1',
         'http://127.0.0.1:3000',
         'http://127.0.0.1:8080',

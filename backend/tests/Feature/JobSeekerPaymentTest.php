@@ -323,4 +323,36 @@ class JobSeekerPaymentTest extends TestCase
             'resume_package_key' => 'basic_resume',
         ]);
     }
+
+    public function test_resume_selection_returns_dynamic_allowed_count_from_package(): void
+    {
+        $user = User::factory()->create(['role' => 'job_seeker']);
+        Sanctum::actingAs($user);
+
+        SeekerPackage::create([
+            'key' => 'custom_single_resume',
+            'title' => 'Single Resume Package',
+            'description' => '1 resume template allowed',
+            'kind' => 'resume',
+            'price_inr' => 49,
+            'duration_days' => 30,
+            'applications_included' => 0,
+            'resume_builds_included' => 1,
+            'is_active' => true,
+        ]);
+
+        $profile = $user->jobSeekerProfile()->create([
+            'resume_package_key' => 'custom_single_resume',
+            'resume_builds_remaining' => 1,
+            'resume_credits_expires_at' => now()->addDays(30),
+        ]);
+
+        $this->assertEquals(1, $profile->allowedTemplateCount());
+
+        $response = $this->getJson('/api/v1/job-seeker/resume/selection');
+        $response->assertOk()
+            ->assertJsonPath('success', true)
+            ->assertJsonPath('data.allowed_count', 1)
+            ->assertJsonPath('data.active_package_key', 'custom_single_resume');
+    }
 }

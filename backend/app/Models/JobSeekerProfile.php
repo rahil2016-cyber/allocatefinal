@@ -108,7 +108,7 @@ class JobSeekerProfile extends Model
             $key = is_string($fallback) && $fallback !== '' ? $fallback : null;
         }
 
-        if (! in_array($key, ['basic_resume', 'premium_resume', 'professional_resume'], true)) {
+        if ($key === null) {
             return null;
         }
 
@@ -128,7 +128,21 @@ class JobSeekerProfile extends Model
     /** How many templates the seeker may unlock under their active plan (0 if none). */
     public function allowedTemplateCount(): int
     {
-        return match ($this->activeResumePackageKey()) {
+        $key = $this->activeResumePackageKey();
+        if (! $key) {
+            return 0;
+        }
+
+        $pkg = SeekerPackage::query()->where('key', $key)->first();
+        if ($pkg && $pkg->resume_builds_included !== null) {
+            return (int) $pkg->resume_builds_included;
+        }
+
+        if ($this->resume_builds_remaining !== null && $this->resume_builds_remaining > 0) {
+            return (int) $this->resume_builds_remaining;
+        }
+
+        return match ($key) {
             'professional_resume' => 13,
             'premium_resume' => 8,
             'basic_resume' => 4,
@@ -154,9 +168,8 @@ class JobSeekerProfile extends Model
             $selected
         )));
 
-        // Stale list from a higher plan — force a fresh selection.
         if (count($ids) > $allowed) {
-            return [];
+            return array_slice($ids, 0, $allowed);
         }
 
         return $ids;

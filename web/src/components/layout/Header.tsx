@@ -145,14 +145,14 @@ export const Header: React.FC = () => {
             </div>
           </Link>
 
-          {/* ── SEARCH BAR (centre, desktop - job seekers only) ── */}
-          {!isEmployer && !isHomeEntry && (
+          {/* ── SEARCH BAR (centre, desktop - job seekers and visitors) ── */}
+          {!isEmployer && (
             <div className="hidden md:flex flex-1 max-w-md relative" ref={searchOverlayRef}>
               {/* Pill trigger / input */}
               <button
                 type="button"
                 onClick={openSearch}
-                className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full border border-slate-200 bg-white hover:border-[#174A7E]/40 hover:shadow-sm text-slate-400 text-sm font-medium transition-all group shadow-xs"
+                className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full border border-slate-200 bg-white hover:border-[#174A7E]/40 hover:shadow-sm text-slate-400 text-sm font-medium transition-all group shadow-xs cursor-pointer"
               >
                 <Search className="h-4 w-4 text-[#174A7E] shrink-0" />
                 <span className="flex-1 text-left text-sm text-slate-400 font-normal">
@@ -530,10 +530,11 @@ export const Header: React.FC = () => {
 
           {/* Mobile: search icon + hamburger */}
           <div className="flex md:hidden items-center gap-2">
-            {!isEmployer && !isHomeEntry && (
+            {!isEmployer && (
               <button
                 onClick={openSearch}
                 className="rounded-full h-9 w-9 flex items-center justify-center border border-slate-200 text-[#174A7E] hover:bg-slate-50 transition-colors"
+                aria-label="Open Search"
               >
                 <Search className="h-4.5 w-4.5" />
               </button>

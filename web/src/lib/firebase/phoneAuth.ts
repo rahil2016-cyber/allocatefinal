@@ -29,6 +29,11 @@ export function setupRecaptcha(containerId = "recaptcha-container"): RecaptchaVe
     throw new Error("Cannot initialize recaptcha on server.");
   }
 
+  const container = document.getElementById(containerId);
+  if (!container) {
+    throw new Error(`reCAPTCHA container '#${containerId}' was not found in the DOM.`);
+  }
+
   // Clear any existing verifier instance to prevent DOM/re-render collisions
   if (window.recaptchaVerifier) {
     try {
@@ -39,7 +44,7 @@ export function setupRecaptcha(containerId = "recaptcha-container"): RecaptchaVe
     window.recaptchaVerifier = undefined;
   }
 
-  const verifier = new RecaptchaVerifier(auth, containerId, {
+  const verifier = new RecaptchaVerifier(auth, container, {
     size: "invisible",
     callback: () => {
       // reCAPTCHA solved automatically

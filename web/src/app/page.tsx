@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth/context";
 import apiClient from "@/lib/api/client";
@@ -83,6 +84,7 @@ const RESUME_TEMPLATES = [
 ];
 
 export default function HomePage() {
+  const router = useRouter();
   const { user } = useAuth();
 
   // Banner slide index
@@ -94,6 +96,7 @@ export default function HomePage() {
 
   // Job Search State
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [searchLocation, setSearchLocation] = useState("");
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
 
@@ -228,6 +231,59 @@ export default function HomePage() {
                 />
               ))}
             </div>
+          </div>
+
+          {/* ── DEDICATED PROMINENT HERO JOB SEARCH BAR WITH WORKING SEARCH BUTTON ── */}
+          <div className="bg-white rounded-3xl p-3.5 sm:p-5 border border-slate-200 shadow-xl relative z-30">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = searchKeyword.trim();
+                const loc = searchLocation.trim();
+                const params = new URLSearchParams();
+                if (q) params.set("search", q);
+                if (loc) params.set("location", loc);
+                router.push(`/jobs${params.toString() ? `?${params.toString()}` : ""}`);
+              }}
+              className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center"
+            >
+              {/* Job title / keyword */}
+              <div className="md:col-span-5 relative flex items-center">
+                <Search className="absolute left-3.5 h-5 w-5 text-[#174A7E]" />
+                <input
+                  type="text"
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  placeholder="Job title, skills, or company name..."
+                  className="w-full pl-11 pr-4 py-3 text-xs sm:text-sm font-semibold text-slate-800 placeholder:text-slate-400 rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#174A7E]/20"
+                />
+              </div>
+
+              {/* Location */}
+              <div className="md:col-span-4 relative flex items-center">
+                <MapPin className="absolute left-3.5 h-5 w-5 text-[#E53E3E]" />
+                <input
+                  type="text"
+                  value={searchLocation}
+                  onChange={(e) => setSearchLocation(e.target.value)}
+                  placeholder="Location (e.g. Bangalore, Delhi)..."
+                  className="w-full pl-11 pr-4 py-3 text-xs sm:text-sm font-semibold text-slate-800 placeholder:text-slate-400 rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#174A7E]/20"
+                />
+              </div>
+
+              {/* Submit Search Button */}
+              <div className="md:col-span-3">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  size="lg"
+                  className="w-full py-3.5 rounded-2xl font-black text-xs sm:text-sm bg-[#174A7E] hover:bg-[#0f3459] shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <Search className="h-4.5 w-4.5" />
+                  <span>Search Jobs</span>
+                </Button>
+              </div>
+            </form>
           </div>
 
           {/* Quick Platform Metrics Bar with Real Values */}
@@ -578,17 +634,36 @@ export default function HomePage() {
               </p>
             </div>
 
-            {/* Keyword search filter */}
-            <div className="relative w-full md:w-80">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Filter by role, skill, or location..."
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 text-xs font-medium rounded-full border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#174A7E]/30"
-              />
-            </div>
+            {/* Keyword search filter with active Search Button */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (searchKeyword.trim()) {
+                  router.push(`/jobs?search=${encodeURIComponent(searchKeyword.trim())}`);
+                }
+              }}
+              className="flex items-center gap-2 w-full md:w-96"
+            >
+              <div className="relative flex-1">
+                <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  placeholder="Role, skill, company, location..."
+                  value={searchKeyword}
+                  onChange={(e) => setSearchKeyword(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 text-xs font-medium rounded-full border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#174A7E]/30 shadow-2xs"
+                />
+              </div>
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                className="rounded-full px-5 py-2.5 font-bold text-xs bg-[#174A7E] hover:bg-[#0f3459] shadow-xs flex items-center gap-1.5 cursor-pointer shrink-0"
+              >
+                <Search className="h-3.5 w-3.5" />
+                <span>Search</span>
+              </Button>
+            </form>
           </div>
 
           {/* Job Categories Pills */}

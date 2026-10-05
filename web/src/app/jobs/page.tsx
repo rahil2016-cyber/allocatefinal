@@ -123,6 +123,16 @@ export default function JobsPage() {
               leftIcon={<MapPin className="h-4 w-4" />}
             />
 
+            {/* Search Action Button */}
+            <Button
+              type="button"
+              variant="primary"
+              className="w-full py-2.5 rounded-xl font-bold bg-[#174A7E] hover:bg-[#0f3459] shadow-xs flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Search className="h-4 w-4" />
+              <span>Search Active Jobs</span>
+            </Button>
+
             {/* Category Dropdown */}
             <div className="space-y-1.5">
               <label className="block text-xs font-semibold text-slate-700 uppercase tracking-wider">

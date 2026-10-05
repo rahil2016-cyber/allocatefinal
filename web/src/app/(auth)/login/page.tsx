@@ -81,41 +81,32 @@ function LoginForm() {
     setIsLoading(true);
     setError(null);
 
-    // 1. Try Firebase Phone SMS first (Real SMS to user's phone, identical to mobile app)
+    // Realtime Firebase Carrier SMS OTP (Identical to Flutter Mobile App)
     try {
       const { sendFirebasePhoneOtp } = await import("@/lib/firebase/phoneAuth");
       await sendFirebasePhoneOtp(identifier.trim(), "recaptcha-container-login");
       setIsFirebaseSession(true);
       setOtpSent(true);
+      setOtp("");
       setCountdown(60);
-      setIsLoading(false);
-      return;
     } catch (fbErr: any) {
-      console.warn("Firebase Phone Auth notice:", fbErr);
+      console.error("Firebase Realtime Phone OTP Error:", fbErr);
+      const code = fbErr?.code || "";
+      const msg = fbErr?.message || "";
 
-      if (fbErr?.code === "auth/unauthorized-domain") {
-        console.warn("Domain joballocate.com is pending authorization in Firebase Console.");
-      }
-    }
-
-    // 2. Fallback to direct backend API send-otp
-    try {
-      const res = await apiClient.post("/auth/send-otp", {
-        identifier: identifier.trim(),
-        intent: "login",
-        role,
-      });
-      setIsFirebaseSession(false);
-      setOtpSent(true);
-      setCountdown(60);
-
-      if (res.data?.data?.mock_otp) {
-        setOtp(res.data.data.mock_otp);
+      if (code === "auth/invalid-phone-number") {
+        setError("Invalid mobile number format. Please enter a 10-digit Indian phone number (e.g. 9876543210).");
+      } else if (code === "auth/too-many-requests" || code === "auth/quota-exceeded") {
+        setError("SMS quota reached for this number today. Please wait a few minutes or use Password login above.");
+      } else if (code === "auth/billing-not-enabled") {
+        setError("Firebase Phone Auth requires a Billing Account (Blaze Plan) in Firebase Console for SMS delivery.");
+      } else if (code === "auth/captcha-check-failed") {
+        setError("reCAPTCHA verification failed. Please refresh the page and try again.");
+      } else if (code === "auth/unauthorized-domain") {
+        setError("Domain authorization is updating in Firebase. Please wait 1-2 minutes and try again.");
       } else {
-        setOtp("123456");
+        setError(msg || `Failed to send real SMS OTP (${code || "Error"}). Please try again.`);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to send OTP. Please verify your mobile number.");
     } finally {
       setIsLoading(false);
     }

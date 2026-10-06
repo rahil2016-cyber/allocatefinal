@@ -15,7 +15,6 @@ import {
 } from "@/lib/constants/industryData";
 import {
   Sparkles,
-  Rocket,
   Briefcase,
   GraduationCap,
   MapPin,
@@ -50,6 +49,7 @@ import {
   Film,
   Settings,
   ShieldCheck,
+  Loader2,
 } from "lucide-react";
 
 const INDUSTRY_ICON_MAP: Record<string, any> = {
@@ -106,10 +106,20 @@ const QUALIFICATION_OPTIONS = [
   "Class 10th",
 ];
 
+const STEP_LABELS = [
+  "Industry",
+  "Roles",
+  "Skills",
+  "Experience",
+  "Education",
+  "Preferences",
+  "Resume",
+];
+
 export default function SeekerOnboardingPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 8;
+  const totalSteps = 7;
 
   const [isLoading, setIsLoading] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
@@ -117,26 +127,26 @@ export default function SeekerOnboardingPage() {
   const [isSuccess, setIsSuccess] = useState(false);
 
   // Form State
-  // Step 2: Basic Info & Industry
+  // Step 1: Basic Info & Industry
   const [name, setName] = useState("");
   const [selectedIndustry, setSelectedIndustry] = useState<string>("software_engineering_it");
   const [customIndustry, setCustomIndustry] = useState("");
 
-  // Step 3: Job Roles
+  // Step 2: Job Roles
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
   const [customRoleInput, setCustomRoleInput] = useState("");
 
-  // Step 4: Skills
+  // Step 3: Skills
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [customSkillInput, setCustomSkillInput] = useState("");
 
-  // Step 5: Current Status & Experience
+  // Step 4: Current Status & Experience
   const [currentStatus, setCurrentStatus] = useState<string>("Experienced Professional");
   const [expYears, setExpYears] = useState("");
   const [currentCompany, setCurrentCompany] = useState("");
   const [currentRole, setCurrentRole] = useState("");
 
-  // Step 6: Education
+  // Step 5: Education
   const [qualification, setQualification] = useState("Bachelor's Degree");
   const [degree, setDegree] = useState("");
   const [college, setCollege] = useState("");
@@ -153,7 +163,7 @@ export default function SeekerOnboardingPage() {
   const [s10Year, setS10Year] = useState("");
   const [s10Marks, setS10Marks] = useState("");
 
-  // Step 7: Location & Work Preferences
+  // Step 6: Location & Work Preferences
   const [city, setCity] = useState("");
   const [preferredLocations, setPreferredLocations] = useState<string[]>([]);
   const [prefLocationInput, setPrefLocationInput] = useState("");
@@ -162,7 +172,7 @@ export default function SeekerOnboardingPage() {
   const [minSalary, setMinSalary] = useState("");
   const [maxSalary, setMaxSalary] = useState("");
 
-  // Step 8: Resume Upload
+  // Step 7: Resume Upload
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
 
@@ -205,7 +215,6 @@ export default function SeekerOnboardingPage() {
           if (data.expected_salary_max) setMaxSalary(String(data.expected_salary_max));
           if (data.resume_url) setExistingResumeUrl(data.resume_url);
 
-          // Populate education if available
           if (Array.isArray(data.education) && data.education.length > 0) {
             for (const item of data.education) {
               const t = item.title || "";
@@ -250,7 +259,10 @@ export default function SeekerOnboardingPage() {
 
   // Compute suggested skills based on selected industry and roles
   const availableRoles = getRolesForIndustry(selectedIndustry);
-  const recommendedSkills = getSkillsForRoles(selectedIndustry, selectedRoles.length > 0 ? selectedRoles : availableRoles);
+  const recommendedSkills = getSkillsForRoles(
+    selectedIndustry,
+    selectedRoles.length > 0 ? selectedRoles : availableRoles
+  );
 
   // Handlers for dynamic lists
   const handleToggleRole = (role: string) => {
@@ -344,11 +356,12 @@ export default function SeekerOnboardingPage() {
   const buildPayload = (isFinal = false) => {
     const isExp = currentStatus === "Experienced Professional" || currentStatus === "Freelancer";
     const resolvedIndustry = selectedIndustry === "none_of_above" ? customIndustry.trim() : selectedIndustry;
-    const resolvedHeadline = isExp && currentRole.trim() && currentCompany.trim()
-      ? `${currentRole.trim()} at ${currentCompany.trim()}`
-      : selectedRoles[0]
-      ? `${selectedRoles[0]} · ${currentStatus}`
-      : `Seeking opportunities as ${currentStatus}`;
+    const resolvedHeadline =
+      isExp && currentRole.trim() && currentCompany.trim()
+        ? `${currentRole.trim()} at ${currentCompany.trim()}`
+        : selectedRoles[0]
+        ? `${selectedRoles[0]} · ${currentStatus}`
+        : `Seeking opportunities as ${currentStatus}`;
 
     return {
       name: name.trim() || undefined,
@@ -376,7 +389,7 @@ export default function SeekerOnboardingPage() {
   // Step validation
   const validateCurrentStep = (): boolean => {
     setError(null);
-    if (currentStep === 2) {
+    if (currentStep === 1) {
       if (!name.trim()) {
         setError("Please enter your full name");
         return false;
@@ -389,17 +402,17 @@ export default function SeekerOnboardingPage() {
         setError("Please specify your custom industry");
         return false;
       }
-    } else if (currentStep === 3) {
+    } else if (currentStep === 2) {
       if (selectedRoles.length === 0) {
         setError("Please select at least one job role that interests you");
         return false;
       }
-    } else if (currentStep === 4) {
+    } else if (currentStep === 3) {
       if (selectedSkills.length === 0) {
         setError("Please select or add at least one professional skill");
         return false;
       }
-    } else if (currentStep === 5) {
+    } else if (currentStep === 4) {
       if (!currentStatus) {
         setError("Please select your current profile status");
         return false;
@@ -409,7 +422,7 @@ export default function SeekerOnboardingPage() {
         setError("Please enter your total years of experience");
         return false;
       }
-    } else if (currentStep === 7) {
+    } else if (currentStep === 6) {
       if (!city.trim()) {
         setError("Please enter your current city");
         return false;
@@ -463,9 +476,9 @@ export default function SeekerOnboardingPage() {
         onboarded: true,
         onboarding_step: 11,
       });
-      router.push("/seeker/dashboard");
+      window.location.href = "/seeker/dashboard";
     } catch {
-      router.push("/seeker/dashboard");
+      window.location.href = "/seeker/dashboard";
     } finally {
       setIsLoading(false);
     }
@@ -495,8 +508,8 @@ export default function SeekerOnboardingPage() {
 
       setIsSuccess(true);
       setTimeout(() => {
-        router.push("/seeker/dashboard");
-      }, 1200);
+        window.location.href = "/seeker/dashboard";
+      }, 1000);
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || "Failed to save profile. Please check your details.");
       setIsLoading(false);
@@ -506,13 +519,13 @@ export default function SeekerOnboardingPage() {
   if (isPageLoading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
-        <div className="h-10 w-10 border-4 border-[#174A7E] border-t-transparent rounded-full animate-spin" />
+        <Loader2 className="h-10 w-10 text-[#174A7E] animate-spin" />
         <p className="text-xs font-semibold text-slate-500">Loading your profile preferences...</p>
       </div>
     );
   }
 
-  const isOptionalStep = currentStep === 1 || currentStep === 6 || currentStep === 8;
+  const isOptionalStep = currentStep === 5 || currentStep === 7;
 
   return (
     <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
@@ -523,10 +536,10 @@ export default function SeekerOnboardingPage() {
             <Sparkles className="h-3.5 w-3.5" /> Candidate Onboarding
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            {currentStep === 1 ? "Welcome to JobAllocate! 🚀" : "Build Your Career Profile"}
+            Complete Your Job Seeker Profile
           </h1>
           <p className="text-xs sm:text-sm text-slate-500">
-            Complete your profile to unlock tailored job recommendations, direct recruiter outreach, and ATS resume access.
+            Enter your details below to activate ATS job matching, 1-click applications, and recruiter reachouts.
           </p>
         </div>
 
@@ -540,11 +553,35 @@ export default function SeekerOnboardingPage() {
         </button>
       </div>
 
-      {/* Progress Indicator */}
-      <div className="space-y-2">
+      {/* Step Pills Bar */}
+      <div className="grid grid-cols-7 gap-1.5 text-center text-[11px] font-bold">
+        {STEP_LABELS.map((label, idx) => {
+          const stepNum = idx + 1;
+          const isActive = currentStep === stepNum;
+          const isPassed = currentStep > stepNum;
+          return (
+            <div
+              key={label}
+              className={`py-2 px-1 rounded-xl border transition-all ${
+                isActive
+                  ? "bg-[#174A7E] text-white border-[#174A7E] shadow-sm font-extrabold"
+                  : isPassed
+                  ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold"
+                  : "bg-slate-100 text-slate-500 border-slate-200"
+              }`}
+            >
+              <span className="hidden sm:inline">{stepNum}. </span>
+              {label}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Progress Bar */}
+      <div className="space-y-1.5">
         <div className="flex items-center justify-between text-xs font-bold">
           <span className="text-[#174A7E]">
-            Step {currentStep} of {totalSteps}
+            Step {currentStep} of {totalSteps}: {STEP_LABELS[currentStep - 1]}
           </span>
           <span className="text-emerald-700">
             {Math.round((currentStep / totalSteps) * 100)}% Completed
@@ -574,46 +611,13 @@ export default function SeekerOnboardingPage() {
             </div>
             <h2 className="text-2xl font-black text-slate-900">Profile Setup Completed! 🚀</h2>
             <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-              Your profile is ready. Redirecting you to your candidate dashboard to view matching jobs...
+              Your profile is registered in our database. Opening your candidate dashboard and personalized jobs...
             </p>
           </div>
         ) : (
           <div className="space-y-6">
-            {/* STEP 1: Welcome Overview */}
+            {/* STEP 1: Basic Info & Industry Selection */}
             {currentStep === 1 && (
-              <div className="text-center py-6 space-y-6 max-w-xl mx-auto">
-                <div className="h-24 w-24 rounded-3xl bg-blue-50 text-[#174A7E] flex items-center justify-center mx-auto shadow-sm">
-                  <Rocket className="h-12 w-12" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-black text-slate-900">Let&apos;s Help You Land Your Dream Job</h3>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    In just 2 minutes, personalize your industry, job preferences, and key skills. Recruiters prioritize candidates with completed profiles!
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left pt-2">
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
-                    <span className="text-lg">🎯</span>
-                    <h4 className="text-xs font-bold text-slate-800">Targeted Matches</h4>
-                    <p className="text-[11px] text-slate-500">Only see jobs that match your selected role & skills.</p>
-                  </div>
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
-                    <span className="text-lg">⚡</span>
-                    <h4 className="text-xs font-bold text-slate-800">1-Click Apply</h4>
-                    <p className="text-[11px] text-slate-500">Apply instantly to hiring companies and consultancies.</p>
-                  </div>
-                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
-                    <span className="text-lg">📄</span>
-                    <h4 className="text-xs font-bold text-slate-800">ATS Resumes</h4>
-                    <p className="text-[11px] text-slate-500">Access verified resume layouts approved by recruiters.</p>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* STEP 2: Basic Info & Industry Selection */}
-            {currentStep === 2 && (
               <div className="space-y-6">
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -649,7 +653,7 @@ export default function SeekerOnboardingPage() {
                             setSelectedRoles([]);
                             setSelectedSkills([]);
                           }}
-                          className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all gap-2 ${
+                          className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all gap-2 cursor-pointer ${
                             isSelected
                               ? "bg-[#174A7E]/5 border-[#174A7E] shadow-sm ring-2 ring-[#174A7E]/20 text-[#174A7E]"
                               : "bg-white border-slate-200 hover:border-slate-300 text-slate-700"
@@ -673,7 +677,7 @@ export default function SeekerOnboardingPage() {
                         setSelectedRoles([]);
                         setSelectedSkills([]);
                       }}
-                      className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all gap-2 ${
+                      className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all gap-2 cursor-pointer ${
                         selectedIndustry === "none_of_above"
                           ? "bg-[#174A7E]/5 border-[#174A7E] shadow-sm ring-2 ring-[#174A7E]/20 text-[#174A7E]"
                           : "bg-white border-slate-200 hover:border-slate-300 text-slate-700"
@@ -700,8 +704,8 @@ export default function SeekerOnboardingPage() {
               </div>
             )}
 
-            {/* STEP 3: Job Roles */}
-            {currentStep === 3 && (
+            {/* STEP 2: Job Roles */}
+            {currentStep === 2 && (
               <div className="space-y-6">
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -725,7 +729,7 @@ export default function SeekerOnboardingPage() {
                             key={role}
                             type="button"
                             onClick={() => handleToggleRole(role)}
-                            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
+                            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                               isSelected
                                 ? "bg-[#174A7E] text-white border-[#174A7E] shadow-2xs"
                                 : "bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300"
@@ -782,7 +786,7 @@ export default function SeekerOnboardingPage() {
                           <button
                             type="button"
                             onClick={() => handleToggleRole(role)}
-                            className="hover:text-red-200"
+                            className="hover:text-red-200 cursor-pointer"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -794,8 +798,8 @@ export default function SeekerOnboardingPage() {
               </div>
             )}
 
-            {/* STEP 4: Skills */}
-            {currentStep === 4 && (
+            {/* STEP 3: Skills */}
+            {currentStep === 3 && (
               <div className="space-y-6">
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -819,7 +823,7 @@ export default function SeekerOnboardingPage() {
                             key={skill}
                             type="button"
                             onClick={() => handleToggleSkill(skill)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                               isSelected
                                 ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
                                 : "bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300"
@@ -876,7 +880,7 @@ export default function SeekerOnboardingPage() {
                           <button
                             type="button"
                             onClick={() => handleToggleSkill(skill)}
-                            className="hover:text-red-200"
+                            className="hover:text-red-200 cursor-pointer"
                           >
                             <X className="h-3 w-3" />
                           </button>
@@ -888,8 +892,8 @@ export default function SeekerOnboardingPage() {
               </div>
             )}
 
-            {/* STEP 5: Current Status & Experience */}
-            {currentStep === 5 && (
+            {/* STEP 4: Current Status & Experience */}
+            {currentStep === 4 && (
               <div className="space-y-6">
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -908,7 +912,7 @@ export default function SeekerOnboardingPage() {
                         key={status}
                         type="button"
                         onClick={() => setCurrentStatus(status)}
-                        className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                        className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all cursor-pointer ${
                           isSelected
                             ? "bg-[#174A7E]/5 border-[#174A7E] ring-2 ring-[#174A7E]/20 text-[#174A7E] font-bold"
                             : "bg-white border-slate-200 hover:border-slate-300 text-slate-700 font-medium"
@@ -963,8 +967,8 @@ export default function SeekerOnboardingPage() {
               </div>
             )}
 
-            {/* STEP 6: Education Details */}
-            {currentStep === 6 && (
+            {/* STEP 5: Education Details */}
+            {currentStep === 5 && (
               <div className="space-y-6">
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -1094,8 +1098,8 @@ export default function SeekerOnboardingPage() {
               </div>
             )}
 
-            {/* STEP 7: Location & Work Preferences */}
-            {currentStep === 7 && (
+            {/* STEP 6: Location & Work Preferences */}
+            {currentStep === 6 && (
               <div className="space-y-6">
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -1155,7 +1159,7 @@ export default function SeekerOnboardingPage() {
                         <button
                           type="button"
                           onClick={() => setPreferredLocations(preferredLocations.filter((l) => l !== loc))}
-                          className="hover:text-red-500"
+                          className="hover:text-red-500 cursor-pointer"
                         >
                           <X className="h-3 w-3" />
                         </button>
@@ -1170,7 +1174,7 @@ export default function SeekerOnboardingPage() {
                     id="relocateCheck"
                     checked={willingToRelocate}
                     onChange={(e) => setWillingToRelocate(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-300 text-[#174A7E] focus:ring-[#174A7E]"
+                    className="h-4 w-4 rounded border-slate-300 text-[#174A7E] focus:ring-[#174A7E] cursor-pointer"
                   />
                   <label htmlFor="relocateCheck" className="text-xs font-semibold text-slate-800 cursor-pointer">
                     I am willing to relocate for the right job opportunity
@@ -1189,7 +1193,7 @@ export default function SeekerOnboardingPage() {
                           key={opt}
                           type="button"
                           onClick={() => handleToggleEmploymentPref(opt)}
-                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border cursor-pointer ${
                             isSelected
                               ? "bg-[#174A7E] text-white border-[#174A7E]"
                               : "bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300"
@@ -1221,8 +1225,8 @@ export default function SeekerOnboardingPage() {
               </div>
             )}
 
-            {/* STEP 8: Resume Upload */}
-            {currentStep === 8 && (
+            {/* STEP 7: Resume Upload */}
+            {currentStep === 7 && (
               <div className="space-y-6">
                 <div className="space-y-1">
                   <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
@@ -1302,7 +1306,7 @@ export default function SeekerOnboardingPage() {
                   variant="outline"
                   onClick={handleBack}
                   disabled={isLoading}
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold cursor-pointer"
                 >
                   <ArrowLeft className="h-4 w-4 mr-1.5" /> Back
                 </Button>
@@ -1311,13 +1315,13 @@ export default function SeekerOnboardingPage() {
               )}
 
               <div className="flex items-center gap-3 w-full sm:w-auto">
-                {isOptionalStep && currentStep !== 1 && (
+                {isOptionalStep && (
                   <Button
                     type="button"
                     variant="ghost"
                     onClick={handleSkipStep}
                     disabled={isLoading}
-                    className="w-full sm:w-auto px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800"
+                    className="w-full sm:w-auto px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800 cursor-pointer"
                   >
                     Skip Step
                   </Button>
@@ -1328,11 +1332,9 @@ export default function SeekerOnboardingPage() {
                   variant="primary"
                   onClick={handleNext}
                   isLoading={isLoading}
-                  className="w-full sm:w-auto px-7 py-3 rounded-2xl font-bold shadow-md bg-[#174A7E] hover:bg-[#123962] text-white"
+                  className="w-full sm:w-auto px-7 py-3 rounded-2xl font-bold shadow-md bg-[#174A7E] hover:bg-[#123962] text-white cursor-pointer"
                 >
-                  {currentStep === 1
-                    ? "Let's Start →"
-                    : currentStep === totalSteps
+                  {currentStep === totalSteps
                     ? "Finish Profile & Go to Dashboard"
                     : "Next Step →"}
                 </Button>

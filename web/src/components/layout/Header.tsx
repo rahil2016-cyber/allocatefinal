@@ -77,8 +77,12 @@ export const Header: React.FC = () => {
   const pathname = usePathname();
   const router = useRouter();
   const { user, isAuthenticated, role, logout } = useAuth();
-  const isEmployer = role === "employer" || role === "company" || pathname.startsWith("/employer");
-  const isJobSeeker = (isAuthenticated && !isEmployer) || pathname.startsWith("/seeker");
+  const isEmployer = isAuthenticated
+    ? role === "company"
+    : pathname.startsWith("/employer");
+  const isJobSeeker = isAuthenticated
+    ? role === "job_seeker"
+    : (!isEmployer || pathname.startsWith("/seeker"));
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
@@ -479,7 +483,7 @@ export const Header: React.FC = () => {
                     {user?.name || "My Account"}
                   </span>
                   <span className="text-[10px] font-bold text-slate-500 leading-tight">
-                    {role === "employer" || role === "company" ? "Employer" : "Candidate"}
+                    {role === "company" ? "Employer" : "Candidate"}
                   </span>
                 </div>
                 <button
@@ -760,7 +764,7 @@ export const Header: React.FC = () => {
                   <div>
                     <p className="text-xs font-black text-slate-900">{user?.name || "My Account"}</p>
                     <p className="text-[10px] text-slate-500">
-                      {role === "employer" || role === "company" ? "Employer" : "Candidate"}
+                      {role === "company" ? "Employer" : "Candidate"}
                     </p>
                   </div>
                 </div>

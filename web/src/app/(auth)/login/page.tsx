@@ -61,17 +61,31 @@ function LoginForm() {
       });
 
       const data = response.data;
-      if (data?.data?.token && data?.data?.user) {
-        login(data.data.token, data.data.user);
-        router.push(role === "company" ? "/employer/dashboard" : "/seeker/dashboard");
-      } else if (data?.token && data?.user) {
-        login(data.token, data.user);
-        router.push(role === "company" ? "/employer/dashboard" : "/seeker/dashboard");
+      const userData = data?.data?.user || data?.user;
+      const userToken = data?.data?.token || data?.token;
+
+      if (userToken && userData) {
+        login(userToken, userData);
+        const resolvedRole = (userData.role || role) === "company" ? "company" : "job_seeker";
+        if (resolvedRole === "company") {
+          window.location.href = "/employer/dashboard";
+        } else {
+          if (userData.seeker_profile?.onboarded === false) {
+            window.location.href = "/seeker/onboarding";
+          } else {
+            window.location.href = "/seeker/dashboard";
+          }
+        }
       } else {
         setError(data?.message || "Invalid credentials. Please check your mobile number and password.");
       }
     } catch (err: any) {
-      setError(err.message || "Failed to log in. Please verify your mobile number and password.");
+      const msg = err.response?.data?.message || err.message || "Failed to log in. Please verify your mobile number and password.";
+      if (msg.toLowerCase().includes("different role")) {
+        setError(`This account is registered as a ${role === "company" ? "Job Seeker" : "Employer"}. Please switch to the ${role === "company" ? "Job Seeker" : "Employer"} tab above to sign in.`);
+      } else {
+        setError(msg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -152,7 +166,16 @@ function LoginForm() {
         const fbData = fbRes.data?.data || fbRes.data;
         if (fbData?.token && fbData?.user) {
           login(fbData.token, fbData.user);
-          router.push(role === "company" ? "/employer/dashboard" : "/seeker/dashboard");
+          const resolvedRole = (fbData.user.role || role) === "company" ? "company" : "job_seeker";
+          if (resolvedRole === "company") {
+            window.location.href = "/employer/dashboard";
+          } else {
+            if (fbData.user.seeker_profile?.onboarded === false) {
+              window.location.href = "/seeker/onboarding";
+            } else {
+              window.location.href = "/seeker/dashboard";
+            }
+          }
           return;
         }
       } catch (fbVerifyErr: any) {
@@ -172,17 +195,31 @@ function LoginForm() {
       });
 
       const data = response.data;
-      if (data?.data?.token && data?.data?.user) {
-        login(data.data.token, data.data.user);
-        router.push(role === "company" ? "/employer/dashboard" : "/seeker/dashboard");
-      } else if (data?.token && data?.user) {
-        login(data.token, data.user);
-        router.push(role === "company" ? "/employer/dashboard" : "/seeker/dashboard");
+      const userData = data?.data?.user || data?.user;
+      const userToken = data?.data?.token || data?.token;
+
+      if (userToken && userData) {
+        login(userToken, userData);
+        const resolvedRole = (userData.role || role) === "company" ? "company" : "job_seeker";
+        if (resolvedRole === "company") {
+          window.location.href = "/employer/dashboard";
+        } else {
+          if (userData.seeker_profile?.onboarded === false) {
+            window.location.href = "/seeker/onboarding";
+          } else {
+            window.location.href = "/seeker/dashboard";
+          }
+        }
       } else {
         setError(data?.message || "Invalid OTP code. Please try again.");
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to verify OTP. Please try again.");
+      const msg = err.response?.data?.message || err.message || "Failed to verify OTP. Please try again.";
+      if (msg.toLowerCase().includes("different role")) {
+        setError(`This account is registered as a ${role === "company" ? "Job Seeker" : "Employer"}. Please switch to the ${role === "company" ? "Job Seeker" : "Employer"} tab above to sign in.`);
+      } else {
+        setError(msg);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -312,35 +349,43 @@ function LoginForm() {
                 </p>
               </div>
 
-              {/* Optional Role Switcher when no query param is forced */}
-              {!roleParam && (
-                <div className="grid grid-cols-2 gap-1.5 rounded-xl bg-slate-100 p-1 mb-5">
-                  <button
-                    type="button"
-                    onClick={() => setRole("job_seeker")}
-                    className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      role === "job_seeker"
-                        ? "bg-white text-[#174A7E] shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    <UserIcon className="h-3.5 w-3.5" />
-                    <span>Job Seeker</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRole("company")}
-                    className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      role === "company"
-                        ? "bg-white text-[#174A7E] shadow-xs"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    <Building2 className="h-3.5 w-3.5" />
-                    <span>Employer</span>
-                  </button>
-                </div>
-              )}
+              {/* Role Switcher (Always available so users can toggle easily) */}
+              <div className="grid grid-cols-2 gap-1.5 rounded-xl bg-slate-100 p-1 mb-5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRole("job_seeker");
+                    setError(null);
+                    setOtpSent(false);
+                    setOtp("");
+                  }}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    role === "job_seeker"
+                      ? "bg-white text-[#174A7E] shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <UserIcon className="h-3.5 w-3.5" />
+                  <span>Job Seeker</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRole("company");
+                    setError(null);
+                    setOtpSent(false);
+                    setOtp("");
+                  }}
+                  className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    role === "company"
+                      ? "bg-white text-[#174A7E] shadow-xs"
+                      : "text-slate-600 hover:text-slate-900"
+                  }`}
+                >
+                  <Building2 className="h-3.5 w-3.5" />
+                  <span>Employer</span>
+                </button>
+              </div>
 
               {/* Login Method Tabs */}
               <div className="flex border-b border-slate-200 mb-6 text-xs font-bold">

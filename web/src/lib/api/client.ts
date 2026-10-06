@@ -32,6 +32,10 @@ apiClient.interceptors.response.use(
       // Clear invalid token & user session if unauthorized
       localStorage.removeItem("joballocate_token");
       localStorage.removeItem("joballocate_user");
+      if (typeof document !== "undefined") {
+        document.cookie = "joballocate_token=; path=/; max-age=0; SameSite=Lax";
+        document.cookie = "joballocate_role=; path=/; max-age=0; SameSite=Lax";
+      }
     }
 
     let errorMessage = "An unexpected error occurred.";

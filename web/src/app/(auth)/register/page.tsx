@@ -306,20 +306,20 @@ function RegisterForm() {
         password_confirmation: confirmPassword,
       });
 
-      // Smoothly redirect to onboarding or dashboard
+      // Smoothly redirect to onboarding or dashboard with fresh session
       if (role === "job_seeker") {
-        router.push("/seeker/onboarding");
+        window.location.href = "/seeker/onboarding";
       } else {
-        router.push("/employer/dashboard");
+        window.location.href = "/employer/dashboard";
       }
     } catch (err: any) {
       const msg = err.response?.data?.message || err.message || "Failed to set password. Please try again.";
       // If backend says already set, proceed smoothly
       if (msg.toLowerCase().includes("already")) {
         if (role === "job_seeker") {
-          router.push("/seeker/onboarding");
+          window.location.href = "/seeker/onboarding";
         } else {
-          router.push("/employer/dashboard");
+          window.location.href = "/employer/dashboard";
         }
       } else {
         setError(msg);

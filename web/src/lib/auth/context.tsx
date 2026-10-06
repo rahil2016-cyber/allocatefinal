@@ -5,12 +5,39 @@ import { User, UserRole } from "../types";
 import apiClient from "../api/client";
 import { ENDPOINTS } from "../api/endpoints";
 
+export const normalizeRole = (
+  r: any
+): "job_seeker" | "company" | "super_admin" | null => {
+  if (!r) return null;
+  const str = String(r).toLowerCase().trim();
+  if (str === "company" || str === "employer" || str === "2") return "company";
+  if (str === "job_seeker" || str === "seeker" || str === "1") return "job_seeker";
+  if (str === "super_admin" || str === "admin" || str === "3") return "super_admin";
+  return "job_seeker";
+};
+
+const setAuthCookies = (token: string, role: string) => {
+  if (typeof document !== "undefined") {
+    // 30 days expiry
+    const maxAge = 30 * 24 * 60 * 60;
+    document.cookie = `joballocate_token=${token}; path=/; max-age=${maxAge}; SameSite=Lax`;
+    document.cookie = `joballocate_role=${role}; path=/; max-age=${maxAge}; SameSite=Lax`;
+  }
+};
+
+const clearAuthCookies = () => {
+  if (typeof document !== "undefined") {
+    document.cookie = "joballocate_token=; path=/; max-age=0; SameSite=Lax";
+    document.cookie = "joballocate_role=; path=/; max-age=0; SameSite=Lax";
+  }
+};
+
 interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  role: UserRole | null;
+  role: "job_seeker" | "company" | "super_admin" | null;
   login: (token: string, user: User) => void;
   logout: () => void;
   updateUser: (user: User) => void;
@@ -33,7 +60,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setToken(savedToken);
       if (savedUser) {
         try {
-          setUser(JSON.parse(savedUser));
+          const parsedUser = JSON.parse(savedUser);
+          setUser(parsedUser);
+          const r = normalizeRole(parsedUser.role || parsedUser.user_type) || "job_seeker";
+          setAuthCookies(savedToken, r);
         } catch {
           // Ignore parsing error
         }
@@ -41,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Refresh profile silently
       refreshUserSilently(savedToken);
     } else {
+      clearAuthCookies();
       setIsLoading(false);
     }
   }, []);
@@ -51,8 +82,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         headers: { Authorization: `Bearer ${authToken}` },
       });
       if (response.data && response.data.user) {
-        setUser(response.data.user);
-        localStorage.setItem("joballocate_user", JSON.stringify(response.data.user));
+        const u = response.data.user;
+        setUser(u);
+        localStorage.setItem("joballocate_user", JSON.stringify(u));
+        const r = normalizeRole(u.role || u.user_type) || "job_seeker";
+        setAuthCookies(authToken, r);
       }
     } catch {
       // Ignore background refresh failure
@@ -64,8 +98,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const login = (newToken: string, newUser: User) => {
     setToken(newToken);
     setUser(newUser);
+    const resolvedRole = normalizeRole(newUser.role || newUser.user_type) || "job_seeker";
     localStorage.setItem("joballocate_token", newToken);
     localStorage.setItem("joballocate_user", JSON.stringify(newUser));
+    setAuthCookies(newToken, resolvedRole);
   };
 
   const logout = () => {
@@ -73,11 +109,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
     localStorage.removeItem("joballocate_token");
     localStorage.removeItem("joballocate_user");
+    clearAuthCookies();
   };
 
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
     localStorage.setItem("joballocate_user", JSON.stringify(updatedUser));
+    if (token) {
+      const resolvedRole = normalizeRole(updatedUser.role || updatedUser.user_type) || "job_seeker";
+      setAuthCookies(token, resolvedRole);
+    }
   };
 
   const refreshUser = async () => {
@@ -92,14 +133,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const role: UserRole | null = user
-    ? user.role === 1 || user.role === "1" || user.user_type === "seeker"
-      ? "seeker"
-      : user.role === 2 || user.role === "2" || user.user_type === "employer"
-      ? "employer"
-      : user.role === 3 || user.role === "3" || user.user_type === "admin"
-      ? "admin"
-      : "seeker"
+  const role: "job_seeker" | "company" | "super_admin" | null = user
+    ? normalizeRole(user.role || user.user_type)
     : null;
 
   return (

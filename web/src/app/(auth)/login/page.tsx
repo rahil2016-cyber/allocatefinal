@@ -176,42 +176,63 @@ function LoginForm() {
       <div className="w-full max-w-md space-y-6">
         <div className="text-center space-y-2">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#174A7E] text-white">
-              <Briefcase className="h-5.5 w-5.5" />
+            <div className="flex flex-col items-center">
+              <div className="flex items-center tracking-tight leading-none text-2xl font-black">
+                <span className="text-[#E53E3E]">Job</span>
+                <span className="text-[#174A7E]">Allocate</span>
+              </div>
+              <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase mt-1">
+                Right job, right candidate
+              </span>
             </div>
-            <span className="text-xl font-bold tracking-tight text-slate-900">
-              Job<span className="text-[#174A7E]">Allocate</span>
-            </span>
           </Link>
-          <h1 className="text-2xl font-extrabold text-slate-900">Sign In to Your Account</h1>
-          <p className="text-xs text-slate-500">Official Mobile & OTP Authentication Portal</p>
+
+          {role === "company" ? (
+            <div className="pt-2 space-y-1">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#174A7E] border border-blue-200">
+                <Building2 className="h-3.5 w-3.5" /> Employer Portal
+              </span>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Employer Sign In</h1>
+              <p className="text-xs text-slate-500">Post jobs, review verified applicants and hire fast</p>
+            </div>
+          ) : (
+            <div className="pt-2 space-y-1">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-[#174A7E] border border-sky-200">
+                <UserIcon className="h-3.5 w-3.5" /> Job Seeker Portal
+              </span>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Job Seeker Sign In</h1>
+              <p className="text-xs text-slate-500">Access your candidate dashboard, ATS resume & active jobs</p>
+            </div>
+          )}
         </div>
 
-        {/* Role Toggle Tabs */}
-        <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-200/70 p-1">
-          <button
-            type="button"
-            onClick={() => setRole("job_seeker")}
-            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
-              role === "job_seeker"
-                ? "bg-white text-[#174A7E] shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <UserIcon className="h-4 w-4" /> Job Seeker
-          </button>
-          <button
-            type="button"
-            onClick={() => setRole("company")}
-            className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
-              role === "company"
-                ? "bg-white text-[#174A7E] shadow-sm"
-                : "text-slate-600 hover:text-slate-900"
-            }`}
-          >
-            <Building2 className="h-4 w-4" /> Employer
-          </button>
-        </div>
+        {/* Show Role Switcher only if no specific role was requested in query */}
+        {!roleParam && (
+          <div className="grid grid-cols-2 gap-2 rounded-xl bg-slate-200/70 p-1">
+            <button
+              type="button"
+              onClick={() => setRole("job_seeker")}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                role === "job_seeker"
+                  ? "bg-white text-[#174A7E] shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <UserIcon className="h-4 w-4" /> Job Seeker
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole("company")}
+              className={`flex items-center justify-center gap-2 py-2 rounded-lg text-xs font-bold transition-all ${
+                role === "company"
+                  ? "bg-white text-[#174A7E] shadow-sm"
+                  : "text-slate-600 hover:text-slate-900"
+              }`}
+            >
+              <Building2 className="h-4 w-4" /> Employer
+            </button>
+          </div>
+        )}
 
         {/* Login Method Tabs */}
         <div className="flex border-b border-slate-200 text-xs font-bold">
@@ -370,11 +391,32 @@ function LoginForm() {
             </form>
           )}
 
-          <div className="text-center pt-3 border-t border-slate-100 text-xs text-slate-500">
-            Don't have an account?{" "}
-            <Link href={`/register?role=${role === "company" ? "employer" : "seeker"}`} className="font-bold text-[#174A7E] hover:underline">
-              Create an account
-            </Link>
+          <div className="space-y-2 pt-3 border-t border-slate-100 text-center text-xs">
+            {role === "company" ? (
+              <p className="text-slate-500">
+                Looking for jobs?{" "}
+                <Link href="/login?role=job_seeker" className="font-bold text-[#174A7E] hover:underline">
+                  Sign in as Job Seeker →
+                </Link>
+              </p>
+            ) : (
+              <p className="text-slate-500">
+                Are you an employer hiring talent?{" "}
+                <Link href="/login?role=company" className="font-bold text-[#174A7E] hover:underline">
+                  Employer Portal Sign In →
+                </Link>
+              </p>
+            )}
+
+            <p className="text-slate-500 pt-1">
+              Don't have an account?{" "}
+              <Link
+                href={`/register?role=${role === "company" ? "employer" : "seeker"}`}
+                className="font-bold text-[#174A7E] hover:underline"
+              >
+                Create an account
+              </Link>
+            </p>
           </div>
         </Card>
       </div>

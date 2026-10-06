@@ -9,16 +9,13 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 lg:gap-12">
           {/* Brand Col */}
           <div className="space-y-4">
-            <Link href="/" className="inline-flex items-center gap-3 group">
-              <div className="h-10 w-10 overflow-hidden rounded-xl bg-white p-1 flex items-center justify-center shadow-md shrink-0 group-hover:scale-105 transition-transform">
-                <img src="/logo_square.png" alt="JobAllocate" className="h-full w-full object-contain" />
-              </div>
+            <Link href="/" className="inline-flex items-center group">
               <div className="flex flex-col">
-                <div className="flex items-center gap-0.5">
-                  <span className="text-xl font-black tracking-tight text-[#E53E3E]">Job</span>
-                  <span className="text-xl font-black tracking-tight text-white">Allocate</span>
+                <div className="flex items-center tracking-tight leading-none">
+                  <span className="text-2xl font-black text-[#E53E3E]">Job</span>
+                  <span className="text-2xl font-black text-white">Allocate</span>
                 </div>
-                <span className="text-[9px] font-semibold text-slate-400 tracking-wider uppercase leading-none">
+                <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase mt-1">
                   Right job, right candidate
                 </span>
               </div>

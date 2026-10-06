@@ -195,16 +195,25 @@ export default function SeekerOnboardingPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-      <div className="text-center space-y-2">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#174A7E]/10 text-[#174A7E]">
-          <Sparkles className="h-3.5 w-3.5" /> Candidate Onboarding
-        </span>
-        <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-          Complete Your Job Profile
-        </h1>
-        <p className="text-xs sm:text-sm text-slate-500">
-          Match with verified recruiters and access all 13 ATS resume templates
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div className="space-y-1">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#174A7E]/10 text-[#174A7E]">
+            <Sparkles className="h-3.5 w-3.5" /> Candidate Onboarding
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Complete Your Job Profile
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500">
+            Match with verified recruiters and access all 13 ATS resume templates
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => router.push("/seeker/dashboard")}
+          className="self-start sm:self-center text-xs font-bold text-slate-500 hover:text-[#174A7E] border border-slate-200 hover:border-slate-300 bg-white px-3.5 py-1.5 rounded-full transition-all shadow-2xs"
+        >
+          Skip Onboarding →
+        </button>
       </div>
 
       {/* Step Progress Bar */}
@@ -595,7 +604,13 @@ export default function SeekerOnboardingPage() {
                   Previous
                 </Button>
               ) : (
-                <div />
+                <button
+                  type="button"
+                  onClick={() => router.push("/seeker/dashboard")}
+                  className="text-xs font-semibold text-slate-400 hover:text-slate-600 underline"
+                >
+                  Skip for now
+                </button>
               )}
 
               <Button

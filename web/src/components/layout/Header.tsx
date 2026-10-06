@@ -471,71 +471,46 @@ export const Header: React.FC = () => {
               )}
             </div>
 
-            {/* B. Show User Name */}
-            <div className="hidden sm:flex flex-col text-right pl-2 border-l border-slate-200">
-              <span className="text-xs font-black text-slate-800 max-w-[120px] truncate leading-tight">
-                {isAuthenticated ? (user?.name || "Job Seeker") : "Guest User"}
-              </span>
-              <span
-                className={`text-[10px] font-bold leading-tight ${
-                  isAuthenticated ? "text-emerald-600" : "text-slate-400"
-                }`}
-              >
-                {isAuthenticated ? (role === "employer" ? "Employer" : "Job Seeker") : "Not Logged In"}
-              </span>
-            </div>
-
-            {/* C. Round Login / Logout Switch (Turn ON / Turn OFF) */}
-            <div
-              className="flex items-center gap-1.5"
-              title={
-                isAuthenticated
-                  ? `Logged in as ${user?.name || "User"} • Click to Turn OFF (Logout)`
-                  : "Logged Out • Click to Turn ON (Login)"
-              }
-            >
-              <button
-                type="button"
-                onClick={() => {
-                  if (isAuthenticated) {
+            {/* B. Simple Login / Logout Section */}
+            {isAuthenticated ? (
+              <div className="flex items-center gap-2.5 sm:gap-3 pl-2 border-l border-slate-200">
+                <div className="hidden sm:flex flex-col text-right">
+                  <span className="text-xs font-black text-slate-800 max-w-[120px] truncate leading-tight">
+                    {user?.name || "My Account"}
+                  </span>
+                  <span className="text-[10px] font-bold text-slate-500 leading-tight">
+                    {role === "employer" || role === "company" ? "Employer" : "Candidate"}
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
                     logout();
-                  } else {
-                    router.push("/login");
-                  }
-                }}
-                className={`relative inline-flex h-8 w-18 sm:w-20 items-center rounded-full p-1 transition-all duration-300 cursor-pointer shadow-inner focus:outline-none focus:ring-2 focus:ring-[#174A7E]/30 ${
-                  isAuthenticated
-                    ? "bg-emerald-600 hover:bg-emerald-700"
-                    : "bg-slate-300 hover:bg-slate-400"
-                }`}
-                role="switch"
-                aria-checked={isAuthenticated}
-              >
-                {/* Text ON / OFF inside the switch */}
-                <span
-                  className={`absolute text-[10px] font-black uppercase tracking-wider select-none transition-opacity duration-200 ${
-                    isAuthenticated ? "left-2.5 text-white" : "right-2.5 text-slate-700"
-                  }`}
+                    router.push("/");
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-all hover:scale-105 active:scale-95 cursor-pointer shadow-2xs"
+                  title="Logout and return to Home"
                 >
-                  {isAuthenticated ? "ON" : "OFF"}
-                </span>
-
-                {/* Round sliding knob with power icon */}
-                <span
-                  className={`inline-flex h-6 w-6 transform items-center justify-center rounded-full bg-white shadow-md transition-transform duration-200 ease-in-out ${
-                    isAuthenticated ? "translate-x-10 sm:translate-x-12" : "translate-x-0"
-                  }`}
-                >
-                  <Power
-                    className={`h-3.5 w-3.5 ${
-                      isAuthenticated
-                        ? "text-emerald-600 stroke-[2.5]"
-                        : "text-slate-500 stroke-[2.5]"
-                    }`}
-                  />
-                </span>
-              </button>
-            </div>
+                  <LogOut className="h-3.5 w-3.5 stroke-[2.5]" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+                <Link href="/login?role=job_seeker">
+                  <button className="bg-[#174A7E] hover:bg-[#0f3459] text-white px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 shadow-2xs transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                    <UserIcon className="h-3.5 w-3.5" />
+                    <span>Job Seeker</span>
+                  </button>
+                </Link>
+                <Link href="/login?role=company">
+                  <button className="border border-[#174A7E] text-[#174A7E] hover:bg-[#174A7E]/5 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 bg-white cursor-pointer shadow-2xs">
+                    <Briefcase className="h-3.5 w-3.5" />
+                    <span>Employer</span>
+                  </button>
+                </Link>
+              </div>
+            )}
 
             {/* Mobile: Search icon + Hamburger */}
             <div className="flex md:hidden items-center gap-1.5 ml-1">
@@ -776,40 +751,52 @@ export const Header: React.FC = () => {
         {mobileMenuOpen && (
           <div className="md:hidden border-b border-slate-200 bg-white px-4 pt-3 pb-5 space-y-2 shadow-xl animate-in slide-in-from-top-4">
             {/* User status card inside mobile menu */}
-            <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80">
-              <div className="flex items-center gap-2.5">
-                <div className="h-9 w-9 rounded-full bg-[#174A7E] text-white flex items-center justify-center font-bold text-sm">
-                  {isAuthenticated && user?.name ? user.name.charAt(0).toUpperCase() : "G"}
+            {isAuthenticated ? (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200/80">
+                <div className="flex items-center gap-2.5">
+                  <div className="h-9 w-9 rounded-full bg-[#174A7E] text-white flex items-center justify-center font-bold text-sm">
+                    {user?.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                  <div>
+                    <p className="text-xs font-black text-slate-900">{user?.name || "My Account"}</p>
+                    <p className="text-[10px] text-slate-500">
+                      {role === "employer" || role === "company" ? "Employer" : "Candidate"}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-xs font-black text-slate-900">
-                    {isAuthenticated ? user?.name : "Guest User"}
-                  </p>
-                  <p className="text-[10px] text-slate-500">
-                    {isAuthenticated ? (role === "employer" ? "Employer" : "Job Seeker") : "Not Logged In"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Round Power Button on mobile drawer */}
-              <button
-                type="button"
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  if (isAuthenticated) {
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
                     logout();
-                  } else {
-                    router.push("/login");
-                  }
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-white shadow-xs cursor-pointer ${
-                  isAuthenticated ? "bg-emerald-600" : "bg-slate-400"
-                }`}
-              >
-                <Power className="h-3.5 w-3.5" />
-                <span>{isAuthenticated ? "ON (Logout)" : "OFF (Login)"}</span>
-              </button>
-            </div>
+                    router.push("/");
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold text-red-600 bg-red-50 border border-red-200 shadow-2xs cursor-pointer"
+                >
+                  <LogOut className="h-3.5 w-3.5" />
+                  <span>Logout</span>
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2 p-1">
+                <Link
+                  href="/login?role=job_seeker"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-extrabold text-white bg-[#174A7E]"
+                >
+                  <UserIcon className="h-3.5 w-3.5" />
+                  <span>Job Seeker</span>
+                </Link>
+                <Link
+                  href="/login?role=company"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl text-xs font-extrabold text-[#174A7E] border border-[#174A7E] bg-white"
+                >
+                  <Briefcase className="h-3.5 w-3.5" />
+                  <span>Employer</span>
+                </Link>
+              </div>
+            )}
 
             {/* Navigation links */}
             <div className="space-y-1 pt-1">

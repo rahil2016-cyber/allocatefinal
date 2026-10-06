@@ -179,33 +179,6 @@ export default function HomePage() {
       {/* ─── 1. HERO & PROMOTIONAL BANNERS SECTION ─── */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#174A7E]/5 via-[#174A7E]/10 to-transparent pt-6 pb-12 sm:pt-10 sm:pb-16 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
-          {/* ── JOB SEEKER GREETING HEADER (Directly Above Panoramic Banner) ── */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-sm">
-            <div className="space-y-1">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <span>Hello there,</span>
-                <span className="text-[#174A7E] font-black">{user?.name || "Job Seeker"}</span>
-                <span className="inline-block animate-bounce text-2xl select-none">👋</span>
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-600 font-medium">
-                Welcome to your AI-powered career portal. Explore active openings, build ATS resumes, and connect directly with hiring teams.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-sky-50 text-[#174A7E] border border-sky-200 shadow-2xs">
-                <Sparkles className="h-3.5 w-3.5 text-sky-600" />
-                <span>Job Seeker Edition</span>
-              </span>
-              <Link
-                href="/seeker/resume"
-                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#174A7E] hover:bg-[#0f3459] text-white shadow-xs transition-colors"
-              >
-                <FileText className="h-3.5 w-3.5" />
-                <span>Build ATS Resume</span>
-              </Link>
-            </div>
-          </div>
-
           {/* Main Promotional Banner Carousel with Exact Panoramic Banner Artwork */}
           <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 bg-white group">
             {/* Banner Slides */}
@@ -922,36 +895,6 @@ export default function HomePage() {
           </div>
         </div>
       </section>
-
-      {/* ─── 9. FOOTER ─── */}
-      <footer className="bg-white border-t border-slate-200 py-10 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div>
-              <div className="flex items-center text-xl font-black tracking-tight">
-                <span className="text-[#E53E3E]">Job</span>
-                <span className="text-[#174A7E]">Allocate</span>
-              </div>
-              <p className="text-[10px] text-slate-500 font-semibold uppercase tracking-wider">
-                RIGHT JOB, RIGHT CANDIDATE
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap justify-center gap-6 text-xs font-semibold text-slate-600">
-            <Link href="/jobs" className="hover:text-[#174A7E]">All Jobs</Link>
-            <Link href="/seeker/resume" className="hover:text-[#174A7E]">Resume Studio</Link>
-            <Link href="/login?role=job_seeker" className="hover:text-[#174A7E]">Job Seeker Login</Link>
-            <Link href="/login?role=company" className="hover:text-[#174A7E]">Employer Portal</Link>
-            <Link href="/legal/terms" className="hover:text-[#174A7E]">Terms & Conditions</Link>
-            <Link href="/legal/privacy" className="hover:text-[#174A7E]">Privacy Policy</Link>
-          </div>
-
-          <p className="text-xs text-slate-400">
-            © {new Date().getFullYear()} JobAllocate. All rights reserved.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 }

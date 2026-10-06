@@ -183,6 +183,18 @@ export default function SeekerDashboard() {
     },
   });
 
+  // Active banner slide index and sliding logic
+  const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const totalSlides = banners.length > 1 ? banners.length : (banners.length === 1 ? 2 : 1);
+
+  React.useEffect(() => {
+    if (totalSlides <= 1) return;
+    const interval = setInterval(() => {
+      setActiveBannerIndex((prev) => (prev + 1) % totalSlides);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [totalSlides]);
+
   // Fetch real categories & real job counts from backend API
   const { data: apiCategories = [], isLoading: isCategoriesLoading } = useQuery({
     queryKey: ["popularCategories"],
@@ -304,90 +316,124 @@ export default function SeekerDashboard() {
   const promoBanner = banners.length > 0 ? banners[0] : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 space-y-10">
-      {/* 1. HERO BANNER CAROUSEL */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 shadow-sm bg-white">
-        {promoBanner && promoBanner.image_url ? (
-          <div className="relative w-full h-[200px] sm:h-[300px] md:h-[360px] lg:h-[400px] overflow-hidden rounded-2xl bg-slate-50 flex items-center justify-center">
-            <img
-              src={promoBanner.image_url}
-              alt={promoBanner.title || "JobAllocate Banner"}
-              className="w-full h-full object-contain rounded-2xl block"
-            />
-          </div>
-        ) : (
-          <div className="bg-gradient-to-r from-slate-100 via-sky-50 to-blue-100/60 p-5 sm:p-7 md:p-8 h-[200px] sm:h-[300px] md:h-[360px] lg:h-[400px] flex items-center">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center w-full">
-              {/* Left Content */}
-              <div className="lg:col-span-7 space-y-3 sm:space-y-4">
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center gap-0.5">
+    <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8 lg:space-y-10">
+      {/* 1. HERO BANNER SLIDING CAROUSEL (Full Width, Zero Extra Space, Working Controls) */}
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 shadow-sm bg-slate-900 w-full h-[160px] sm:h-[240px] md:h-[300px] lg:h-[340px]">
+        <div
+          className="flex w-full h-full transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(-${activeBannerIndex * 100}%)` }}
+        >
+          {banners.length > 0 ? (
+            <>
+              {/* Primary API Banner(s) */}
+              {banners.map((b: any, idx: number) => (
+                <div key={b.id || idx} className="w-full h-full shrink-0 relative flex items-center justify-center bg-slate-900">
+                  <img
+                    src={b.image_url}
+                    alt={b.title || "JobAllocate Banner"}
+                    className="w-full h-full object-cover sm:object-fill rounded-2xl block"
+                  />
+                </div>
+              ))}
+
+              {/* If only 1 banner returned by API, add a second interactive promotional slide so user can slide left & right */}
+              {banners.length === 1 && (
+                <div className="w-full h-full shrink-0 relative bg-gradient-to-r from-slate-100 via-sky-50 to-blue-100/60 p-4 sm:p-7 md:p-8 flex items-center">
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center w-full">
+                    <div className="lg:col-span-8 space-y-2 sm:space-y-3">
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm sm:text-base font-extrabold text-[#E53E3E]">Job</span>
+                        <span className="text-sm sm:text-base font-extrabold text-[#174A7E]">Allocate</span>
+                        <span className="text-[11px] text-slate-500 font-medium">— Right job, right candidate</span>
+                      </div>
+                      <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                        <span className="text-[#E53E3E]">LOCAL JOBS</span> NEAR YOU
+                      </h1>
+                      <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
+                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-red-500" /> Your City</span>
+                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-blue-500" /> Your District</span>
+                      </div>
+                      <div>
+                        <Link href="/jobs">
+                          <Button variant="primary" size="sm" className="rounded-full bg-[#E53E3E] hover:bg-[#C53030] px-5 font-bold shadow-md text-xs">
+                            Explore Jobs →
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="w-full h-full shrink-0 relative bg-gradient-to-r from-slate-100 via-sky-50 to-blue-100/60 p-5 sm:p-7 md:p-8 flex items-center">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center w-full">
+                <div className="lg:col-span-8 space-y-3 sm:space-y-4">
+                  <div className="flex items-center gap-1.5">
                     <span className="text-base sm:text-lg font-extrabold text-[#E53E3E]">Job</span>
                     <span className="text-base sm:text-lg font-extrabold text-[#174A7E]">Allocate</span>
+                    <span className="text-xs text-slate-500 font-medium">— Right job, right candidate</span>
                   </div>
-                  <span className="text-xs text-slate-500 font-medium">— Right job, right candidate</span>
-                </div>
 
-                <div className="space-y-1.5">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                    <span className="text-[#E53E3E]">LOCAL JOBS</span> <br />
-                    FIND JOBS NEAR YOU
-                  </h1>
-                  <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-700 pt-0.5">
-                    <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-red-500" /> Your City</span>
-                    <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-blue-500" /> Your District</span>
-                    <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-emerald-500" /> Your Taluk</span>
+                  <div className="space-y-1.5">
+                    <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                      <span className="text-[#E53E3E]">LOCAL JOBS</span> <br />
+                      FIND JOBS NEAR YOU
+                    </h1>
+                    <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-700 pt-0.5">
+                      <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-red-500" /> Your City</span>
+                      <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-blue-500" /> Your District</span>
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold text-slate-700 border border-slate-200 shadow-2xs">
-                    Search Local Jobs
-                  </span>
-                  <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold text-slate-700 border border-slate-200 shadow-2xs">
-                    Jobs in Your Area
-                  </span>
-                  <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold text-slate-700 border border-slate-200 shadow-2xs">
-                    Verified Employers
-                  </span>
-                </div>
-
-                <div>
-                  <Link href="/jobs">
-                    <Button variant="primary" size="md" className="rounded-full bg-[#E53E3E] hover:bg-[#C53030] px-6 font-bold shadow-md text-xs sm:text-sm">
-                      Explore Jobs →
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-
-              {/* Right Visual / Tagline Illustration */}
-              <div className="hidden lg:flex lg:col-span-5 relative items-center justify-center">
-                <div className="relative rounded-2xl overflow-hidden bg-gradient-to-br from-[#174A7E] to-slate-900 p-5 text-white text-center space-y-3 shadow-lg w-full">
-                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 border border-white/20">
-                    <Briefcase className="h-6 w-6 text-sky-300" />
-                  </div>
                   <div>
-                    <p className="text-base font-extrabold italic tracking-wide text-sky-200">
-                      "Opportunities are closer than you think"
-                    </p>
-                    <p className="text-xs text-slate-300 mt-1 font-medium">
-                      Better Jobs • Brighter Futures
-                    </p>
+                    <Link href="/jobs">
+                      <Button variant="primary" size="md" className="rounded-full bg-[#E53E3E] hover:bg-[#C53030] px-6 font-bold shadow-md text-xs sm:text-sm">
+                        Explore Jobs →
+                      </Button>
+                    </Link>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
-        {/* Carousel controls */}
-        <button className="absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-md hover:bg-white transition-all hover:scale-105 active:scale-95 z-20">
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-        <button className="absolute right-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full bg-white/90 text-slate-700 shadow-md hover:bg-white transition-all hover:scale-105 active:scale-95 z-20">
-          <ChevronRight className="h-5 w-5" />
-        </button>
+        {/* Carousel controls on Left and Right (Working on Click and Touch) */}
+        {totalSlides > 1 && (
+          <>
+            <button
+              type="button"
+              onClick={() => setActiveBannerIndex((prev) => (prev === 0 ? totalSlides - 1 : prev - 1))}
+              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer"
+              title="Previous Banner"
+            >
+              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveBannerIndex((prev) => (prev === totalSlides - 1 ? 0 : prev + 1))}
+              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer"
+              title="Next Banner"
+            >
+              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+            </button>
+
+            {/* Slide Dots Indicator */}
+            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20 bg-black/30 backdrop-blur-xs px-2 py-1 rounded-full">
+              {Array.from({ length: totalSlides }).map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setActiveBannerIndex(i)}
+                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                    activeBannerIndex === i ? "w-5 bg-white" : "w-1.5 bg-white/50"
+                  }`}
+                />
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* 2. POPULAR CATEGORIES (Real API Job Counts) */}
@@ -551,41 +597,45 @@ export default function SeekerDashboard() {
         )}
       </section>
 
-      {/* 4. QUICK STATS ROW (3 White Cards with Real API Counts) */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      {/* 4. QUICK STATS ROW (Compact 3-Card Row on Mobile) */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-4">
         {/* Recommended */}
         <Link href="/jobs">
-          <Card className="p-4 flex items-center justify-between border-slate-200/80 hover:shadow-md transition-shadow cursor-pointer">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-sky-50 text-sky-600">
-                <TrendingUp className="h-5.5 w-5.5" />
+          <Card className="p-2 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between border-slate-200/80 hover:shadow-md transition-shadow cursor-pointer bg-white text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3.5">
+              <div className="flex h-8 w-8 sm:h-11 sm:w-11 items-center justify-center rounded-xl sm:rounded-2xl bg-sky-50 text-sky-600 shrink-0">
+                <TrendingUp className="h-4 w-4 sm:h-5.5 sm:w-5.5" />
               </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-500">Recommended</p>
-                <p className="text-2xl font-black text-slate-900">{jobsList.length > 0 ? jobsList.length : 0}</p>
-                <p className="text-[10px] font-medium text-slate-400">jobs available</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs font-semibold text-slate-500 truncate">Recommended</p>
+                <p className="text-base sm:text-2xl font-black text-slate-900 leading-tight">
+                  {jobsList.length > 0 ? jobsList.length : 0}
+                </p>
+                <p className="hidden sm:block text-[10px] font-medium text-slate-400">jobs available</p>
               </div>
             </div>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600">
+            <div className="hidden lg:flex h-8 w-8 items-center justify-center rounded-full bg-sky-50 text-sky-600 shrink-0">
               <ArrowRight className="h-4 w-4" />
             </div>
           </Card>
         </Link>
 
-        {/* Related */}
-        <Link href="/jobs">
-          <Card className="p-4 flex items-center justify-between border-slate-200/80 hover:shadow-md transition-shadow cursor-pointer">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-600">
-                <BarChart3 className="h-5.5 w-5.5" />
+        {/* Related / Applications */}
+        <Link href="/seeker/applications">
+          <Card className="p-2 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between border-slate-200/80 hover:shadow-md transition-shadow cursor-pointer bg-white text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3.5">
+              <div className="flex h-8 w-8 sm:h-11 sm:w-11 items-center justify-center rounded-xl sm:rounded-2xl bg-emerald-50 text-emerald-600 shrink-0">
+                <BarChart3 className="h-4 w-4 sm:h-5.5 sm:w-5.5" />
               </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-500">Related</p>
-                <p className="text-2xl font-black text-slate-900">{applications.length}</p>
-                <p className="text-[10px] font-medium text-slate-400">applications submitted</p>
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs font-semibold text-slate-500 truncate">Applied</p>
+                <p className="text-base sm:text-2xl font-black text-slate-900 leading-tight">
+                  {applications.length}
+                </p>
+                <p className="hidden sm:block text-[10px] font-medium text-slate-400">submitted</p>
               </div>
             </div>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600">
+            <div className="hidden lg:flex h-8 w-8 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 shrink-0">
               <ArrowRight className="h-4 w-4" />
             </div>
           </Card>
@@ -593,20 +643,20 @@ export default function SeekerDashboard() {
 
         {/* Saved */}
         <Link href="/seeker/saved">
-          <Card className="p-4 flex items-center justify-between border-slate-200/80 hover:shadow-md transition-shadow cursor-pointer">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-rose-50 text-rose-500">
-                <Bookmark className="h-5.5 w-5.5" />
+          <Card className="p-2 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between border-slate-200/80 hover:shadow-md transition-shadow cursor-pointer bg-white text-center sm:text-left">
+            <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3.5">
+              <div className="flex h-8 w-8 sm:h-11 sm:w-11 items-center justify-center rounded-xl sm:rounded-2xl bg-rose-50 text-rose-500 shrink-0">
+                <Bookmark className="h-4 w-4 sm:h-5.5 sm:w-5.5" />
               </div>
-              <div>
-                <p className="text-xs font-semibold text-slate-500">Saved</p>
-                <p className="text-2xl font-black text-slate-900">
+              <div className="min-w-0">
+                <p className="text-[10px] sm:text-xs font-semibold text-slate-500 truncate">Saved</p>
+                <p className="text-base sm:text-2xl font-black text-slate-900 leading-tight">
                   {isSavedLoading ? "0" : savedJobs.length}
                 </p>
-                <p className="text-[10px] font-medium text-slate-400">jobs saved</p>
+                <p className="hidden sm:block text-[10px] font-medium text-slate-400">jobs saved</p>
               </div>
             </div>
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 text-rose-500">
+            <div className="hidden lg:flex h-8 w-8 items-center justify-center rounded-full bg-rose-50 text-rose-500 shrink-0">
               <ArrowRight className="h-4 w-4" />
             </div>
           </Card>
@@ -707,25 +757,6 @@ export default function SeekerDashboard() {
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
-              <button
-                type="button"
-                onClick={handleResumeScrollLeft}
-                className="p-2 rounded-lg bg-white hover:bg-slate-200 text-slate-700 shadow-2xs transition-all"
-                title="Scroll Left"
-              >
-                <ChevronLeft className="h-5 w-5" />
-              </button>
-              <button
-                type="button"
-                onClick={handleResumeScrollRight}
-                className="p-2 rounded-lg bg-white hover:bg-slate-200 text-slate-700 shadow-2xs transition-all"
-                title="Scroll Right"
-              >
-                <ChevronRight className="h-5 w-5" />
-              </button>
-            </div>
-
             <Link href="/seeker/resume">
               <Button variant="outline" size="sm" className="text-xs font-extrabold text-[#174A7E] border-slate-300">
                 Explore All 13 Templates →

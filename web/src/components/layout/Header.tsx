@@ -592,57 +592,57 @@ export const Header: React.FC = () => {
                 </Link>
               </nav>
             ) : (
-              <nav className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none py-1">
+              <nav className="grid grid-cols-4 sm:flex sm:items-center gap-1 sm:gap-2 w-full sm:w-auto py-1">
                 {/* Home */}
                 <Link
                   href={isJobSeeker ? "/seeker/dashboard" : "/"}
-                  className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold transition-all ${
+                  className={`flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 rounded-full text-xs font-bold transition-all text-center ${
                     isActive("/") || isActive("/seeker/dashboard")
                       ? "bg-[#174A7E] text-white shadow-2xs"
                       : "text-slate-700 hover:bg-white hover:shadow-2xs"
                   }`}
                 >
-                  <Home className="h-3.5 w-3.5" />
-                  <span>Home</span>
+                  <Home className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">Home</span>
                 </Link>
 
                 {/* Apply */}
                 <Link
                   href={isAuthenticated ? "/seeker/applications" : "/jobs"}
-                  className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold transition-all ${
+                  className={`flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 rounded-full text-xs font-bold transition-all text-center ${
                     isActive("/seeker/applications")
                       ? "bg-[#174A7E] text-white shadow-2xs"
                       : "text-slate-700 hover:bg-white hover:shadow-2xs"
                   }`}
                 >
-                  <Briefcase className="h-3.5 w-3.5" />
-                  <span>Apply</span>
+                  <Briefcase className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">Apply</span>
                 </Link>
 
                 {/* Saved */}
                 <Link
                   href={isAuthenticated ? "/seeker/saved" : "/login?role=job_seeker"}
-                  className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold transition-all ${
+                  className={`flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 rounded-full text-xs font-bold transition-all text-center ${
                     isActive("/seeker/saved")
                       ? "bg-[#174A7E] text-white shadow-2xs"
                       : "text-slate-700 hover:bg-white hover:shadow-2xs"
                   }`}
                 >
-                  <Bookmark className="h-3.5 w-3.5" />
-                  <span>Saved</span>
+                  <Bookmark className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">Saved</span>
                 </Link>
 
                 {/* Resume */}
                 <Link
                   href="/seeker/resume"
-                  className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold transition-all ${
+                  className={`flex items-center justify-center gap-1 sm:gap-1.5 px-2 sm:px-3.5 py-1 rounded-full text-xs font-bold transition-all text-center ${
                     isActive("/seeker/resume")
                       ? "bg-[#174A7E] text-white shadow-2xs"
                       : "text-slate-700 hover:bg-white hover:shadow-2xs"
                   }`}
                 >
-                  <FileText className="h-3.5 w-3.5" />
-                  <span>Resume</span>
+                  <FileText className="h-3.5 w-3.5 shrink-0" />
+                  <span className="truncate">Resume</span>
                 </Link>
 
                 {/* All Jobs Feed */}

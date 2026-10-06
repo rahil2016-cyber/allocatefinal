@@ -224,6 +224,44 @@ export default function SeekerDashboard() {
     enabled: !!user,
   });
 
+  // Fetch seeker profile for personalized job recommendations
+  const { data: seekerProfile } = useQuery({
+    queryKey: ["seekerProfileDashboard"],
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get(ENDPOINTS.SEEKER_PROFILE);
+        return res.data?.data || null;
+      } catch {
+        return null;
+      }
+    },
+    enabled: !!user,
+  });
+
+  // Fetch jobs tailored to candidate's profile
+  const { data: profileJobs = [], isLoading: isProfileJobsLoading } = useQuery<Job[]>({
+    queryKey: ["seekerProfileMatchedJobs", seekerProfile?.industry_type, seekerProfile?.city],
+    queryFn: async () => {
+      try {
+        const params: Record<string, any> = { per_page: 6 };
+        if (seekerProfile?.industry_type) {
+          params.industry = seekerProfile.industry_type;
+        }
+        if (seekerProfile?.city) {
+          params.city = seekerProfile.city;
+        }
+        const res = await apiClient.get(ENDPOINTS.JOBS, { params });
+        const data = res.data?.data;
+        if (Array.isArray(data)) return data;
+        if (Array.isArray(data?.data)) return data.data;
+        return [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!user,
+  });
+
   // Map icon for category based on icon key or label
   const getCategoryIcon = (iconKey?: string, label?: string) => {
     const l = (label || "").toLowerCase();
@@ -396,31 +434,122 @@ export default function SeekerDashboard() {
         )}
       </section>
 
-      {/* 3. RESUME STUDIO & JOB SEEKER CALLOUT CARD */}
-      <div className="rounded-2xl bg-gradient-to-r from-slate-50 via-sky-50/50 to-blue-50 p-6 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-6 shadow-2xs">
-        <div className="space-y-1.5 max-w-2xl">
-          <span className="text-[10px] font-bold text-[#174A7E] uppercase tracking-wider block">
-            RESUME STUDIO & CAREER BUILDER
-          </span>
-          <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900">
-            Find your next opportunity & Build Your Resume
-          </h3>
-          <p className="text-xs text-slate-600 leading-relaxed">
-            Browse jobs, apply in one tap, and manage your career — same account as the JobAllocate app.
-          </p>
+      {/* 3. JOBS BASED ON YOUR PROFILE */}
+      <section className="space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                Jobs Based on Your Profile
+              </h2>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-blue-50 border border-blue-200 text-[#174A7E] text-[11px] font-bold">
+                <Sparkles className="h-3 w-3" /> Recommended For You
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 font-medium mt-0.5">
+              {seekerProfile?.industry_type
+                ? `Personalized openings tailored to ${seekerProfile.industry_type}${seekerProfile.city ? ` in ${seekerProfile.city}` : ""}`
+                : "Handpicked opportunities matched to your skills and career interests"}
+            </p>
+          </div>
+          <Link
+            href="/jobs"
+            className="text-xs font-bold text-[#174A7E] hover:underline flex items-center gap-1 shrink-0"
+          >
+            <span>View All Matched Jobs</span>
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
         </div>
 
-        <div className="flex flex-col items-start sm:items-end gap-1 shrink-0">
-          <Link href="/seeker/resume">
-            <Button variant="primary" size="md" className="rounded-full bg-[#0284C7] hover:bg-[#0369A1] font-bold shadow-md px-6">
-              <FileText className="h-4 w-4 mr-1.5" /> Build Resume →
-            </Button>
-          </Link>
-          <span className="text-[11px] text-slate-500 font-medium pt-0.5">
-            Create & export professional PDF resumes in minutes
-          </span>
-        </div>
-      </div>
+        {isProfileJobsLoading && isJobsLoading ? (
+          <div className="py-12 text-center text-slate-400 flex justify-center items-center gap-2">
+            <Loader2 className="h-5 w-5 animate-spin text-[#174A7E]" />
+            <span className="text-xs font-semibold">Matching jobs with your profile...</span>
+          </div>
+        ) : (profileJobs.length > 0 ? profileJobs : jobsList.slice(0, 6)).length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {(profileJobs.length > 0 ? profileJobs : jobsList.slice(0, 6)).map((job) => {
+              const companyName = job.company?.name || job.company_name || "Verified Employer";
+              const isSaved = savedJobIds.has(job.id);
+
+              return (
+                <Card
+                  key={`profile-job-${job.id}`}
+                  className="p-4 flex flex-col justify-between space-y-3.5 border-slate-200/90 hover:border-[#174A7E]/40 hover:shadow-md transition-all group bg-white"
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                          <Sparkles className="h-2.5 w-2.5" /> Profile Match
+                        </span>
+                        <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-[#174A7E] transition-colors line-clamp-1 pt-1">
+                          {job.title}
+                        </h3>
+                      </div>
+                      <button
+                        onClick={() => toggleSaveJob(job.id)}
+                        className="text-slate-400 hover:text-amber-500 transition-colors p-1"
+                        title="Save Job"
+                      >
+                        <Bookmark className={`h-4 w-4 ${isSaved ? "fill-amber-500 text-amber-500" : ""}`} />
+                      </button>
+                    </div>
+
+                    <p className="text-xs font-semibold text-slate-600">{companyName}</p>
+
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
+                      {job.city && (
+                        <span className="flex items-center gap-1">
+                          <MapPin className="h-3 w-3 text-slate-400 shrink-0" /> {job.city}
+                        </span>
+                      )}
+                      {(job.salary_min || job.salary_max) && (
+                        <span className="font-bold text-slate-700">
+                          ₹{job.salary_min ? Number(job.salary_min).toLocaleString() : ""}
+                          {job.salary_max ? ` - ₹${Number(job.salary_max).toLocaleString()}` : ""}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+                    <Badge variant="primary" size="sm" className="bg-sky-50 text-[#174A7E] font-bold border-sky-100 text-[11px]">
+                      <Briefcase className="h-3 w-3 mr-1" />
+                      {job.job_type || job.employment_type || "Full time"}
+                    </Badge>
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => {
+                        setSelectedJob(job);
+                        setIsApplyModalOpen(true);
+                      }}
+                      className="rounded-full bg-[#174A7E] hover:bg-[#0f3459] text-xs font-bold px-3.5 py-1.5 shadow-2xs"
+                    >
+                      Quick Apply
+                    </Button>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        ) : (
+          <Card className="py-10 text-center space-y-2 border-dashed border-slate-200">
+            <p className="text-sm font-bold text-slate-700">No profile-matched jobs yet</p>
+            <p className="text-xs text-slate-500">
+              Update your industry and preferences in your profile to see tailored job recommendations.
+            </p>
+            <div className="pt-2">
+              <Link href="/seeker/profile">
+                <Button variant="outline" size="sm" className="text-xs font-bold border-slate-300">
+                  Update Profile Preferences
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        )}
+      </section>
 
       {/* 4. QUICK STATS ROW (3 White Cards with Real API Counts) */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

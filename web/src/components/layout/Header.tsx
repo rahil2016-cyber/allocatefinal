@@ -166,11 +166,6 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      {/* Search Overlay Backdrop */}
-      {searchOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm" />
-      )}
-
       <header className="sticky top-0 z-40 w-full border-b border-slate-200 bg-white shadow-xs transition-all">
         {/* ─── TIER 1: MAIN TOP BAR (Logo, Search Bar, Support, User Name, Round Switch) ─── */}
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
@@ -195,59 +190,53 @@ export const Header: React.FC = () => {
             </div>
           </Link>
 
-          {/* 2. Search Bar (Centered, Full Featured) */}
+          {/* 2. Search Bar (Clean Direct Input with Inline Search Button) */}
           <div className="hidden md:flex flex-1 max-w-lg mx-2 lg:mx-4 relative" ref={searchOverlayRef}>
-            {/* Pill Trigger */}
-            <button
-              type="button"
-              onClick={openSearch}
-              className="w-full flex items-center gap-2.5 px-4 py-2 rounded-full border border-slate-200 bg-slate-50/80 hover:bg-white hover:border-[#174A7E]/40 hover:shadow-sm text-slate-400 text-sm font-medium transition-all group shadow-2xs cursor-pointer"
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSearch(searchQuery);
+              }}
+              className="w-full flex items-center gap-2 pl-3.5 pr-1.5 py-1.5 rounded-full border border-slate-200 bg-slate-50/90 hover:bg-white hover:border-[#174A7E]/40 focus-within:bg-white focus-within:border-[#174A7E] focus-within:ring-2 focus-within:ring-[#174A7E]/10 transition-all shadow-2xs"
             >
               <Search className="h-4 w-4 text-[#174A7E] shrink-0" />
-              <span className="flex-1 text-left text-sm text-slate-500 font-normal truncate">
-                Search jobs, skills, companies…
-              </span>
-              <kbd className="hidden sm:inline-flex items-center gap-1 text-[10px] font-semibold text-slate-400 bg-white border border-slate-200 rounded px-1.5 py-0.5 shadow-2xs">
-                ⌘K
-              </kbd>
-            </button>
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  if (!searchOpen) setSearchOpen(true);
+                }}
+                onFocus={() => setSearchOpen(true)}
+                onKeyDown={(e) => {
+                  if (e.key === "Escape") closeSearch();
+                }}
+                placeholder="Search jobs, skills, companies..."
+                className="flex-1 text-xs sm:text-sm text-slate-800 placeholder:text-slate-400 bg-transparent outline-none min-w-0"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery("")}
+                  className="text-slate-400 hover:text-slate-600 p-1 shrink-0"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <button
+                type="submit"
+                className="px-3.5 py-1.5 rounded-full bg-[#174A7E] hover:bg-[#0f3459] text-white text-xs font-bold transition-all shadow-xs cursor-pointer shrink-0 flex items-center gap-1"
+              >
+                <span>Search</span>
+              </button>
+            </form>
 
-            {/* Expanded Search Dropdown */}
+            {/* Clean Attached Suggestions Dropdown (NO Blurry Screen Overlay) */}
             {searchOpen && (
               <div
-                className="absolute top-0 left-0 right-0 z-50 bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden"
-                style={{ minWidth: "440px" }}
+                className="absolute top-full left-0 right-0 mt-2 z-50 bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"
               >
-                {/* Input row */}
-                <div className="flex items-center gap-3 px-4 py-3 border-b border-slate-100">
-                  <Search className="h-5 w-5 text-[#174A7E] shrink-0" />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleSearch(searchQuery);
-                      if (e.key === "Escape") closeSearch();
-                    }}
-                    placeholder="Search by jobs, skills, companies, salary..."
-                    className="flex-1 text-sm font-semibold text-slate-800 placeholder:text-slate-400 outline-none bg-transparent"
-                  />
-                  {searchQuery && (
-                    <button
-                      onClick={() => setSearchQuery("")}
-                      className="text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  )}
-                  <button
-                    onClick={closeSearch}
-                    className="text-slate-400 hover:text-slate-600 pl-2 border-l border-slate-100"
-                  >
-                    <kbd className="text-[10px] font-semibold text-slate-400">Esc</kbd>
-                  </button>
-                </div>
 
                 {/* Suggestions */}
                 <div className="max-h-80 overflow-y-auto">

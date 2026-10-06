@@ -325,10 +325,10 @@ export const Header: React.FC = () => {
           </div>
 
           {/* 3. RIGHT SECTION (Support Button + User Name + Round Login/Logout Switch) */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
 
-            {/* A. Support Menu Dropdown (Details from App) */}
-            <div className="relative" ref={supportRef}>
+            {/* A. Support Menu Dropdown (Details from App) - Desktop & Tablet */}
+            <div className="relative hidden sm:block" ref={supportRef}>
               <button
                 type="button"
                 onClick={() => setSupportDropdownOpen(!supportDropdownOpen)}
@@ -489,14 +489,15 @@ export const Header: React.FC = () => {
                 </button>
               </div>
             ) : (
-              <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
+              <div className="flex items-center gap-1.5 sm:gap-2 pl-1.5 sm:pl-2 border-l border-slate-200">
                 <Link href="/login?role=job_seeker">
-                  <button className="bg-[#174A7E] hover:bg-[#0f3459] text-white px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 shadow-2xs transition-all hover:scale-105 active:scale-95 cursor-pointer">
+                  <button className="bg-[#174A7E] hover:bg-[#0f3459] text-white px-2.5 sm:px-3.5 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1 shadow-2xs transition-all hover:scale-105 active:scale-95 cursor-pointer">
                     <UserIcon className="h-3.5 w-3.5" />
-                    <span>Job Seeker</span>
+                    <span className="hidden sm:inline">Job Seeker</span>
+                    <span className="sm:inline font-bold text-[11px] sm:hidden">Login</span>
                   </button>
                 </Link>
-                <Link href="/login?role=company">
+                <Link href="/login?role=company" className="hidden sm:block">
                   <button className="border border-[#174A7E] text-[#174A7E] hover:bg-[#174A7E]/5 px-3 sm:px-3.5 py-1.5 rounded-full text-xs font-extrabold flex items-center gap-1.5 transition-all hover:scale-105 active:scale-95 bg-white cursor-pointer shadow-2xs">
                     <Briefcase className="h-3.5 w-3.5" />
                     <span>Employer</span>
@@ -672,7 +673,7 @@ export const Header: React.FC = () => {
                 </Link>
 
                 {/* More dropdown */}
-                <div className="relative">
+                <div className="relative hidden sm:block">
                   <button
                     onClick={() => setMoreDropdownOpen(!moreDropdownOpen)}
                     className="flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold text-slate-700 hover:bg-white hover:shadow-2xs transition-all cursor-pointer"

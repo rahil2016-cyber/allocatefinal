@@ -103,11 +103,6 @@ export const Footer: React.FC = () => {
                   <ChevronRight className="h-3 w-3 text-slate-400" /> Refer & Earn
                 </Link>
               </li>
-              <li>
-                <Link href="/pricing" className="hover:text-[#174A7E] transition-colors font-medium flex items-center gap-1">
-                  <ChevronRight className="h-3 w-3 text-slate-400" /> Pricing & Plans
-                </Link>
-              </li>
             </ul>
           </div>
 
@@ -241,9 +236,6 @@ export const Footer: React.FC = () => {
                 </li>
                 <li>
                   <Link href="/employer/post-job" className="hover:text-[#174A7E]">Post a Job</Link>
-                </li>
-                <li>
-                  <Link href="/pricing" className="hover:text-[#174A7E]">Pricing</Link>
                 </li>
               </ul>
             </div>

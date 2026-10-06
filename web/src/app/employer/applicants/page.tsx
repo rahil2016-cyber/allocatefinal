@@ -233,25 +233,25 @@ function ApplicantsContent() {
               return (
                 <Card
                   key={candidate.id}
-                  className="p-5 sm:p-6 space-y-4 border-slate-200 rounded-3xl shadow-xs hover:shadow-md transition-all"
+                  className="p-4 sm:p-6 space-y-4 border-slate-200 rounded-2xl sm:rounded-3xl shadow-xs hover:shadow-md transition-all"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                    <div className="flex items-center gap-3.5">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#174A7E] text-white font-black text-base shadow-xs shrink-0">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 pb-4 border-b border-slate-100">
+                    <div className="flex items-center gap-3 sm:gap-3.5 min-w-0">
+                      <div className="flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl bg-[#174A7E] text-white font-black text-sm sm:text-base shadow-xs shrink-0">
                         {name.charAt(0)}
                       </div>
-                      <div>
-                        <h3 className="text-base font-bold text-slate-900">{name}</h3>
-                        <p className="text-xs text-slate-500 font-medium pt-0.5">
+                      <div className="min-w-0">
+                        <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">{name}</h3>
+                        <p className="text-xs text-slate-500 font-medium pt-0.5 truncate">
                           Applied for{" "}
                           <span className="text-[#174A7E] font-semibold">{jobTitle}</span>
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs text-slate-400 mr-2 flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5" /> {appliedAt}
+                        <Clock className="h-3.5 w-3.5 shrink-0" /> {appliedAt}
                       </span>
 
                       {status === "shortlisted" && (
@@ -271,14 +271,14 @@ function ApplicantsContent() {
 
                   {/* Contact & Bio info */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                    <div className="space-y-1.5 text-slate-600">
-                      <div className="flex items-center gap-2">
+                    <div className="space-y-1.5 text-slate-600 min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
                         <Mail className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                        <span>{email}</span>
+                        <span className="truncate">{email}</span>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
                         <Phone className="h-3.5 w-3.5 text-slate-400 shrink-0" />
-                        <span>{phone}</span>
+                        <span className="truncate">{phone}</span>
                       </div>
                     </div>
 

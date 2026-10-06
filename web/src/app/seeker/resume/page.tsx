@@ -592,7 +592,7 @@ export default function SeekerResumeStudioPage() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
@@ -604,18 +604,19 @@ export default function SeekerResumeStudioPage() {
               {allowedCount} Templates Unlocked ({activePackageKey.replace("_", " ").toUpperCase()})
             </Badge>
           </div>
-          <h1 className="text-2xl font-extrabold text-slate-900 mt-1">Build & Export Resume</h1>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">Build & Export Resume</h1>
           <p className="text-xs text-slate-500">
             Select from 13+ production HTML/PDF templates with AI assistance & instant PDF downloads.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex items-center gap-2 overflow-x-auto scrollbar-none pb-1 w-full sm:w-auto -mx-1 px-1">
           <Button
             variant={activeTab === "templates" ? "primary" : "outline"}
             size="sm"
             onClick={() => setActiveTab("templates")}
             leftIcon={<Palette className="h-4 w-4" />}
+            className="shrink-0 whitespace-nowrap"
           >
             Templates Gallery ({ALL_TEMPLATES.length})
           </Button>
@@ -624,6 +625,7 @@ export default function SeekerResumeStudioPage() {
             size="sm"
             onClick={() => setActiveTab("edit")}
             leftIcon={<Edit3 className="h-4 w-4" />}
+            className="shrink-0 whitespace-nowrap"
           >
             Edit Resume Details
           </Button>
@@ -632,6 +634,7 @@ export default function SeekerResumeStudioPage() {
             size="sm"
             onClick={() => setActiveTab("preview")}
             leftIcon={<Eye className="h-4 w-4" />}
+            className="shrink-0 whitespace-nowrap"
           >
             Live Document Preview
           </Button>
@@ -640,7 +643,7 @@ export default function SeekerResumeStudioPage() {
             size="sm"
             onClick={() => setActiveTab("packages")}
             leftIcon={<ShoppingCart className="h-4 w-4 text-[#0284C7]" />}
-            className="font-bold text-[#174A7E]"
+            className="font-bold text-[#174A7E] shrink-0 whitespace-nowrap"
           >
             Buy Packages
           </Button>
@@ -650,6 +653,7 @@ export default function SeekerResumeStudioPage() {
             onClick={handlePdfExport}
             isLoading={isPdfLoading}
             leftIcon={<Download className="h-4 w-4" />}
+            className="shrink-0 whitespace-nowrap"
           >
             Export PDF (₹)
           </Button>

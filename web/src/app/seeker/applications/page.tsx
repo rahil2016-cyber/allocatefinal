@@ -66,13 +66,13 @@ export default function MyApplicationsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <Badge variant="primary" size="sm" className="mb-1">
             Candidate Pipeline
           </Badge>
-          <h1 className="text-2xl font-extrabold text-slate-900">My Submitted Applications</h1>
+          <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900">My Submitted Applications</h1>
           <p className="text-xs text-slate-500">
             Track real-time employer reviews and responses for your applications.
           </p>
@@ -101,21 +101,21 @@ export default function MyApplicationsPage() {
               "Verified Employer";
 
             return (
-              <Card key={app.id} className="p-6 space-y-4 border-slate-200 hover:border-slate-300">
+              <Card key={app.id} className="p-4 sm:p-6 space-y-4 border-slate-200 hover:border-slate-300">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-[#174A7E] font-bold shrink-0 border border-slate-200">
-                      <Building2 className="h-6 w-6 text-[#174A7E]" />
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-xl bg-slate-100 text-[#174A7E] font-bold shrink-0 border border-slate-200">
+                      <Building2 className="h-5 w-5 sm:h-6 sm:w-6 text-[#174A7E]" />
                     </div>
-                    <div>
-                      <h3 className="text-base font-bold text-slate-900">{jobTitle}</h3>
-                      <p className="text-xs text-slate-500 flex items-center gap-1 font-medium">
-                        {companyName} • Applied {formatDate(app.applied_at || app.created_at)}
+                    <div className="min-w-0">
+                      <h3 className="text-sm sm:text-base font-bold text-slate-900 truncate">{jobTitle}</h3>
+                      <p className="text-xs text-slate-500 flex items-center gap-1 font-medium truncate">
+                        <span className="truncate">{companyName}</span> • Applied {formatDate(app.applied_at || app.created_at)}
                       </p>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     {getStatusBadge(app.status)}
                   </div>
                 </div>

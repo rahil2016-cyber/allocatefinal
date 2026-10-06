@@ -46,7 +46,7 @@ export const Modal: React.FC<ModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
       <div
         className="fixed inset-0"
         onClick={onClose}
@@ -54,23 +54,24 @@ export const Modal: React.FC<ModalProps> = ({
       />
       <div
         className={cn(
-          "relative z-10 w-full rounded-2xl bg-white p-6 shadow-2xl transition-all animate-in zoom-in-95 duration-200 border border-slate-100 max-h-[90vh] flex flex-col",
+          "relative z-10 w-[95vw] sm:w-full rounded-2xl bg-white p-4 sm:p-6 shadow-2xl transition-all animate-in zoom-in-95 duration-200 border border-slate-100 max-h-[92vh] flex flex-col",
           maxWidthClasses[maxWidth]
         )}
       >
-        <div className="flex items-start justify-between pb-4 border-b border-slate-100">
-          <div>
-            {title && <h3 className="text-lg font-bold text-slate-900">{title}</h3>}
+        <div className="flex items-start justify-between pb-3 sm:pb-4 border-b border-slate-100">
+          <div className="pr-2">
+            {title && <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug">{title}</h3>}
             {subtitle && <p className="text-xs text-slate-500 mt-0.5">{subtitle}</p>}
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors"
+            aria-label="Close modal"
+            className="min-h-[44px] min-w-[44px] rounded-xl flex items-center justify-center text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition-colors shrink-0 cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="py-4 overflow-y-auto custom-scrollbar flex-1">{children}</div>
+        <div className="py-3 sm:py-4 overflow-y-auto custom-scrollbar flex-1">{children}</div>
       </div>
     </div>
   );

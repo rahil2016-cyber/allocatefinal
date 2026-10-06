@@ -226,12 +226,12 @@ function LoginForm() {
   };
 
   return (
-    <div className="w-full min-h-[calc(100vh-108px)] bg-slate-50/70 flex flex-col justify-center py-8 sm:py-12 lg:py-14 px-4 sm:px-6 lg:px-8">
+    <div className="w-full min-h-[calc(100vh-108px)] bg-slate-50/70 flex flex-col justify-center py-6 sm:py-12 lg:py-14 px-3 sm:px-6 lg:px-8">
       <div className="w-full max-w-[1280px] mx-auto">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-10 lg:gap-12 xl:gap-16">
+        <div className="flex flex-col lg:flex-row items-center justify-center lg:justify-between gap-8 lg:gap-12 xl:gap-16">
           
           {/* ─── LEFT COLUMN: HERO VISUAL SHOWCASE (54% width) ─── */}
-          <div className="w-full lg:w-[54%] space-y-5">
+          <div className="w-full lg:w-[54%] space-y-5 hidden lg:block">
             {role === "company" ? (
               <div className="space-y-4">
                 <div className="space-y-2">
@@ -309,7 +309,7 @@ function LoginForm() {
 
           {/* ─── RIGHT COLUMN: LOGIN CARD (46% width) ─── */}
           <div className="w-full lg:w-[46%] max-w-[490px] mx-auto lg:mx-0">
-            <div className="bg-white rounded-[24px] p-6 sm:p-8 md:p-9 shadow-xl border border-slate-200/90 relative w-full">
+            <div className="bg-white rounded-[24px] p-5 sm:p-8 md:p-9 shadow-xl border border-slate-200/90 relative w-full">
               {/* Invisible Firebase reCAPTCHA container */}
               <div id="recaptcha-container-login" />
 

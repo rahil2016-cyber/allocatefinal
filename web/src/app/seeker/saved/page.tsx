@@ -38,7 +38,7 @@ export default function SavedJobsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
         <div>
           <Badge variant="primary" size="sm" className="mb-1">
@@ -63,18 +63,37 @@ export default function SavedJobsPage() {
           <span className="text-sm font-semibold">Loading bookmarked jobs...</span>
         </div>
       ) : savedJobs.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {savedJobs.map((job) => (
-            <JobCard
-              key={job.id}
-              job={{ ...job, is_saved: true }}
-              onSaveToggle={handleSaveToggle}
-              onApply={(j) => {
-                setSelectedJob(j);
-                setIsApplyModalOpen(true);
-              }}
-            />
-          ))}
+        <div>
+          {/* Mobile swipe view (<sm) */}
+          <div className="sm:hidden -mx-4 px-4 flex gap-3 overflow-x-auto snap-x snap-mandatory scrollbar-none pb-3">
+            {savedJobs.map((job) => (
+              <div key={job.id} className="w-[88vw] max-w-[360px] shrink-0 snap-start">
+                <JobCard
+                  job={{ ...job, is_saved: true }}
+                  onSaveToggle={handleSaveToggle}
+                  onApply={(j) => {
+                    setSelectedJob(j);
+                    setIsApplyModalOpen(true);
+                  }}
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* Tablet & Desktop Grid (sm+) */}
+          <div className="hidden sm:grid sm:grid-cols-2 gap-4">
+            {savedJobs.map((job) => (
+              <JobCard
+                key={job.id}
+                job={{ ...job, is_saved: true }}
+                onSaveToggle={handleSaveToggle}
+                onApply={(j) => {
+                  setSelectedJob(j);
+                  setIsApplyModalOpen(true);
+                }}
+              />
+            ))}
+          </div>
         </div>
       ) : (
         <Card className="text-center py-16 space-y-3 border-slate-200">

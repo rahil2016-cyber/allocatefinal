@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
 import apiClient from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
-import { Phone, Lock, LogIn, Briefcase, User as UserIcon, Building2, KeyRound, AlertCircle } from "lucide-react";
+import { Phone, Lock, LogIn, Briefcase, User as UserIcon, Building2, KeyRound, AlertCircle, FileText, CheckCircle2, PlusCircle, ShieldCheck } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -172,11 +172,13 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md space-y-6">
-        <div className="text-center space-y-2">
+    <div className="min-h-[85vh] flex items-center justify-center px-4 py-8 sm:py-12">
+      <div className="w-full max-w-5xl lg:grid lg:grid-cols-12 gap-10 items-center">
+        
+        {/* Left Column: Visual Showcase (Matching Image 1) */}
+        <div className="hidden lg:flex lg:col-span-6 flex-col space-y-6">
           <Link href="/" className="inline-flex items-center gap-2">
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col">
               <div className="flex items-center tracking-tight leading-none text-2xl font-black">
                 <span className="text-[#E53E3E]">Job</span>
                 <span className="text-[#174A7E]">Allocate</span>
@@ -188,23 +190,105 @@ function LoginForm() {
           </Link>
 
           {role === "company" ? (
-            <div className="pt-2 space-y-1">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#174A7E] border border-blue-200">
-                <Building2 className="h-3.5 w-3.5" /> Employer Portal
-              </span>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Employer Sign In</h1>
-              <p className="text-xs text-slate-500">Post jobs, review verified applicants and hire fast</p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                  Hire Top Talent <span className="text-[#174A7E]">Faster</span>
+                </h2>
+                <p className="text-sm text-slate-600 leading-relaxed max-w-md">
+                  Post jobs in minutes, connect directly with verified candidates, and scale your workforce with zero commission fees.
+                </p>
+              </div>
+
+              <div className="relative rounded-3xl overflow-hidden shadow-xl border border-slate-200 group bg-slate-100">
+                <img
+                  src="/employer_office.jpg"
+                  alt="Employer Hiring"
+                  className="w-full h-80 object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent flex flex-col justify-end p-5">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/95 text-slate-900 shadow-md">
+                      <PlusCircle className="h-3.5 w-3.5 text-[#174A7E]" /> Post Jobs Instantly
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/95 text-slate-900 shadow-md">
+                      <ShieldCheck className="h-3.5 w-3.5 text-emerald-600" /> Verified Candidates
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/95 text-slate-900 shadow-md">
+                      <Building2 className="h-3.5 w-3.5 text-blue-600" /> 0% Commission
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
-            <div className="pt-2 space-y-1">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-[#174A7E] border border-sky-200">
-                <UserIcon className="h-3.5 w-3.5" /> Job Seeker Portal
-              </span>
-              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Job Seeker Sign In</h1>
-              <p className="text-xs text-slate-500">Access your candidate dashboard, ATS resume & active jobs</p>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-black text-slate-900 tracking-tight leading-tight">
+                  Find Your Next <span className="text-[#174A7E]">Opportunity</span>
+                </h2>
+                <p className="text-sm text-slate-600 leading-relaxed max-w-md">
+                  Explore thousands of jobs, track your applications and grow your career with JobAllocate.
+                </p>
+              </div>
+
+              <div className="relative rounded-3xl overflow-hidden shadow-xl border border-slate-200 group bg-sky-50">
+                <img
+                  src="/jobseeker_student.jpg"
+                  alt="Job Seeker"
+                  className="w-full h-80 object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/75 via-transparent to-transparent flex flex-col justify-end p-5">
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/95 text-slate-900 shadow-md">
+                      <Briefcase className="h-3.5 w-3.5 text-[#174A7E]" /> Get Hired
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/95 text-slate-900 shadow-md">
+                      <FileText className="h-3.5 w-3.5 text-purple-600" /> Build Your Resume
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/95 text-slate-900 shadow-md">
+                      <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Track Applications
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
         </div>
+
+        {/* Right Column: Form Container */}
+        <div className="lg:col-span-6 w-full max-w-md mx-auto space-y-6">
+          <div className="text-center space-y-2">
+            <Link href="/" className="lg:hidden inline-flex items-center gap-2">
+              <div className="flex flex-col items-center">
+                <div className="flex items-center tracking-tight leading-none text-2xl font-black">
+                  <span className="text-[#E53E3E]">Job</span>
+                  <span className="text-[#174A7E]">Allocate</span>
+                </div>
+                <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase mt-1">
+                  Right job, right candidate
+                </span>
+              </div>
+            </Link>
+
+            {role === "company" ? (
+              <div className="pt-2 space-y-1">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#174A7E] border border-blue-200">
+                  <Building2 className="h-3.5 w-3.5" /> Employer Portal
+                </span>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Employer Sign In</h1>
+                <p className="text-xs text-slate-500">Post jobs, review verified applicants and hire fast</p>
+              </div>
+            ) : (
+              <div className="pt-2 space-y-1">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-50 text-[#174A7E] border border-sky-200">
+                  <UserIcon className="h-3.5 w-3.5" /> Job Seeker Portal
+                </span>
+                <h1 className="text-2xl font-black text-slate-900 tracking-tight">Job Seeker Sign In</h1>
+                <p className="text-xs text-slate-500">Access your candidate dashboard, ATS resume & active jobs</p>
+              </div>
+            )}
+          </div>
 
         {/* Show Role Switcher only if no specific role was requested in query */}
         {!roleParam && (
@@ -421,6 +505,7 @@ function LoginForm() {
         </Card>
       </div>
     </div>
+  </div>
   );
 }
 

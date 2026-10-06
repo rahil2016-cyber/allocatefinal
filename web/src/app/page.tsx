@@ -233,59 +233,6 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* ── DEDICATED PROMINENT HERO JOB SEARCH BAR WITH WORKING SEARCH BUTTON ── */}
-          <div className="bg-white rounded-3xl p-3.5 sm:p-5 border border-slate-200 shadow-xl relative z-30">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const q = searchKeyword.trim();
-                const loc = searchLocation.trim();
-                const params = new URLSearchParams();
-                if (q) params.set("search", q);
-                if (loc) params.set("location", loc);
-                router.push(`/jobs${params.toString() ? `?${params.toString()}` : ""}`);
-              }}
-              className="grid grid-cols-1 md:grid-cols-12 gap-3 items-center"
-            >
-              {/* Job title / keyword */}
-              <div className="md:col-span-5 relative flex items-center">
-                <Search className="absolute left-3.5 h-5 w-5 text-[#174A7E]" />
-                <input
-                  type="text"
-                  value={searchKeyword}
-                  onChange={(e) => setSearchKeyword(e.target.value)}
-                  placeholder="Job title, skills, or company name..."
-                  className="w-full pl-11 pr-4 py-3 text-xs sm:text-sm font-semibold text-slate-800 placeholder:text-slate-400 rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#174A7E]/20"
-                />
-              </div>
-
-              {/* Location */}
-              <div className="md:col-span-4 relative flex items-center">
-                <MapPin className="absolute left-3.5 h-5 w-5 text-[#E53E3E]" />
-                <input
-                  type="text"
-                  value={searchLocation}
-                  onChange={(e) => setSearchLocation(e.target.value)}
-                  placeholder="Location (e.g. Bangalore, Delhi)..."
-                  className="w-full pl-11 pr-4 py-3 text-xs sm:text-sm font-semibold text-slate-800 placeholder:text-slate-400 rounded-2xl bg-slate-50 border border-slate-200 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#174A7E]/20"
-                />
-              </div>
-
-              {/* Submit Search Button */}
-              <div className="md:col-span-3">
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="lg"
-                  className="w-full py-3.5 rounded-2xl font-black text-xs sm:text-sm bg-[#174A7E] hover:bg-[#0f3459] shadow-md flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Search className="h-4.5 w-4.5" />
-                  <span>Search Jobs</span>
-                </Button>
-              </div>
-            </form>
-          </div>
-
           {/* Quick Platform Metrics Bar with Real Values */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center gap-3.5">
@@ -335,35 +282,39 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ─── 2. REAL TOP HIRING COMPANIES (ACTUAL API DATA) ─── */}
+      {/* ─── 2. REAL TOP HIRING COMPANIES (SLIDING CAROUSEL ON MOBILE & DESKTOP) ─── */}
       {topCompanies.length > 0 && (
-        <section className="py-6 border-y border-slate-200 bg-white">
+        <section className="py-5 border-y border-slate-200 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+              <span className="text-xs font-black text-slate-500 uppercase tracking-wider shrink-0 flex items-center gap-2">
                 <Building2 className="h-4 w-4 text-[#174A7E]" />
-                Top Hiring Companies on JobAllocate:
+                Top Hiring Companies:
               </span>
 
-              <div className="flex flex-wrap items-center justify-center gap-6">
-                {topCompanies.slice(0, 5).map((comp: any) => (
-                  <div key={comp.id} className="flex items-center gap-2.5 group cursor-default">
+              {/* Sliding Track on Mobile & Desktop */}
+              <div className="w-full sm:w-auto overflow-x-auto scrollbar-none flex items-center gap-3 sm:gap-4 py-1">
+                {topCompanies.map((comp: any) => (
+                  <div
+                    key={comp.id}
+                    className="flex items-center gap-2.5 shrink-0 px-3.5 py-1.5 rounded-2xl bg-slate-50 border border-slate-200/80 hover:border-[#174A7E]/50 hover:bg-white hover:shadow-xs transition-all group cursor-default"
+                  >
                     {comp.company_logo_url || comp.logo_url ? (
                       <img
                         src={comp.company_logo_url || comp.logo_url}
                         alt={comp.name}
-                        className="h-7 w-7 rounded-lg object-contain border border-slate-200 p-0.5"
+                        className="h-6 w-6 rounded-md object-contain border border-slate-200 bg-white p-0.5"
                       />
                     ) : (
-                      <div className="h-7 w-7 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center font-bold text-[10px] text-slate-700">
+                      <div className="h-6 w-6 rounded-md bg-white border border-slate-200 flex items-center justify-center font-bold text-[10px] text-slate-700">
                         {comp.name?.charAt(0)}
                       </div>
                     )}
-                    <span className="text-xs font-bold text-slate-700 group-hover:text-[#174A7E] transition-colors">
+                    <span className="text-xs font-bold text-slate-700 group-hover:text-[#174A7E] transition-colors whitespace-nowrap">
                       {comp.name}
                     </span>
                     {comp.open_jobs_count > 0 && (
-                      <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.2 rounded">
+                      <span className="text-[10px] font-semibold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded-full whitespace-nowrap">
                         {comp.open_jobs_count} job{comp.open_jobs_count > 1 ? "s" : ""}
                       </span>
                     )}
@@ -376,41 +327,43 @@ export default function HomePage() {
       )}
 
       {/* ─── 3. SHOWCASE RESUME TEMPLATES (CLEAR & FULLY VISIBLE) ─── */}
-      <section className="py-12 sm:py-16 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-6">
-        {/* Professional Header with Banner Image */}
-        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-r from-slate-900 to-[#174A7E] text-white p-6 sm:p-8 mb-4 shadow-lg flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="space-y-2 z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 text-white text-xs font-extrabold uppercase tracking-wider backdrop-blur-md">
+      <section className="py-8 sm:py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-4">
+        {/* Simple Header with sliding buttons directly above resume */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 pb-2 border-b border-slate-100">
+          <div className="space-y-1">
+            <div className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#174A7E]">
               <FileText className="h-3.5 w-3.5" />
               <span>Resume Studio · 13+ ATS Templates</span>
             </div>
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
               Recruiter-Approved Resume Templates
             </h2>
-            <p className="text-xs sm:text-sm text-slate-200 max-w-xl">
+            <p className="text-xs sm:text-sm text-slate-500 max-w-xl">
               Engineered to beat automated parsing systems. Click <strong>Quick View</strong> to inspect any template in crystal-clear full scale, or start editing with your details.
             </p>
           </div>
 
-          <div className="flex items-center gap-3 shrink-0 z-10">
+          <div className="flex items-center gap-2.5 shrink-0">
             <div className="flex items-center gap-1.5">
               <button
                 onClick={() => scrollSlider("left")}
-                className="h-10 w-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer"
+                className="h-9 w-9 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-2xs hover:border-[#174A7E] hover:text-[#174A7E] transition-colors cursor-pointer"
                 title="Previous Template"
+                aria-label="Previous Template"
               >
                 <ChevronLeft className="h-5 w-5" />
               </button>
               <button
                 onClick={() => scrollSlider("right")}
-                className="h-10 w-10 rounded-full bg-white/20 hover:bg-white/30 text-white flex items-center justify-center backdrop-blur-md transition-colors cursor-pointer"
+                className="h-9 w-9 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center shadow-2xs hover:border-[#174A7E] hover:text-[#174A7E] transition-colors cursor-pointer"
                 title="Next Template"
+                aria-label="Next Template"
               >
                 <ChevronRight className="h-5 w-5" />
               </button>
             </div>
             <Link href="/seeker/resume">
-              <Button variant="primary" size="sm" className="bg-white text-[#174A7E] hover:bg-slate-100 font-extrabold text-xs shadow-md">
+              <Button variant="primary" size="sm" className="bg-[#174A7E] hover:bg-[#0f3459] font-bold text-xs shadow-xs rounded-full px-4 py-2">
                 Open Full Studio →
               </Button>
             </Link>
@@ -746,151 +699,56 @@ export default function HomePage() {
         onClose={() => setIsApplyModalOpen(false)}
       />
 
-      {/* ─── 8. DEDICATED DOWNLOAD MOBILE APP SECTION ─── */}
-      <section id="download-app" className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-slate-100 border-t border-slate-200">
-        <div className="max-w-7xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#174A7E] via-[#0f3459] to-[#0a233c] text-white p-6 sm:p-10 lg:p-12 shadow-2xl border border-white/10">
-            {/* Background subtle decoration */}
-            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-sky-400/10 blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none" />
-
-            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-              {/* Left Content Column */}
-              <div className="lg:col-span-7 space-y-6">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold text-sky-200 shadow-2xs">
-                  <Smartphone className="h-4 w-4 text-emerald-400" />
-                  <span>JobAllocate Mobile App (Android & iOS)</span>
-                </div>
-
-                <div className="space-y-3">
-                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">
-                    Carry Your Job Search Anywhere. Never Miss an Opportunity.
-                  </h2>
-                  <p className="text-sm sm:text-base text-sky-100/90 font-normal max-w-xl">
-                    Get instant push notifications the second a company matches your profile. Connect directly with hiring managers via WhatsApp & Phone, create ATS resumes on your phone, and track applications in real time.
-                  </p>
-                </div>
-
-                {/* Feature highlights */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm font-semibold text-slate-100">
-                  <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl p-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span>Instant Push & WhatsApp Alerts</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl p-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span>Direct Call & Chat with HRs</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl p-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span>13 ATS-Approved Resume Templates</span>
-                  </div>
-                  <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl p-2.5">
-                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-                    <span>100% Free for Job Seekers</span>
-                  </div>
-                </div>
-
-                {/* Download CTA Buttons */}
-                <div className="pt-2 flex flex-wrap items-center gap-3">
-                  {/* Google Play / Android Download */}
-                  <a
-                    href="https://joballocate.tech"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 shadow-xl transition-all hover:scale-105 active:scale-95 group cursor-pointer"
-                  >
-                    <svg className="h-6 w-6 text-[#174A7E]" viewBox="0 0 24 24" fill="currentColor">
-                      <path d="M3.609 1.814L13.793 12 3.61 22.186a2.37 2.37 0 0 1-.61-.926V2.74c.15-.365.37-.69.61-.926zm11.32 11.32l2.368 2.369-12.03 6.945 9.662-9.314zm2.368-2.368l-2.369 2.368-9.66-9.313 12.03 6.945zm1.137 1.136l2.96 1.708c.954.55.954 1.446 0 1.996l-2.96 1.708-2.072-2.706 2.072-2.706z" />
-                    </svg>
-                    <div className="text-left">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">GET IT ON</p>
-                      <p className="text-xs sm:text-sm font-black text-slate-900 leading-none">Google Play</p>
-                    </div>
-                  </a>
-
-                  {/* Direct Android APK Download */}
-                  <a
-                    href="/downloads/joballocate.apk"
-                    download="joballocate.apk"
-                    className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-xl transition-all hover:scale-105 active:scale-95 group cursor-pointer"
-                  >
-                    <Download className="h-5 w-5 text-emerald-400 group-hover:translate-y-0.5 transition-transform" />
-                    <div className="text-left">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-sky-200">DIRECT DOWNLOAD</p>
-                      <p className="text-xs sm:text-sm font-black text-white leading-none">Android APK (v2.4)</p>
-                    </div>
-                  </a>
-
-                  {/* iOS App Badge (Coming Soon) */}
-                  <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-black/30 border border-white/10 text-white/70 select-none">
-                    <svg className="h-6 w-6 fill-current text-white/60" viewBox="0 0 24 24">
-                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.38c.62-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.35-.58.66-1.09 1.73-.95 2.76.99.08 2.06-.51 2.68-1.26z" />
-                    </svg>
-                    <div className="text-left">
-                      <p className="text-[10px] font-bold uppercase tracking-wider text-sky-300">Apple iOS</p>
-                      <p className="text-xs sm:text-sm font-bold text-white/80 leading-none">Coming Soon</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Social Proof */}
-                <div className="flex items-center gap-4 pt-1 text-xs text-sky-200">
-                  <div className="flex items-center gap-1 text-amber-300 font-bold">
-                    <span>★ 4.8 / 5.0</span>
-                    <span className="text-sky-200 font-normal">Rating</span>
-                  </div>
-                  <span>•</span>
-                  <span>10,000+ Active Candidates</span>
-                  <span>•</span>
-                  <span>Verified Safe & Secure</span>
-                </div>
+      {/* ─── 8. SIMPLE DOWNLOAD MOBILE APP BANNER ─── */}
+      <section id="download-app" className="py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">
+        <div className="rounded-3xl bg-slate-900 text-white p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl border border-slate-800">
+          <div className="flex items-center gap-4">
+            <div className="h-14 w-14 rounded-2xl bg-[#174A7E] flex items-center justify-center text-white shrink-0 shadow-md">
+              <Smartphone className="h-7 w-7 text-sky-300" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                  Download JobAllocate Mobile App
+                </h3>
+                <span className="text-[10px] font-extrabold uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                  Free
+                </span>
               </div>
+              <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-xl">
+                Get real-time job alerts, 1-tap WhatsApp apply, and your resume studio directly on your phone.
+              </p>
+            </div>
+          </div>
 
-              {/* Right QR Code & Mobile Mockup Column */}
-              <div className="lg:col-span-5 flex flex-col sm:flex-row lg:flex-col items-center justify-center gap-5">
-                {/* QR Code Card */}
-                <div className="bg-white rounded-3xl p-6 text-slate-900 shadow-2xl border border-slate-200 flex flex-col items-center text-center max-w-xs w-full">
-                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner mb-3">
-                    {/* SVG QR Code */}
-                    <svg className="w-36 h-36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect width="100" height="100" fill="white" />
-                      <rect x="10" y="10" width="24" height="24" fill="#174A7E" rx="4" />
-                      <rect x="14" y="14" width="16" height="16" fill="white" />
-                      <rect x="18" y="18" width="8" height="8" fill="#174A7E" />
-                      <rect x="66" y="10" width="24" height="24" fill="#174A7E" rx="4" />
-                      <rect x="70" y="14" width="16" height="16" fill="white" />
-                      <rect x="74" y="18" width="8" height="8" fill="#174A7E" />
-                      <rect x="10" y="66" width="24" height="24" fill="#174A7E" rx="4" />
-                      <rect x="14" y="70" width="16" height="16" fill="white" />
-                      <rect x="18" y="74" width="8" height="8" fill="#174A7E" />
-                      <rect x="42" y="12" width="6" height="6" fill="#174A7E" />
-                      <rect x="52" y="12" width="6" height="6" fill="#174A7E" />
-                      <rect x="42" y="24" width="6" height="6" fill="#174A7E" />
-                      <rect x="12" y="42" width="6" height="6" fill="#174A7E" />
-                      <rect x="24" y="42" width="6" height="6" fill="#174A7E" />
-                      <rect x="42" y="42" width="16" height="16" fill="#E53E3E" rx="2" />
-                      <rect x="66" y="42" width="6" height="6" fill="#174A7E" />
-                      <rect x="78" y="42" width="8" height="6" fill="#174A7E" />
-                      <rect x="42" y="66" width="6" height="6" fill="#174A7E" />
-                      <rect x="54" y="66" width="6" height="8" fill="#174A7E" />
-                      <rect x="66" y="66" width="8" height="8" fill="#174A7E" />
-                      <rect x="78" y="74" width="8" height="8" fill="#174A7E" />
-                      <rect x="42" y="80" width="6" height="6" fill="#174A7E" />
-                    </svg>
-                  </div>
-                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
-                    Scan With Phone Camera
-                  </h4>
-                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">
-                    Opens direct download link on your mobile device instantly
-                  </p>
-                  <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">
-                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span>Android APK v2.4 (18 MB)</span>
-                  </div>
-                </div>
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <a
+              href="https://joballocate.tech"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2.5 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-100 text-slate-900 transition-all font-bold text-xs shadow-md"
+            >
+              <svg className="h-5 w-5 text-[#174A7E]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M3.609 1.814L13.793 12 3.61 22.186a2.37 2.37 0 0 1-.61-.926V2.74c.15-.365.37-.69.61-.926zm11.32 11.32l2.368 2.369-12.03 6.945 9.662-9.314zm2.368-2.368l-2.369 2.368-9.66-9.313 12.03 6.945zm1.137 1.136l2.96 1.708c.954.55.954 1.446 0 1.996l-2.96 1.708-2.072-2.706 2.072-2.706z" />
+              </svg>
+              <div className="text-left">
+                <span className="block text-[9px] uppercase tracking-wider text-slate-500 font-semibold leading-none">GET IT ON</span>
+                <span className="text-xs font-black text-slate-900 leading-tight">Google Play</span>
               </div>
+            </a>
+            <a
+              href="/downloads/joballocate.apk"
+              download="joballocate.apk"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 transition-all font-bold text-xs shadow-md"
+            >
+              <Download className="h-4 w-4 text-emerald-400" />
+              <span>Direct APK (18 MB)</span>
+            </a>
+            <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-800/60 text-slate-400 text-xs font-medium border border-slate-800">
+              <svg className="h-4 w-4 fill-current text-slate-500" viewBox="0 0 24 24">
+                <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.38c.62-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.35-.58.66-1.09 1.73-.95 2.76.99.08 2.06-.51 2.68-1.26z" />
+              </svg>
+              <span>iOS Coming Soon</span>
             </div>
           </div>
         </div>

@@ -178,7 +178,34 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-50 text-slate-900 flex flex-col justify-between">
       {/* ─── 1. HERO & PROMOTIONAL BANNERS SECTION ─── */}
       <section className="relative overflow-hidden bg-gradient-to-b from-[#174A7E]/5 via-[#174A7E]/10 to-transparent pt-6 pb-12 sm:pt-10 sm:pb-16 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto space-y-8">
+        <div className="max-w-7xl mx-auto space-y-6 sm:space-y-8">
+          {/* ── JOB SEEKER GREETING HEADER (Directly Above Panoramic Banner) ── */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/90 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-sm">
+            <div className="space-y-1">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <span>Hello there,</span>
+                <span className="text-[#174A7E] font-black">{user?.name || "Job Seeker"}</span>
+                <span className="inline-block animate-bounce text-2xl select-none">👋</span>
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-600 font-medium">
+                Welcome to your AI-powered career portal. Explore active openings, build ATS resumes, and connect directly with hiring teams.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-sky-50 text-[#174A7E] border border-sky-200 shadow-2xs">
+                <Sparkles className="h-3.5 w-3.5 text-sky-600" />
+                <span>Job Seeker Edition</span>
+              </span>
+              <Link
+                href="/seeker/resume"
+                className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#174A7E] hover:bg-[#0f3459] text-white shadow-xs transition-colors"
+              >
+                <FileText className="h-3.5 w-3.5" />
+                <span>Build ATS Resume</span>
+              </Link>
+            </div>
+          </div>
+
           {/* Main Promotional Banner Carousel with Exact Panoramic Banner Artwork */}
           <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-slate-200/80 bg-white group">
             {/* Banner Slides */}
@@ -746,15 +773,162 @@ export default function HomePage() {
         onClose={() => setIsApplyModalOpen(false)}
       />
 
-      {/* ─── 8. FOOTER ─── */}
+      {/* ─── 8. DEDICATED DOWNLOAD MOBILE APP SECTION ─── */}
+      <section id="download-app" className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-slate-50 to-slate-100 border-t border-slate-200">
+        <div className="max-w-7xl mx-auto">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#174A7E] via-[#0f3459] to-[#0a233c] text-white p-6 sm:p-10 lg:p-12 shadow-2xl border border-white/10">
+            {/* Background subtle decoration */}
+            <div className="absolute top-0 right-0 -mr-20 -mt-20 w-80 h-80 rounded-full bg-sky-400/10 blur-3xl pointer-events-none" />
+            <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-emerald-400/10 blur-3xl pointer-events-none" />
+
+            <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+              {/* Left Content Column */}
+              <div className="lg:col-span-7 space-y-6">
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-xs font-bold text-sky-200 shadow-2xs">
+                  <Smartphone className="h-4 w-4 text-emerald-400" />
+                  <span>JobAllocate Mobile App (Android & iOS)</span>
+                </div>
+
+                <div className="space-y-3">
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-black tracking-tight text-white leading-tight">
+                    Carry Your Job Search Anywhere. Never Miss an Opportunity.
+                  </h2>
+                  <p className="text-sm sm:text-base text-sky-100/90 font-normal max-w-xl">
+                    Get instant push notifications the second a company matches your profile. Connect directly with hiring managers via WhatsApp & Phone, create ATS resumes on your phone, and track applications in real time.
+                  </p>
+                </div>
+
+                {/* Feature highlights */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm font-semibold text-slate-100">
+                  <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl p-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                    <span>Instant Push & WhatsApp Alerts</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl p-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                    <span>Direct Call & Chat with HRs</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl p-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                    <span>13 ATS-Approved Resume Templates</span>
+                  </div>
+                  <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl p-2.5">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+                    <span>100% Free for Job Seekers</span>
+                  </div>
+                </div>
+
+                {/* Download CTA Buttons */}
+                <div className="pt-2 flex flex-wrap items-center gap-3">
+                  {/* Google Play / Android Download */}
+                  <a
+                    href="https://joballocate.tech"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white hover:bg-slate-100 text-slate-900 shadow-xl transition-all hover:scale-105 active:scale-95 group cursor-pointer"
+                  >
+                    <svg className="h-6 w-6 text-[#174A7E]" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M3.609 1.814L13.793 12 3.61 22.186a2.37 2.37 0 0 1-.61-.926V2.74c.15-.365.37-.69.61-.926zm11.32 11.32l2.368 2.369-12.03 6.945 9.662-9.314zm2.368-2.368l-2.369 2.368-9.66-9.313 12.03 6.945zm1.137 1.136l2.96 1.708c.954.55.954 1.446 0 1.996l-2.96 1.708-2.072-2.706 2.072-2.706z" />
+                    </svg>
+                    <div className="text-left">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-slate-500">GET IT ON</p>
+                      <p className="text-xs sm:text-sm font-black text-slate-900 leading-none">Google Play</p>
+                    </div>
+                  </a>
+
+                  {/* Direct Android APK Download */}
+                  <a
+                    href="/downloads/joballocate.apk"
+                    download="joballocate.apk"
+                    className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white shadow-xl transition-all hover:scale-105 active:scale-95 group cursor-pointer"
+                  >
+                    <Download className="h-5 w-5 text-emerald-400 group-hover:translate-y-0.5 transition-transform" />
+                    <div className="text-left">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-sky-200">DIRECT DOWNLOAD</p>
+                      <p className="text-xs sm:text-sm font-black text-white leading-none">Android APK (v2.4)</p>
+                    </div>
+                  </a>
+
+                  {/* iOS App Badge (Coming Soon) */}
+                  <div className="flex items-center gap-3 px-5 py-3 rounded-2xl bg-black/30 border border-white/10 text-white/70 select-none">
+                    <svg className="h-6 w-6 fill-current text-white/60" viewBox="0 0 24 24">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.38c.62-.75 1.04-1.8 0.92-2.85-.9.04-2 .6-2.65 1.35-.58.66-1.09 1.73-.95 2.76.99.08 2.06-.51 2.68-1.26z" />
+                    </svg>
+                    <div className="text-left">
+                      <p className="text-[10px] font-bold uppercase tracking-wider text-sky-300">Apple iOS</p>
+                      <p className="text-xs sm:text-sm font-bold text-white/80 leading-none">Coming Soon</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Proof */}
+                <div className="flex items-center gap-4 pt-1 text-xs text-sky-200">
+                  <div className="flex items-center gap-1 text-amber-300 font-bold">
+                    <span>★ 4.8 / 5.0</span>
+                    <span className="text-sky-200 font-normal">Rating</span>
+                  </div>
+                  <span>•</span>
+                  <span>10,000+ Active Candidates</span>
+                  <span>•</span>
+                  <span>Verified Safe & Secure</span>
+                </div>
+              </div>
+
+              {/* Right QR Code & Mobile Mockup Column */}
+              <div className="lg:col-span-5 flex flex-col sm:flex-row lg:flex-col items-center justify-center gap-5">
+                {/* QR Code Card */}
+                <div className="bg-white rounded-3xl p-6 text-slate-900 shadow-2xl border border-slate-200 flex flex-col items-center text-center max-w-xs w-full">
+                  <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner mb-3">
+                    {/* SVG QR Code */}
+                    <svg className="w-36 h-36" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <rect width="100" height="100" fill="white" />
+                      <rect x="10" y="10" width="24" height="24" fill="#174A7E" rx="4" />
+                      <rect x="14" y="14" width="16" height="16" fill="white" />
+                      <rect x="18" y="18" width="8" height="8" fill="#174A7E" />
+                      <rect x="66" y="10" width="24" height="24" fill="#174A7E" rx="4" />
+                      <rect x="70" y="14" width="16" height="16" fill="white" />
+                      <rect x="74" y="18" width="8" height="8" fill="#174A7E" />
+                      <rect x="10" y="66" width="24" height="24" fill="#174A7E" rx="4" />
+                      <rect x="14" y="70" width="16" height="16" fill="white" />
+                      <rect x="18" y="74" width="8" height="8" fill="#174A7E" />
+                      <rect x="42" y="12" width="6" height="6" fill="#174A7E" />
+                      <rect x="52" y="12" width="6" height="6" fill="#174A7E" />
+                      <rect x="42" y="24" width="6" height="6" fill="#174A7E" />
+                      <rect x="12" y="42" width="6" height="6" fill="#174A7E" />
+                      <rect x="24" y="42" width="6" height="6" fill="#174A7E" />
+                      <rect x="42" y="42" width="16" height="16" fill="#E53E3E" rx="2" />
+                      <rect x="66" y="42" width="6" height="6" fill="#174A7E" />
+                      <rect x="78" y="42" width="8" height="6" fill="#174A7E" />
+                      <rect x="42" y="66" width="6" height="6" fill="#174A7E" />
+                      <rect x="54" y="66" width="6" height="8" fill="#174A7E" />
+                      <rect x="66" y="66" width="8" height="8" fill="#174A7E" />
+                      <rect x="78" y="74" width="8" height="8" fill="#174A7E" />
+                      <rect x="42" y="80" width="6" height="6" fill="#174A7E" />
+                    </svg>
+                  </div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-slate-800">
+                    Scan With Phone Camera
+                  </h4>
+                  <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                    Opens direct download link on your mobile device instantly
+                  </p>
+                  <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[10px] font-bold">
+                    <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span>Android APK v2.4 (18 MB)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ─── 9. FOOTER ─── */}
       <footer className="bg-white border-t border-slate-200 py-10 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl overflow-hidden border border-slate-200 bg-white p-0.5 shadow-2xs">
-              <img src="/logo_square.png" alt="JobAllocate Logo" className="h-full w-full object-contain" />
-            </div>
             <div>
-              <div className="flex items-center text-lg font-black tracking-tight">
+              <div className="flex items-center text-xl font-black tracking-tight">
                 <span className="text-[#E53E3E]">Job</span>
                 <span className="text-[#174A7E]">Allocate</span>
               </div>

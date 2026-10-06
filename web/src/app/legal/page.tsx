@@ -1,38 +1,44 @@
 "use client";
 
 import React, { useState } from "react";
+import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { ShieldCheck, FileText, RefreshCw } from "lucide-react";
+import { ShieldCheck, FileText, RefreshCw, CreditCard, Phone, MapPin, Mail, Clock, Check } from "lucide-react";
 
 export default function LegalPage() {
-  const [activeTab, setActiveTab] = useState<"terms" | "privacy" | "refund">("terms");
+  const [activeTab, setActiveTab] = useState<"terms" | "refund" | "pricing" | "privacy" | "contact">("terms");
 
   return (
-    <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-10 space-y-6">
       <div className="space-y-1">
         <Badge variant="primary" size="sm">
           Legal & Compliance
         </Badge>
-        <h1 className="text-2xl font-extrabold text-slate-900">JobAllocate Legal Documentation</h1>
-        <p className="text-xs text-slate-500">
-          Official Terms of Service, Privacy Policy, and Refund Policies.
+        <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+          JobAllocate Compliance & Policies
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-500 font-medium">
+          Official Terms & Conditions, Refund & Cancellation Policy, Privacy Standards, Products & Services Pricing in INR (₹), and Contact Details.
         </p>
       </div>
 
-      <div className="flex border-b border-slate-200 text-xs font-bold">
+      {/* Tabs */}
+      <div className="flex border-b border-slate-200 text-xs font-bold overflow-x-auto scrollbar-none">
         {[
-          { key: "terms", label: "Terms of Service" },
+          { key: "terms", label: "Terms & Conditions" },
+          { key: "refund", label: "Refunds & Cancellations" },
+          { key: "pricing", label: "Products & Pricing (INR)" },
           { key: "privacy", label: "Privacy Policy" },
-          { key: "refund", label: "Refund & Cancellation Policy" },
+          { key: "contact", label: "Contact Us" },
         ].map((t) => (
           <button
             key={t.key}
             onClick={() => setActiveTab(t.key as any)}
-            className={`py-3 px-4 border-b-2 transition-colors ${
+            className={`py-3.5 px-4 border-b-2 whitespace-nowrap transition-colors cursor-pointer ${
               activeTab === t.key
-                ? "border-[#174A7E] text-[#174A7E]"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "border-[#174A7E] text-[#174A7E] font-black"
+                : "border-transparent text-slate-500 hover:text-slate-800 font-medium"
             }`}
           >
             {t.label}
@@ -40,49 +46,162 @@ export default function LegalPage() {
         ))}
       </div>
 
-      <Card className="p-6 sm:p-8 space-y-4 border-slate-200 text-xs text-slate-700 leading-relaxed">
+      <Card className="p-6 sm:p-10 space-y-6 border-slate-200 text-xs sm:text-sm text-slate-700 leading-relaxed font-normal shadow-sm">
+        
+        {/* Tab 1: Terms */}
         {activeTab === "terms" && (
           <div className="space-y-4">
-            <h3 className="text-base font-bold text-slate-900">Terms of Service</h3>
+            <h2 className="text-lg font-black text-slate-900">Terms & Conditions</h2>
+            <p className="text-xs text-slate-500">Effective Date: August 2026 | Last Updated: October 2026</p>
             <p>
-              By accessing or using the JobAllocate mobile app or website, you agree to be bound by these Terms of Service. JobAllocate is a marketplace platform facilitating connections between Job Seekers and Employers across India.
+              By accessing or using <strong>JobAllocate</strong> (accessible at https://joballocate.com and through our mobile apps), you agree to be bound by these Terms and Conditions. JobAllocate is a marketplace recruitment and career preparation platform connecting candidates and employers across India.
             </p>
-            <h4 className="font-bold text-slate-900">1. User Accounts & Mobile Verification</h4>
+            
+            <h3 className="font-bold text-slate-900 pt-2">1. User Eligibility & Mobile Authentication</h3>
             <p>
-              Users must provide accurate, current, and complete mobile phone numbers verified via SMS OTP. Users are responsible for maintaining account confidentiality.
+              Users must be at least 18 years of age and possess an authentic, verified Indian mobile phone number verified via carrier SMS OTP.
             </p>
-            <h4 className="font-bold text-slate-900">2. Job Postings & Candidate Conduct</h4>
+
+            <h3 className="font-bold text-slate-900 pt-2">2. Products, Services & INR Pricing</h3>
             <p>
-              Employers are strictly prohibited from posting fraudulent, illegal, or discriminatory job openings. Job Seekers must ensure resume information is accurate.
+              All paid digital services on JobAllocate are charged in Indian National Rupees (INR ₹) via Cashfree Payment Gateway India. Current prices are listed transparently on our platform before payment confirmation.
+            </p>
+
+            <h3 className="font-bold text-slate-900 pt-2">3. Employer & Candidate Standards</h3>
+            <p>
+              Employers must represent genuine verified businesses and are strictly forbidden from demanding upfront charges from candidates. Job seekers must maintain truthful profiles and accurate qualifications.
             </p>
           </div>
         )}
 
+        {/* Tab 2: Refund */}
+        {activeTab === "refund" && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-black text-slate-900">Refund & Cancellation Policy</h2>
+            <p className="text-xs text-slate-500">Effective Date: August 2026 | Last Updated: October 2026</p>
+            <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 text-xs font-medium">
+              Digital goods and services on JobAllocate — including resume downloads, candidate packages, job listings, and employer subscription credits — are activated immediately upon payment and are non-refundable once delivered.
+            </div>
+
+            <h3 className="font-bold text-slate-900 pt-2">Eligible Refund Circumstances</h3>
+            <ul className="list-disc pl-5 space-y-1">
+              <li><strong>Duplicate Billing:</strong> Multiple charges for the exact same order caused by a payment gateway or network delay.</li>
+              <li><strong>Technical Delivery Failure:</strong> Money debited but subscription credits/packages not reflected within 24 hours.</li>
+              <li><strong>Company Verification Rejection:</strong> Employer payments refunded minus payment gateway transaction fees if company fails regulatory verification.</li>
+            </ul>
+
+            <h3 className="font-bold text-slate-900 pt-2">Refund Processing Timeline</h3>
+            <p>
+              Refund requests must be emailed to <strong>info@joballocate.com</strong> or <strong>support@joballocate.com</strong> within 7 business days with your Order ID and payment receipt. Approved refunds will be credited back to the original payment source within <strong>5 to 7 working days</strong>.
+            </p>
+          </div>
+        )}
+
+        {/* Tab 3: Pricing */}
+        {activeTab === "pricing" && (
+          <div className="space-y-4">
+            <h2 className="text-lg font-black text-slate-900">Products, Services & Pricing in INR (₹)</h2>
+            <p className="text-xs text-slate-500">All prices listed in Indian Rupees. Zero hidden fees.</p>
+
+            <div className="rounded-xl border border-slate-200 overflow-hidden">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-700 font-bold uppercase">
+                  <tr>
+                    <th className="p-3">Product / Service</th>
+                    <th className="p-3">Price (INR)</th>
+                    <th className="p-3">Billing Cycle / Delivery</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  <tr>
+                    <td className="p-3 font-semibold text-slate-900">Resume Builder & Studio</td>
+                    <td className="p-3 font-bold text-emerald-600">Free</td>
+                    <td className="p-3 text-slate-500">Instant Access</td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-semibold text-slate-900">Resume PDF Vector Export</td>
+                    <td className="p-3 font-bold text-slate-900">₹20</td>
+                    <td className="p-3 text-slate-500">Per Download</td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-semibold text-slate-900">Basic Resume Package</td>
+                    <td className="p-3 font-bold text-slate-900">₹99</td>
+                    <td className="p-3 text-slate-500">One-time / 30 Days</td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-semibold text-slate-900">Premium Resume Package</td>
+                    <td className="p-3 font-bold text-slate-900">₹299</td>
+                    <td className="p-3 text-slate-500">One-time / 60 Days</td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-semibold text-slate-900">Professional Resume Package</td>
+                    <td className="p-3 font-bold text-slate-900">₹499</td>
+                    <td className="p-3 text-slate-500">One-time / 90 Days</td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-semibold text-slate-900">Employer 1st Job Listing</td>
+                    <td className="p-3 font-bold text-emerald-600">Free</td>
+                    <td className="p-3 text-slate-500">Trial Posting</td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-semibold text-slate-900">Additional Employer Job Posting</td>
+                    <td className="p-3 font-bold text-slate-900">₹399</td>
+                    <td className="p-3 text-slate-500">Per Job Post</td>
+                  </tr>
+                  <tr>
+                    <td className="p-3 font-semibold text-slate-900">Company Subscription Plans</td>
+                    <td className="p-3 font-bold text-slate-900">From ₹499 to ₹1,499</td>
+                    <td className="p-3 text-slate-500">Monthly Recurring</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Tab 4: Privacy */}
         {activeTab === "privacy" && (
           <div className="space-y-4">
-            <h3 className="text-base font-bold text-slate-900">Privacy Policy</h3>
+            <h2 className="text-lg font-black text-slate-900">Privacy Policy</h2>
+            <p className="text-xs text-slate-500">Effective Date: August 2026 | Last Updated: October 2026</p>
             <p>
               Your privacy is paramount to JobAllocate. We collect verified phone numbers, names, email addresses, and professional resume documents solely for facilitating employment matching.
             </p>
-            <h4 className="font-bold text-slate-900">Data Security & Encryption</h4>
+            <h3 className="font-bold text-slate-900 pt-2">Data Security & Third-Party Gateways</h3>
             <p>
-              All traffic between client devices and our servers is encrypted using standard HTTPS/TLS. We do not sell or rent candidate personal data to unauthorized third-party brokers.
+              All traffic is encrypted using standard HTTPS/TLS. Payment credentials and card numbers are processed directly by Cashfree Payment Gateway India and are never stored on JobAllocate servers.
             </p>
           </div>
         )}
 
-        {activeTab === "refund" && (
+        {/* Tab 5: Contact */}
+        {activeTab === "contact" && (
           <div className="space-y-4">
-            <h3 className="text-base font-bold text-slate-900">Refund & Cancellation Policy</h3>
-            <p>
-              Credit packages, resume export orders, and employer subscription packages purchased via Cashfree gateway are processed immediately.
-            </p>
-            <h4 className="font-bold text-slate-900">Refund Requests</h4>
-            <p>
-              If a payment transaction fails or double charges occur due to gateway timeouts, refunds will be credited back to the original source payment method within 5-7 business days.
-            </p>
+            <h2 className="text-lg font-black text-slate-900">Contact Us & Support Desk</h2>
+            <p className="text-xs text-slate-500">Reach our team for any assistance or inquiries.</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                <p className="font-bold text-slate-900 flex items-center gap-1.5"><Phone className="h-4 w-4 text-[#174A7E]" /> Phone Support</p>
+                <p className="pt-2 text-sm font-bold text-[#174A7E]">+91 9036980547 / +91 9036980574</p>
+                <p className="text-xs text-slate-500">Mon – Sat: 9:30 AM – 6:30 PM IST</p>
+              </div>
+
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
+                <p className="font-bold text-slate-900 flex items-center gap-1.5"><Mail className="h-4 w-4 text-[#174A7E]" /> Email Helpdesk</p>
+                <p className="pt-2 text-sm font-bold text-[#174A7E]">info@joballocate.com</p>
+                <p className="text-xs text-slate-500">support@joballocate.com</p>
+              </div>
+
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 md:col-span-2">
+                <p className="font-bold text-slate-900 flex items-center gap-1.5"><MapPin className="h-4 w-4 text-[#174A7E]" /> Registered Office Address</p>
+                <p className="pt-2 text-xs text-slate-700">Ram and Co Circle, Davanagere, Karnataka, India</p>
+                <p className="text-xs text-slate-500 pt-1">Official Website: https://joballocate.com</p>
+              </div>
+            </div>
           </div>
         )}
+
       </Card>
     </div>
   );

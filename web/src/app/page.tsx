@@ -627,14 +627,14 @@ export default function HomePage() {
             </form>
           </div>
 
-          {/* Job Categories Pills */}
+          {/* Job Categories Pills: Smooth Horizontal Sliding on Mobile, Wrap on Desktop */}
           {categories.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-1">
+            <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 md:flex-wrap">
               {categories.map((cat: any, i: number) => (
                 <button
                   key={i}
                   onClick={() => setSearchKeyword(cat.label)}
-                  className="px-3 py-1.5 rounded-full text-xs font-bold border border-slate-200 bg-white hover:border-[#174A7E] hover:text-[#174A7E] text-slate-700 transition-colors shadow-2xs"
+                  className="px-3.5 py-1.5 rounded-full text-xs font-bold border border-slate-200 bg-white hover:border-[#174A7E] hover:text-[#174A7E] text-slate-700 transition-colors shadow-2xs whitespace-nowrap shrink-0 active:scale-95 cursor-pointer"
                 >
                   {cat.label} {cat.job_posts_count > 0 && `(${cat.job_posts_count})`}
                 </button>

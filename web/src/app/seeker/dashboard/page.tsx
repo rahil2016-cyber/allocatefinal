@@ -36,7 +36,52 @@ import {
   Edit3,
   Download,
   Eye,
+  Layers,
+  Palette,
+  Megaphone,
+  Calculator,
+  Users,
+  Truck,
+  GraduationCap,
+  Scale,
+  PhoneCall,
+  Utensils,
+  Navigation,
+  Building2,
+  Video,
+  Car,
+  Shield,
 } from "lucide-react";
+
+// Complete list of all 26 canonical industry categories available across the app
+const APP_ALL_CATEGORIES = [
+  { key: "software_engineering_it", label: "Software & IT", icon: Code, color: "bg-blue-50 text-blue-600 border-blue-200" },
+  { key: "data_science_analytics", label: "Data & Analytics", icon: BarChart3, color: "bg-emerald-50 text-emerald-600 border-emerald-200" },
+  { key: "design_ux_creative", label: "Design & UX", icon: Palette, color: "bg-purple-50 text-purple-600 border-purple-200" },
+  { key: "product_management", label: "Product Management", icon: Layers, color: "bg-indigo-50 text-indigo-600 border-indigo-200" },
+  { key: "sales_business_development", label: "Sales & Biz Dev", icon: TrendingUp, color: "bg-amber-50 text-amber-600 border-amber-200" },
+  { key: "marketing_digital_growth", label: "Marketing & Growth", icon: Megaphone, color: "bg-rose-50 text-rose-600 border-rose-200" },
+  { key: "banking_finance", label: "Banking & Finance", icon: Landmark, color: "bg-sky-50 text-sky-600 border-sky-200" },
+  { key: "accountants", label: "Accountants & Audit", icon: Calculator, color: "bg-teal-50 text-teal-600 border-teal-200" },
+  { key: "human_resources", label: "Human Resources", icon: Users, color: "bg-orange-50 text-orange-600 border-orange-200" },
+  { key: "operations_logistics", label: "Operations & Logistics", icon: Truck, color: "bg-cyan-50 text-cyan-600 border-cyan-200" },
+  { key: "healthcare_medical", label: "Healthcare & Medical", icon: Heart, color: "bg-red-50 text-red-600 border-red-200" },
+  { key: "education_training", label: "Education & Teaching", icon: GraduationCap, color: "bg-lime-50 text-lime-700 border-lime-200" },
+  { key: "legal_compliance", label: "Legal & Compliance", icon: Scale, color: "bg-slate-50 text-slate-700 border-slate-200" },
+  { key: "customer_success_support", label: "Customer Support", icon: Headphones, color: "bg-violet-50 text-violet-600 border-violet-200" },
+  { key: "manufacturing_engineering", label: "Manufacturing & Core", icon: Factory, color: "bg-stone-50 text-stone-700 border-stone-200" },
+  { key: "bpo_telecaller", label: "BPO & Telecaller", icon: PhoneCall, color: "bg-blue-50 text-blue-600 border-blue-200" },
+  { key: "retail_e_commerce", label: "Retail & E-Commerce", icon: ShoppingCart, color: "bg-fuchsia-50 text-fuchsia-600 border-fuchsia-200" },
+  { key: "hospitality_food", label: "Hospitality & Food", icon: Utensils, color: "bg-amber-50 text-amber-700 border-amber-200" },
+  { key: "delivery_driving", label: "Delivery & Driving", icon: Navigation, color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+  { key: "construction_real_estate", label: "Real Estate & Builders", icon: Building2, color: "bg-yellow-50 text-yellow-700 border-yellow-200" },
+  { key: "media_entertainment", label: "Media & Film", icon: Video, color: "bg-pink-50 text-pink-600 border-pink-200" },
+  { key: "automotive", label: "Automotive & Mechanic", icon: Car, color: "bg-neutral-50 text-neutral-700 border-neutral-200" },
+  { key: "beauty_wellness", label: "Beauty & Wellness", icon: Sparkles, color: "bg-rose-50 text-rose-500 border-rose-200" },
+  { key: "security_housekeeping", label: "Security & Facility", icon: Shield, color: "bg-blue-50 text-blue-700 border-blue-200" },
+  { key: "work_from_home_home", label: "Work From Home", search: "work from home", icon: HomeIcon, color: "bg-teal-50 text-teal-700 border-teal-200" },
+  { key: "private_jobs_home", label: "Private Jobs", search: "private", icon: Briefcase, color: "bg-indigo-50 text-indigo-700 border-indigo-200" },
+];
 
 const ALL_RESUME_TEMPLATES = [
   {
@@ -161,17 +206,26 @@ export default function SeekerDashboard() {
   };
 
   const resumeSliderRef = useRef<HTMLDivElement>(null);
+  const categoriesSliderRef = useRef<HTMLDivElement>(null);
+  const profileJobsSliderRef = useRef<HTMLDivElement>(null);
+  const latestJobsSliderRef = useRef<HTMLDivElement>(null);
 
-  const handleResumeScrollLeft = () => {
-    if (resumeSliderRef.current) {
-      resumeSliderRef.current.scrollBy({ left: -340, behavior: "smooth" });
-    }
+  const scrollCategories = (direction: "left" | "right") => {
+    if (!categoriesSliderRef.current) return;
+    const scrollAmount = direction === "left" ? -280 : 280;
+    categoriesSliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
-  const handleResumeScrollRight = () => {
-    if (resumeSliderRef.current) {
-      resumeSliderRef.current.scrollBy({ left: 340, behavior: "smooth" });
-    }
+  const scrollProfileJobs = (direction: "left" | "right") => {
+    if (!profileJobsSliderRef.current) return;
+    const scrollAmount = direction === "left" ? -300 : 300;
+    profileJobsSliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
+
+  const scrollLatestJobs = (direction: "left" | "right") => {
+    if (!latestJobsSliderRef.current) return;
+    const scrollAmount = direction === "left" ? -300 : 300;
+    latestJobsSliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
   // Fetch real banners from API
@@ -202,6 +256,20 @@ export default function SeekerDashboard() {
       const res = await apiClient.get(ENDPOINTS.CATEGORIES);
       return res.data?.data || [];
     },
+  });
+
+  // Fetch full industry types list
+  const { data: industryTypes = [] } = useQuery({
+    queryKey: ["allIndustryTypesDashboard"],
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get(ENDPOINTS.INDUSTRY_TYPES);
+        return res.data?.data || [];
+      } catch {
+        return [];
+      }
+    },
+    staleTime: 5 * 60 * 1000,
   });
 
   // Fetch live backend jobs for Latest Jobs feed
@@ -311,6 +379,51 @@ export default function SeekerDashboard() {
       return next;
     });
   };
+
+  // Merge categories from backend API with complete app category list
+  const displayCategories = React.useMemo(() => {
+    const apiMap = new Map<string, any>();
+    if (Array.isArray(apiCategories)) {
+      apiCategories.forEach((cat: any) => {
+        if (cat.industry_type) apiMap.set(cat.industry_type, cat);
+        if (cat.key) apiMap.set(cat.key, cat);
+        if (cat.label) apiMap.set(cat.label.toLowerCase(), cat);
+      });
+    }
+
+    if (Array.isArray(industryTypes)) {
+      industryTypes.forEach((it: any) => {
+        if (it.key && !apiMap.has(it.key)) {
+          apiMap.set(it.key, it);
+        }
+      });
+    }
+
+    return APP_ALL_CATEGORIES.map((appCat) => {
+      const fromApi =
+        apiMap.get(appCat.key) ||
+        apiMap.get(appCat.label.toLowerCase()) ||
+        (appCat.search ? apiMap.get(appCat.search) : null);
+
+      let jobCount = fromApi?.job_posts_count;
+      if (jobCount === undefined || jobCount === null) {
+        // Count from currently loaded jobsList
+        const matched = jobsList.filter(
+          (j: any) =>
+            j.industry_type === appCat.key ||
+            j.category?.name?.toLowerCase().includes(appCat.label.toLowerCase()) ||
+            (appCat.search && j.title?.toLowerCase().includes(appCat.search))
+        ).length;
+        jobCount = matched;
+      }
+
+      return {
+        ...appCat,
+        jobCount: jobCount > 0 ? `${jobCount} jobs` : "Explore",
+        rawCount: jobCount || 0,
+      };
+    });
+  }, [apiCategories, industryTypes, jobsList]);
 
   // Active promo banner image if returned by API
   const promoBanner = banners.length > 0 ? banners[0] : null;
@@ -436,46 +549,76 @@ export default function SeekerDashboard() {
         )}
       </div>
 
-      {/* 2. POPULAR CATEGORIES (Real API Job Counts) */}
-      <section className="space-y-4">
+      {/* 2. POPULAR CATEGORIES (All App Categories & Mobile Sliding Track) */}
+      <section className="space-y-3.5">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Popular Categories</h2>
-            <p className="text-xs text-slate-500 font-medium">Explore jobs by top industries & roles</p>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight">Popular Categories</h2>
+              <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold">
+                {displayCategories.length} Available
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 font-medium">Explore all industries & job roles available across the app</p>
           </div>
-          <Link href="/jobs" className="text-xs font-bold text-slate-700 hover:text-[#174A7E] flex items-center gap-1">
-            View all categories <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => scrollCategories("left")}
+                className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                title="Previous categories"
+                aria-label="Previous categories"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollCategories("right")}
+                className="h-7 w-7 sm:h-8 sm:w-8 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                title="Next categories"
+                aria-label="Next categories"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+            <Link href="/jobs" className="text-xs font-bold text-slate-700 hover:text-[#174A7E] flex items-center gap-1 shrink-0 ml-1">
+              View all <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
 
-        {isCategoriesLoading ? (
+        {isCategoriesLoading && displayCategories.length === 0 ? (
           <div className="py-8 text-center text-slate-400 flex items-center justify-center gap-2">
             <Loader2 className="h-5 w-5 animate-spin text-[#174A7E]" />
-            <span className="text-xs font-semibold">Loading real API categories...</span>
+            <span className="text-xs font-semibold">Loading app categories...</span>
           </div>
         ) : (
-          <div className="relative">
-            <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
-              {apiCategories.map((cat: any, idx: number) => {
-                const IconComp = getCategoryIcon(cat.icon, cat.label);
-                const colorClass = getCategoryColor(idx);
-                const realJobCount = cat.job_posts_count !== undefined ? `${cat.job_posts_count} jobs` : "0 jobs";
-
-                return (
-                  <Link
-                    key={idx}
-                    href={`/jobs?industry=${encodeURIComponent(cat.industry_type || "")}`}
-                    className="flex-none w-36 sm:w-40 rounded-2xl bg-white p-3.5 text-center border border-slate-200/80 shadow-2xs hover:shadow-md transition-all group"
-                  >
-                    <div className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full ${colorClass} mb-2 transition-transform group-hover:scale-110`}>
-                      <IconComp className="h-5 w-5" />
-                    </div>
-                    <h4 className="text-xs font-bold text-slate-800 line-clamp-1 group-hover:text-[#174A7E]">{cat.label}</h4>
-                    <p className="text-[10px] font-semibold text-slate-400 mt-0.5">{realJobCount}</p>
-                  </Link>
-                );
-              })}
-            </div>
+          <div
+            ref={categoriesSliderRef}
+            className="flex items-stretch gap-2.5 sm:gap-3.5 overflow-x-auto pb-3 pt-1 snap-x snap-mandatory scroll-smooth scrollbar-none -mx-3 px-3 sm:-mx-6 sm:px-6 md:mx-0 md:px-0"
+            style={{ scrollbarWidth: "none" }}
+          >
+            {displayCategories.map((cat, idx) => {
+              const IconComp = cat.icon;
+              return (
+                <Link
+                  key={cat.key || idx}
+                  href={cat.search ? `/jobs?search=${encodeURIComponent(cat.search)}` : `/jobs?industry=${encodeURIComponent(cat.key)}`}
+                  className="w-[120px] sm:w-[140px] shrink-0 snap-start rounded-2xl bg-white p-3 sm:p-3.5 text-center border border-slate-200/90 shadow-2xs hover:shadow-md hover:border-[#174A7E]/50 active:scale-95 transition-all group flex flex-col items-center justify-between"
+                >
+                  <div className={`mx-auto flex h-10 w-10 sm:h-11 sm:w-11 items-center justify-center rounded-2xl border ${cat.color} mb-2 transition-transform group-hover:scale-110 shadow-2xs`}>
+                    <IconComp className="h-5 w-5" />
+                  </div>
+                  <h4 className="text-xs font-extrabold text-slate-800 line-clamp-1 group-hover:text-[#174A7E] w-full text-center">
+                    {cat.label}
+                  </h4>
+                  <span className="text-[10px] font-bold text-slate-400 mt-1 block">
+                    {cat.jobCount}
+                  </span>
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>
@@ -498,85 +641,117 @@ export default function SeekerDashboard() {
                 : "Handpicked opportunities matched to your skills and career interests"}
             </p>
           </div>
-          <Link
-            href="/jobs"
-            className="text-xs font-bold text-[#174A7E] hover:underline flex items-center gap-1 shrink-0"
-          >
-            <span>View All Matched Jobs</span>
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          <div className="flex items-center justify-between sm:justify-end gap-2">
+            <div className="flex md:hidden items-center gap-1">
+              <button
+                type="button"
+                onClick={() => scrollProfileJobs("left")}
+                className="h-7 w-7 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                aria-label="Previous matched jobs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollProfileJobs("right")}
+                className="h-7 w-7 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                aria-label="Next matched jobs"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+            <Link
+              href="/jobs"
+              className="text-xs font-bold text-[#174A7E] hover:underline flex items-center gap-1 shrink-0"
+            >
+              <span>View All Matched Jobs</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
 
         {isProfileJobsLoading && isJobsLoading ? (
-          <div className="py-12 text-center text-slate-400 flex justify-center items-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin text-[#174A7E]" />
-            <span className="text-xs font-semibold">Matching jobs with your profile...</span>
+          <div className="flex md:grid overflow-x-auto md:overflow-visible gap-4 pb-3 md:pb-0 scrollbar-none md:grid-cols-2 lg:grid-cols-3 -mx-3 px-3 sm:-mx-6 sm:px-6 md:mx-0 md:px-0">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="w-[84vw] sm:w-[320px] max-w-[340px] shrink-0 md:w-auto md:max-w-none md:shrink h-44 rounded-2xl bg-white border border-slate-200 animate-pulse p-5"
+              />
+            ))}
           </div>
         ) : (profileJobs.length > 0 ? profileJobs : jobsList.slice(0, 6)).length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            ref={profileJobsSliderRef}
+            className="flex md:grid overflow-x-auto md:overflow-visible gap-4 pb-4 md:pb-0 snap-x snap-mandatory scroll-smooth scrollbar-none -mx-3 px-3 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 md:grid-cols-2 lg:grid-cols-3"
+            style={{ scrollbarWidth: "none" }}
+          >
             {(profileJobs.length > 0 ? profileJobs : jobsList.slice(0, 6)).map((job) => {
               const companyName = job.company?.name || job.company_name || "Verified Employer";
               const isSaved = savedJobIds.has(job.id);
 
               return (
-                <Card
+                <div
                   key={`profile-job-${job.id}`}
-                  className="p-4 flex flex-col justify-between space-y-3.5 border-slate-200/90 hover:border-[#174A7E]/40 hover:shadow-md transition-all group bg-white"
+                  className="w-[84vw] sm:w-[320px] max-w-[340px] shrink-0 snap-start h-full md:w-auto md:max-w-none md:shrink flex flex-col"
                 >
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="space-y-0.5">
-                        <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                          <Sparkles className="h-2.5 w-2.5" /> Profile Match
-                        </span>
-                        <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-[#174A7E] transition-colors line-clamp-1 pt-1">
-                          {job.title}
-                        </h3>
+                  <Card
+                    className="p-4 flex flex-col justify-between space-y-3.5 border-slate-200/90 hover:border-[#174A7E]/40 hover:shadow-md transition-all group bg-white h-full"
+                  >
+                    <div className="space-y-2">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="space-y-0.5">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                            <Sparkles className="h-2.5 w-2.5" /> Profile Match
+                          </span>
+                          <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-[#174A7E] transition-colors line-clamp-1 pt-1">
+                            {job.title}
+                          </h3>
+                        </div>
+                        <button
+                          onClick={() => toggleSaveJob(job.id)}
+                          className="text-slate-400 hover:text-amber-500 transition-colors p-1"
+                          title="Save Job"
+                        >
+                          <Bookmark className={`h-4 w-4 ${isSaved ? "fill-amber-500 text-amber-500" : ""}`} />
+                        </button>
                       </div>
-                      <button
-                        onClick={() => toggleSaveJob(job.id)}
-                        className="text-slate-400 hover:text-amber-500 transition-colors p-1"
-                        title="Save Job"
+
+                      <p className="text-xs font-semibold text-slate-600">{companyName}</p>
+
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
+                        {job.city && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="h-3 w-3 text-slate-400 shrink-0" /> {job.city}
+                          </span>
+                        )}
+                        {(job.salary_min || job.salary_max) && (
+                          <span className="font-bold text-slate-700">
+                            ₹{job.salary_min ? Number(job.salary_min).toLocaleString() : ""}
+                            {job.salary_max ? ` - ₹${Number(job.salary_max).toLocaleString()}` : ""}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
+                      <Badge variant="primary" size="sm" className="bg-sky-50 text-[#174A7E] font-bold border-sky-100 text-[11px]">
+                        <Briefcase className="h-3 w-3 mr-1" />
+                        {job.job_type || job.employment_type || "Full time"}
+                      </Badge>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedJob(job);
+                          setIsApplyModalOpen(true);
+                        }}
+                        className="rounded-full bg-[#174A7E] hover:bg-[#0f3459] text-xs font-bold px-3.5 py-1.5 shadow-2xs"
                       >
-                        <Bookmark className={`h-4 w-4 ${isSaved ? "fill-amber-500 text-amber-500" : ""}`} />
-                      </button>
+                        Quick Apply
+                      </Button>
                     </div>
-
-                    <p className="text-xs font-semibold text-slate-600">{companyName}</p>
-
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500">
-                      {job.city && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="h-3 w-3 text-slate-400 shrink-0" /> {job.city}
-                        </span>
-                      )}
-                      {(job.salary_min || job.salary_max) && (
-                        <span className="font-bold text-slate-700">
-                          ₹{job.salary_min ? Number(job.salary_min).toLocaleString() : ""}
-                          {job.salary_max ? ` - ₹${Number(job.salary_max).toLocaleString()}` : ""}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-100">
-                    <Badge variant="primary" size="sm" className="bg-sky-50 text-[#174A7E] font-bold border-sky-100 text-[11px]">
-                      <Briefcase className="h-3 w-3 mr-1" />
-                      {job.job_type || job.employment_type || "Full time"}
-                    </Badge>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => {
-                        setSelectedJob(job);
-                        setIsApplyModalOpen(true);
-                      }}
-                      className="rounded-full bg-[#174A7E] hover:bg-[#0f3459] text-xs font-bold px-3.5 py-1.5 shadow-2xs"
-                    >
-                      Quick Apply
-                    </Button>
-                  </div>
-                </Card>
+                  </Card>
+                </div>
               );
             })}
           </div>
@@ -670,63 +845,95 @@ export default function SeekerDashboard() {
             <h2 className="text-xl font-extrabold text-slate-900 tracking-tight">Latest Jobs</h2>
             <p className="text-xs text-slate-500 font-medium">Fresh opportunities from top companies</p>
           </div>
-          <Link href="/seeker/applications" className="text-xs font-bold text-slate-700 hover:text-[#174A7E] flex items-center gap-1">
-            My Applications <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
+          <div className="flex items-center gap-2">
+            <div className="flex md:hidden items-center gap-1">
+              <button
+                type="button"
+                onClick={() => scrollLatestJobs("left")}
+                className="h-7 w-7 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                aria-label="Previous latest jobs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollLatestJobs("right")}
+                className="h-7 w-7 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                aria-label="Next latest jobs"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+            <Link href="/seeker/applications" className="text-xs font-bold text-slate-700 hover:text-[#174A7E] flex items-center gap-1">
+              My Applications <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
         </div>
 
         {isJobsLoading ? (
-          <div className="py-12 text-center text-slate-400 flex justify-center items-center gap-2">
-            <Loader2 className="h-5 w-5 animate-spin text-[#174A7E]" />
-            <span className="text-xs font-semibold">Loading latest jobs...</span>
+          <div className="flex md:grid overflow-x-auto md:overflow-visible gap-4 pb-3 md:pb-0 scrollbar-none md:grid-cols-2 lg:grid-cols-3 -mx-3 px-3 sm:-mx-6 sm:px-6 md:mx-0 md:px-0">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="w-[84vw] sm:w-[320px] max-w-[340px] shrink-0 md:w-auto md:max-w-none md:shrink h-44 rounded-2xl bg-white border border-slate-200 animate-pulse p-5"
+              />
+            ))}
           </div>
         ) : jobsList.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div
+            ref={latestJobsSliderRef}
+            className="flex md:grid overflow-x-auto md:overflow-visible gap-4 pb-4 md:pb-0 snap-x snap-mandatory scroll-smooth scrollbar-none -mx-3 px-3 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 md:grid-cols-2 lg:grid-cols-3"
+            style={{ scrollbarWidth: "none" }}
+          >
             {jobsList.map((job) => {
               const companyName = job.company?.name || job.company_name || "Company";
               const isSaved = savedJobIds.has(job.id);
 
               return (
-                <Card
+                <div
                   key={job.id}
-                  className="p-4 flex flex-col justify-between space-y-3 border-slate-200/80 hover:border-slate-300 hover:shadow-md transition-all"
+                  className="w-[84vw] sm:w-[320px] max-w-[340px] shrink-0 snap-start h-full md:w-auto md:max-w-none md:shrink flex flex-col"
                 >
-                  <div className="space-y-1.5">
-                    <div className="flex items-start justify-between gap-2">
-                      <h3 className="text-sm font-extrabold text-slate-900 line-clamp-1">
-                        {job.title}
-                      </h3>
+                  <Card
+                    className="p-4 flex flex-col justify-between space-y-3 border-slate-200/80 hover:border-slate-300 hover:shadow-md transition-all bg-white h-full"
+                  >
+                    <div className="space-y-1.5">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-sm font-extrabold text-slate-900 line-clamp-1">
+                          {job.title}
+                        </h3>
+                        <button
+                          onClick={() => toggleSaveJob(job.id)}
+                          className="text-slate-400 hover:text-amber-500 transition-colors"
+                        >
+                          <Bookmark className={`h-4 w-4 ${isSaved ? "fill-amber-500 text-amber-500" : ""}`} />
+                        </button>
+                      </div>
+                      <p className="text-xs font-semibold text-slate-600">{companyName}</p>
+                      {job.city && (
+                        <p className="text-[11px] text-slate-400 flex items-center gap-1 line-clamp-1">
+                          <MapPin className="h-3 w-3 shrink-0" /> {job.city}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                      <Badge variant="primary" size="sm" className="bg-sky-50 text-[#174A7E] font-bold border-sky-100">
+                        <Briefcase className="h-3 w-3 mr-1" />
+                        {job.job_type || job.employment_type || "Full time"}
+                      </Badge>
                       <button
-                        onClick={() => toggleSaveJob(job.id)}
-                        className="text-slate-400 hover:text-amber-500 transition-colors"
+                        onClick={() => {
+                          setSelectedJob(job);
+                          setIsApplyModalOpen(true);
+                        }}
+                        className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-50 text-[#174A7E] hover:bg-[#174A7E] hover:text-white transition-colors"
                       >
-                        <Bookmark className={`h-4 w-4 ${isSaved ? "fill-amber-500 text-amber-500" : ""}`} />
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </button>
                     </div>
-                    <p className="text-xs font-semibold text-slate-600">{companyName}</p>
-                    {job.city && (
-                      <p className="text-[11px] text-slate-400 flex items-center gap-1 line-clamp-1">
-                        <MapPin className="h-3 w-3 shrink-0" /> {job.city}
-                      </p>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                    <Badge variant="primary" size="sm" className="bg-sky-50 text-[#174A7E] font-bold border-sky-100">
-                      <Briefcase className="h-3 w-3 mr-1" />
-                      {job.job_type || job.employment_type || "Full time"}
-                    </Badge>
-                    <button
-                      onClick={() => {
-                        setSelectedJob(job);
-                        setIsApplyModalOpen(true);
-                      }}
-                      className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-50 text-[#174A7E] hover:bg-[#174A7E] hover:text-white transition-colors"
-                    >
-                      <ArrowRight className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </Card>
+                  </Card>
+                </div>
               );
             })}
           </div>

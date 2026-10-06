@@ -102,6 +102,14 @@ export default function HomePage() {
 
   // Resume carousel scroll ref
   const resumeSliderRef = useRef<HTMLDivElement>(null);
+  // Jobs carousel scroll ref for mobile view
+  const jobsSliderRef = useRef<HTMLDivElement>(null);
+
+  const scrollJobs = (direction: "left" | "right") => {
+    if (!jobsSliderRef.current) return;
+    const scrollAmount = direction === "left" ? -300 : 300;
+    jobsSliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
+  };
 
   // 1. Fetch live active jobs from API
   const { data: jobsData, isLoading: isJobsLoading } = useQuery({
@@ -634,24 +642,61 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Job Cards Grid */}
+          {/* Mobile Sliding Helper Bar */}
+          <div className="flex md:hidden items-center justify-between pt-1">
+            <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+              <Sparkles className="h-3.5 w-3.5 text-[#174A7E]" />
+              <span>Swipe to browse all {filteredJobs.length} live jobs</span>
+            </span>
+            <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={() => scrollJobs("left")}
+                className="h-8 w-8 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                aria-label="Previous Jobs"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollJobs("right")}
+                className="h-8 w-8 rounded-full bg-white border border-slate-200 text-slate-700 flex items-center justify-center shadow-2xs hover:bg-slate-50 active:scale-95 transition-all cursor-pointer"
+                aria-label="Next Jobs"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Job Cards: Horizontal Sliding Track on Mobile, Multi-column Grid on Desktop */}
           {isJobsLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            <div className="flex md:grid overflow-x-auto md:overflow-visible gap-4 md:gap-5 pb-3 md:pb-0 scrollbar-none md:grid-cols-2 lg:grid-cols-3 -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0">
               {[1, 2, 3, 4, 5, 6].map((i) => (
-                <div key={i} className="h-44 rounded-2xl bg-white border border-slate-200 animate-pulse p-5 space-y-3" />
+                <div
+                  key={i}
+                  className="w-[84vw] sm:w-[320px] max-w-[340px] shrink-0 md:w-auto md:max-w-none md:shrink h-44 rounded-2xl bg-white border border-slate-200 animate-pulse p-5 space-y-3"
+                />
               ))}
             </div>
           ) : filteredJobs.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-              {filteredJobs.slice(0, 6).map((job) => (
-                <JobCard
+            <div
+              ref={jobsSliderRef}
+              className="flex md:grid overflow-x-auto md:overflow-visible gap-4 md:gap-5 pb-4 md:pb-0 snap-x snap-mandatory scroll-smooth scrollbar-none -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0 md:grid-cols-2 lg:grid-cols-3"
+              style={{ scrollbarWidth: "none" }}
+            >
+              {filteredJobs.map((job) => (
+                <div
                   key={job.id}
-                  job={job}
-                  onApply={(j) => {
-                    setSelectedJob(j);
-                    setIsApplyModalOpen(true);
-                  }}
-                />
+                  className="w-[84vw] sm:w-[320px] max-w-[340px] shrink-0 snap-start h-full md:w-auto md:max-w-none md:shrink flex flex-col"
+                >
+                  <JobCard
+                    job={job}
+                    onApply={(j) => {
+                      setSelectedJob(j);
+                      setIsApplyModalOpen(true);
+                    }}
+                  />
+                </div>
               ))}
             </div>
           ) : (

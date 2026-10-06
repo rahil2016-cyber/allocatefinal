@@ -39,7 +39,7 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onApply, onSaveToggle }) 
   };
 
   return (
-    <Card hoverEffect className="group relative flex flex-col justify-between overflow-hidden">
+    <Card hoverEffect className="group relative flex flex-col justify-between overflow-hidden h-full">
       {/* Header with Logo and Company info */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">

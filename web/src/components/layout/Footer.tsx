@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { Mail, Phone, MapPin, Globe, ShieldCheck, CreditCard, Clock, FileText, CheckCircle2 } from "lucide-react";
+import { Mail, Phone, MapPin, Globe, ShieldCheck, CreditCard, Clock, Building, FileText, CheckCircle2 } from "lucide-react";
 
 export const Footer: React.FC = () => {
   return (
@@ -28,7 +28,20 @@ export const Footer: React.FC = () => {
               India's smart career and hiring platform. Connecting verified talent with top companies with instant WhatsApp alerts, verified candidate matching, and ATS resume tools.
             </p>
 
-            <div className="space-y-2 text-xs pt-1 text-slate-300">
+            {/* Legal Entity Name Box */}
+            <div className="p-3 rounded-xl bg-slate-900 border border-slate-800 space-y-1 text-xs">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 block">
+                Legal / Business Name
+              </span>
+              <p className="font-black text-white text-sm tracking-wide">
+                ALEEN VENTURES PRIVATE LIMITED
+              </p>
+              <p className="text-[11px] text-slate-400">
+                Operating brand: JobAllocate (https://joballocate.com)
+              </p>
+            </div>
+
+            <div className="space-y-1.5 text-xs pt-1 text-slate-300">
               <div className="flex items-start gap-2">
                 <MapPin className="h-4 w-4 text-[#38BDF8] shrink-0 mt-0.5" />
                 <span>Ram and Co Circle, Davanagere, Karnataka, India</span>
@@ -39,7 +52,7 @@ export const Footer: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex items-center gap-3 pt-2">
+            <div className="flex items-center gap-3 pt-1">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-[11px] font-semibold text-emerald-400">
                 <ShieldCheck className="h-3.5 w-3.5" /> 100% Verified Jobs
               </span>
@@ -188,9 +201,9 @@ export const Footer: React.FC = () => {
 
         </div>
 
-        {/* Payment Gateway Trust & Compliance Bar */}
+        {/* Payment Gateway Trust & Legal Name Compliance Bar */}
         <div className="border-t border-slate-900 pt-6 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span className="text-slate-400 font-semibold">Payment Partner:</span>
             <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300 font-medium">
               Cashfree Payment Gateway (India)
@@ -200,7 +213,14 @@ export const Footer: React.FC = () => {
             <span>•</span>
             <span className="text-emerald-400 font-medium">100% Encrypted & PCI-DSS Compliant</span>
           </div>
-          <p>© {new Date().getFullYear()} JobAllocate. All rights reserved.</p>
+          <div className="text-right">
+            <p className="text-slate-300 font-bold">
+              © {new Date().getFullYear()} ALEEN VENTURES PRIVATE LIMITED. All rights reserved.
+            </p>
+            <p className="text-[11px] text-slate-500">
+              JobAllocate is an official platform operated by ALEEN VENTURES PRIVATE LIMITED.
+            </p>
+          </div>
         </div>
 
       </div>

@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { ShieldCheck, FileText, RefreshCw, CreditCard, Phone, MapPin, Mail, Clock, Check } from "lucide-react";
+import { ShieldCheck, FileText, RefreshCw, CreditCard, Phone, MapPin, Mail, Clock, Check, Building } from "lucide-react";
 
 export default function LegalPage() {
   const [activeTab, setActiveTab] = useState<"terms" | "refund" | "pricing" | "privacy" | "contact">("terms");
@@ -16,10 +16,10 @@ export default function LegalPage() {
           Legal & Compliance
         </Badge>
         <h1 className="text-3xl font-black text-slate-900 tracking-tight">
-          JobAllocate Compliance & Policies
+          ALEEN VENTURES PRIVATE LIMITED — JobAllocate
         </h1>
         <p className="text-xs sm:text-sm text-slate-500 font-medium">
-          Official Terms & Conditions, Refund & Cancellation Policy, Privacy Standards, Products & Services Pricing in INR (₹), and Contact Details.
+          Official Terms & Conditions, Refund Policy, Privacy Standards, INR Pricing, and Company Information for <strong>ALEEN VENTURES PRIVATE LIMITED</strong>.
         </p>
       </div>
 
@@ -30,7 +30,7 @@ export default function LegalPage() {
           { key: "refund", label: "Refunds & Cancellations" },
           { key: "pricing", label: "Products & Pricing (INR)" },
           { key: "privacy", label: "Privacy Policy" },
-          { key: "contact", label: "Contact Us" },
+          { key: "contact", label: "Contact Us & Entity" },
         ].map((t) => (
           <button
             key={t.key}
@@ -52,9 +52,11 @@ export default function LegalPage() {
         {activeTab === "terms" && (
           <div className="space-y-4">
             <h2 className="text-lg font-black text-slate-900">Terms & Conditions</h2>
-            <p className="text-xs text-slate-500">Effective Date: August 2026 | Last Updated: October 2026</p>
+            <p className="text-xs text-slate-500">
+              Operating Entity: <strong>ALEEN VENTURES PRIVATE LIMITED</strong> | Effective: August 2026
+            </p>
             <p>
-              By accessing or using <strong>JobAllocate</strong> (accessible at https://joballocate.com and through our mobile apps), you agree to be bound by these Terms and Conditions. JobAllocate is a marketplace recruitment and career preparation platform connecting candidates and employers across India.
+              By accessing or using <strong>JobAllocate</strong> (accessible at https://joballocate.com and through our mobile apps), you agree to be bound by these Terms and Conditions. JobAllocate is owned, maintained, and operated by <strong>ALEEN VENTURES PRIVATE LIMITED</strong> ("Company", "we", "us", or "our"), an entity incorporated under the laws of India.
             </p>
             
             <h3 className="font-bold text-slate-900 pt-2">1. User Eligibility & Mobile Authentication</h3>
@@ -78,9 +80,11 @@ export default function LegalPage() {
         {activeTab === "refund" && (
           <div className="space-y-4">
             <h2 className="text-lg font-black text-slate-900">Refund & Cancellation Policy</h2>
-            <p className="text-xs text-slate-500">Effective Date: August 2026 | Last Updated: October 2026</p>
+            <p className="text-xs text-slate-500">
+              Operating Entity: <strong>ALEEN VENTURES PRIVATE LIMITED</strong> | Effective: August 2026
+            </p>
             <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 text-xs font-medium">
-              Digital goods and services on JobAllocate — including resume downloads, candidate packages, job listings, and employer subscription credits — are activated immediately upon payment and are non-refundable once delivered.
+              Digital goods and services provided by <strong>ALEEN VENTURES PRIVATE LIMITED</strong> — including resume downloads, candidate packages, job listings, and employer subscription credits — are activated immediately upon payment and are non-refundable once delivered.
             </div>
 
             <h3 className="font-bold text-slate-900 pt-2">Eligible Refund Circumstances</h3>
@@ -101,7 +105,9 @@ export default function LegalPage() {
         {activeTab === "pricing" && (
           <div className="space-y-4">
             <h2 className="text-lg font-black text-slate-900">Products, Services & Pricing in INR (₹)</h2>
-            <p className="text-xs text-slate-500">All prices listed in Indian Rupees. Zero hidden fees.</p>
+            <p className="text-xs text-slate-500">
+              Billed by: <strong>ALEEN VENTURES PRIVATE LIMITED</strong> | Zero hidden fees
+            </p>
 
             <div className="rounded-xl border border-slate-200 overflow-hidden">
               <table className="w-full text-left text-xs">
@@ -163,7 +169,9 @@ export default function LegalPage() {
         {activeTab === "privacy" && (
           <div className="space-y-4">
             <h2 className="text-lg font-black text-slate-900">Privacy Policy</h2>
-            <p className="text-xs text-slate-500">Effective Date: August 2026 | Last Updated: October 2026</p>
+            <p className="text-xs text-slate-500">
+              Entity: <strong>ALEEN VENTURES PRIVATE LIMITED</strong> | Effective: August 2026
+            </p>
             <p>
               Your privacy is paramount to JobAllocate. We collect verified phone numbers, names, email addresses, and professional resume documents solely for facilitating employment matching.
             </p>
@@ -177,10 +185,16 @@ export default function LegalPage() {
         {/* Tab 5: Contact */}
         {activeTab === "contact" && (
           <div className="space-y-4">
-            <h2 className="text-lg font-black text-slate-900">Contact Us & Support Desk</h2>
-            <p className="text-xs text-slate-500">Reach our team for any assistance or inquiries.</p>
+            <h2 className="text-lg font-black text-slate-900">Legal Entity & Contact Details</h2>
+            <p className="text-xs text-slate-500">Official business information for ALEEN VENTURES PRIVATE LIMITED.</p>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 md:col-span-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#174A7E] block">Business Legal Name</span>
+                <p className="pt-1 text-base font-black text-slate-900">ALEEN VENTURES PRIVATE LIMITED</p>
+                <p className="text-xs text-slate-600">Brand / Platform: JobAllocate (https://joballocate.com)</p>
+              </div>
+
               <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
                 <p className="font-bold text-slate-900 flex items-center gap-1.5"><Phone className="h-4 w-4 text-[#174A7E]" /> Phone Support</p>
                 <p className="pt-2 text-sm font-bold text-[#174A7E]">+91 9036980547 / +91 9036980574</p>
@@ -195,7 +209,7 @@ export default function LegalPage() {
 
               <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 md:col-span-2">
                 <p className="font-bold text-slate-900 flex items-center gap-1.5"><MapPin className="h-4 w-4 text-[#174A7E]" /> Registered Office Address</p>
-                <p className="pt-2 text-xs text-slate-700">Ram and Co Circle, Davanagere, Karnataka, India</p>
+                <p className="pt-2 text-xs text-slate-700 font-semibold">Ram and Co Circle, Davanagere, Karnataka, India</p>
                 <p className="text-xs text-slate-500 pt-1">Official Website: https://joballocate.com</p>
               </div>
             </div>

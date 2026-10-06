@@ -3,8 +3,8 @@ import Link from "next/link";
 import { RefreshCw, ArrowLeft, Mail, Phone, AlertCircle } from "lucide-react";
 
 export const metadata = {
-  title: "Refund and Cancellation Policy — JobAllocate",
-  description: "Official Refund and Cancellation Policy for JobAllocate purchases via Cashfree Payment Gateway.",
+  title: "Refund and Cancellation Policy — ALEEN VENTURES PRIVATE LIMITED | JobAllocate",
+  description: "Official Refund and Cancellation Policy for JobAllocate, operated by ALEEN VENTURES PRIVATE LIMITED via Cashfree Payment Gateway.",
 };
 
 export default function RefundPolicyPage() {
@@ -28,27 +28,27 @@ export default function RefundPolicyPage() {
               Refund & Cancellation Policy
             </h1>
             <p className="text-xs text-slate-500 font-medium mt-1">
-              Last Updated: October 2026 | Effective Date: August 2026 | Domain: https://joballocate.com
+              Last Updated: October 2026 | Operating Legal Entity: <strong>ALEEN VENTURES PRIVATE LIMITED</strong> | Domain: https://joballocate.com
             </p>
           </div>
 
           <div className="space-y-6 text-sm text-slate-700 leading-relaxed font-normal">
             
             <section className="space-y-2">
-              <h2 className="text-base font-bold text-slate-900">1. Overview</h2>
+              <h2 className="text-base font-bold text-slate-900">1. Overview & Operating Entity</h2>
               <p>
-                At <strong>JobAllocate</strong> (accessible at{" "}
+                At <strong>JobAllocate</strong> (owned, operated, and billed by <strong>ALEEN VENTURES PRIVATE LIMITED</strong> via{" "}
                 <Link href="https://joballocate.com" className="text-[#174A7E] font-semibold underline">
                   https://joballocate.com
                 </Link>
-                ), we believe in 100% transparency regarding our digital services, pricing, and refund guidelines. All transactions are securely processed in Indian Rupees (INR) through <strong>Cashfree Payment Gateway</strong>.
+                ), we are committed to complete transparency regarding our digital services, pricing, and refund policies. All transactions are securely processed in Indian Rupees (INR) through <strong>Cashfree Payment Gateway</strong>.
               </p>
             </section>
 
             <section className="space-y-2">
               <h2 className="text-base font-bold text-slate-900">2. Non-Refundable Digital Services</h2>
               <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 text-amber-900 text-xs font-medium">
-                Digital services on JobAllocate — including resume PDF downloads, ATS template packages, job listing fees, and employer subscription credits — are activated immediately upon payment. Because digital credits are instantly available and consumable, payments are generally non-refundable once delivered.
+                Digital services provided by <strong>ALEEN VENTURES PRIVATE LIMITED</strong> — including resume PDF downloads, ATS template packages, job listing fees, and employer subscription credits — are activated immediately upon payment. Because digital credits are instantly available and consumable, payments are generally non-refundable once delivered.
               </div>
             </section>
 
@@ -84,7 +84,7 @@ export default function RefundPolicyPage() {
                 </li>
                 <li>Refund requests must be raised within <strong>7 business days</strong> of the transaction.</li>
                 <li>
-                  Once approved, refunds are credited back to the original source method (Bank account, UPI, or Credit/Debit card via Cashfree) within <strong>5 to 7 working days</strong>.
+                  Once approved, refunds are credited back to the original payment source (Bank account, UPI, or Credit/Debit card via Cashfree) within <strong>5 to 7 working days</strong>.
                 </li>
               </ul>
             </section>
@@ -97,9 +97,10 @@ export default function RefundPolicyPage() {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-base font-bold text-slate-900">6. Customer Support Contact</h2>
+              <h2 className="text-base font-bold text-slate-900">6. Legal Entity Contact Information</h2>
               <div className="bg-slate-50 rounded-2xl p-4 text-xs space-y-1 border border-slate-200">
-                <p><strong>JobAllocate Support & Billing Desk</strong></p>
+                <p><strong>Business Legal Name:</strong> ALEEN VENTURES PRIVATE LIMITED</p>
+                <p><strong>Brand:</strong> JobAllocate</p>
                 <p><strong>Address:</strong> Ram and Co Circle, Davanagere, Karnataka, India</p>
                 <p><strong>Phone:</strong> +91 9036980547 / +91 9036980574</p>
                 <p><strong>Support Email:</strong> info@joballocate.com / support@joballocate.com</p>

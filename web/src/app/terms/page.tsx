@@ -3,8 +3,8 @@ import Link from "next/link";
 import { ShieldCheck, ArrowLeft, CreditCard, FileText } from "lucide-react";
 
 export const metadata = {
-  title: "Terms and Conditions — JobAllocate",
-  description: "Official Terms and Conditions, Service Charges, and User Agreement for JobAllocate.",
+  title: "Terms and Conditions — ALEEN VENTURES PRIVATE LIMITED | JobAllocate",
+  description: "Official Terms and Conditions, Service Charges, and User Agreement for JobAllocate, operated by ALEEN VENTURES PRIVATE LIMITED.",
 };
 
 export default function TermsPage() {
@@ -28,27 +28,27 @@ export default function TermsPage() {
               Terms & Conditions
             </h1>
             <p className="text-xs text-slate-500 font-medium mt-1">
-              Last Updated: October 2026 | Effective Date: August 2026 | Domain: https://joballocate.com
+              Last Updated: October 2026 | Operating Entity: <strong>ALEEN VENTURES PRIVATE LIMITED</strong> | Domain: https://joballocate.com
             </p>
           </div>
 
           <div className="space-y-6 text-sm text-slate-700 leading-relaxed font-normal">
             
             <section className="space-y-2">
-              <h2 className="text-base font-bold text-slate-900">1. Acceptance of Terms</h2>
+              <h2 className="text-base font-bold text-slate-900">1. Acceptance of Terms & Operating Entity</h2>
               <p>
                 By accessing or using <strong>JobAllocate</strong> (accessible at{" "}
                 <Link href="https://joballocate.com" className="text-[#174A7E] font-semibold underline">
                   https://joballocate.com
                 </Link>{" "}
-                and through our mobile application), you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use our services.
+                and through our mobile application), you agree to be bound by these Terms and Conditions. JobAllocate is owned, maintained, and operated by <strong>ALEEN VENTURES PRIVATE LIMITED</strong> ("Company", "we", "us", or "our"), a private limited company incorporated under the laws of India.
               </p>
             </section>
 
             <section className="space-y-2">
               <h2 className="text-base font-bold text-slate-900">2. Products, Services & Pricing in INR (₹)</h2>
               <p>
-                JobAllocate operates a career matching and ATS resume platform. Digital services and subscription packages are priced and billed in <strong>Indian Rupees (INR ₹)</strong>. All payments are processed securely via our payment gateway partner, <strong>Cashfree Payment Gateway</strong>.
+                <strong>ALEEN VENTURES PRIVATE LIMITED</strong> operates JobAllocate as an employment matching and ATS resume building service. All paid packages and digital products are billed in <strong>Indian Rupees (INR ₹)</strong> through our authorized payment gateway partner, <strong>Cashfree Payment Gateway India</strong>.
               </p>
 
               <div className="rounded-2xl border border-slate-200 overflow-hidden mt-3">
@@ -124,14 +124,14 @@ export default function TermsPage() {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-base font-bold text-slate-900">5. Contact Information</h2>
-              <p>For inquiries regarding these terms or your account:</p>
+              <h2 className="text-base font-bold text-slate-900">5. Legal Entity & Contact Information</h2>
               <div className="bg-slate-50 rounded-2xl p-4 text-xs space-y-1 border border-slate-200">
-                <p><strong>Platform:</strong> JobAllocate</p>
-                <p><strong>Address:</strong> Ram and Co Circle, Davanagere, Karnataka, India</p>
-                <p><strong>Phone:</strong> +91 9036980547 / +91 9036980574</p>
+                <p><strong>Business Legal Name:</strong> ALEEN VENTURES PRIVATE LIMITED</p>
+                <p><strong>Trade Name:</strong> JobAllocate</p>
+                <p><strong>Registered Office Address:</strong> Ram and Co Circle, Davanagere, Karnataka, India</p>
+                <p><strong>Direct Phone:</strong> +91 9036980547 / +91 9036980574</p>
                 <p><strong>Email:</strong> info@joballocate.com | support@joballocate.com</p>
-                <p><strong>Website:</strong> https://joballocate.com</p>
+                <p><strong>Official Website:</strong> https://joballocate.com</p>
               </div>
             </section>
 

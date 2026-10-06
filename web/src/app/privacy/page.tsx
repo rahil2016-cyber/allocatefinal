@@ -3,8 +3,8 @@ import Link from "next/link";
 import { ShieldCheck, ArrowLeft, Lock, Eye } from "lucide-react";
 
 export const metadata = {
-  title: "Privacy Policy — JobAllocate",
-  description: "Official Privacy Policy, Data Protection, and Information Security standards for JobAllocate.",
+  title: "Privacy Policy — ALEEN VENTURES PRIVATE LIMITED | JobAllocate",
+  description: "Official Privacy Policy, Data Protection, and Information Security standards for JobAllocate, operated by ALEEN VENTURES PRIVATE LIMITED.",
 };
 
 export default function PrivacyPage() {
@@ -28,7 +28,7 @@ export default function PrivacyPage() {
               Privacy Policy
             </h1>
             <p className="text-xs text-slate-500 font-medium mt-1">
-              Last Updated: October 2026 | Effective Date: August 2026 | Domain: https://joballocate.com
+              Last Updated: October 2026 | Operating Entity: <strong>ALEEN VENTURES PRIVATE LIMITED</strong> | Domain: https://joballocate.com
             </p>
           </div>
 
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
             <section className="space-y-2">
               <h2 className="text-base font-bold text-slate-900">1. Commitment to User Privacy</h2>
               <p>
-                At <strong>JobAllocate</strong> (accessible at{" "}
+                At <strong>JobAllocate</strong> (operated and maintained by <strong>ALEEN VENTURES PRIVATE LIMITED</strong>, accessible at{" "}
                 <Link href="https://joballocate.com" className="text-[#174A7E] font-semibold underline">
                   https://joballocate.com
                 </Link>{" "}
@@ -87,9 +87,10 @@ export default function PrivacyPage() {
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-base font-bold text-slate-900">5. Contact Information</h2>
+              <h2 className="text-base font-bold text-slate-900">5. Legal Entity & Grievance Contact</h2>
               <div className="bg-slate-50 rounded-2xl p-4 text-xs space-y-1 border border-slate-200">
-                <p><strong>Data Protection Officer — JobAllocate</strong></p>
+                <p><strong>Business Legal Name:</strong> ALEEN VENTURES PRIVATE LIMITED</p>
+                <p><strong>Brand / Platform:</strong> JobAllocate</p>
                 <p><strong>Address:</strong> Ram and Co Circle, Davanagere, Karnataka, India</p>
                 <p><strong>Phone:</strong> +91 9036980547 / +91 9036980574</p>
                 <p><strong>Email:</strong> info@joballocate.com / support@joballocate.com</p>

@@ -1,10 +1,10 @@
 import React from "react";
 import Link from "next/link";
-import { Phone, Mail, MapPin, Clock, Globe, ArrowLeft, MessageSquare, ShieldCheck } from "lucide-react";
+import { Phone, Mail, MapPin, Clock, Globe, ArrowLeft, MessageSquare, ShieldCheck, Building } from "lucide-react";
 
 export const metadata = {
-  title: "Contact Us — JobAllocate",
-  description: "Official contact details, office address, customer support phone and email for JobAllocate.",
+  title: "Contact Us — ALEEN VENTURES PRIVATE LIMITED | JobAllocate",
+  description: "Official contact details, legal business name, office address, customer support phone and email for ALEEN VENTURES PRIVATE LIMITED (JobAllocate).",
 };
 
 export default function ContactPage() {
@@ -22,65 +22,54 @@ export default function ContactPage() {
         <div className="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-slate-200 space-y-8">
           <div>
             <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#174A7E] border border-blue-100">
-              <Phone className="h-3.5 w-3.5" /> Official Helpdesk
+              <Phone className="h-3.5 w-3.5" /> Official Helpdesk & Entity Details
             </span>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight mt-3">
               Contact Us
             </h1>
             <p className="text-xs text-slate-500 font-medium mt-1">
-              We are here to assist candidates and employers with job postings, resume building, and payment inquiries.
+              Official contact and business details for <strong>ALEEN VENTURES PRIVATE LIMITED</strong> (Operating entity of JobAllocate).
             </p>
+          </div>
+
+          {/* Legal Business Name Compliance Banner */}
+          <div className="p-5 rounded-2xl bg-sky-50 border border-sky-200/90 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <span className="text-[11px] font-black uppercase tracking-wider text-[#174A7E]">
+                Business Legal Name / Operating Entity
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+                ALEEN VENTURES PRIVATE LIMITED
+              </h2>
+              <p className="text-xs text-slate-600 font-medium">
+                Operating Trade Brand: <strong>JobAllocate</strong> (Website:{" "}
+                <Link href="https://joballocate.com" className="text-[#174A7E] underline">
+                  https://joballocate.com
+                </Link>
+                )
+              </p>
+            </div>
+            <span className="px-3.5 py-1.5 rounded-full bg-white text-[#174A7E] font-black border border-sky-200 text-xs shadow-xs shrink-0">
+              Incorporated in India
+            </span>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
-            {/* Card 1: Phone Support */}
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
-              <div className="h-10 w-10 rounded-xl bg-sky-100 text-[#174A7E] flex items-center justify-center">
-                <Phone className="h-5 w-5" />
-              </div>
-              <h3 className="text-sm font-bold text-slate-900">Phone Support</h3>
-              <p className="text-xs text-slate-600">Available Monday through Saturday</p>
-              <div className="pt-2 space-y-1 text-sm font-bold text-slate-900">
-                <a href="tel:+919036980547" className="block text-[#174A7E] hover:underline">
-                  +91 9036980547
-                </a>
-                <a href="tel:+919036980574" className="block text-[#174A7E] hover:underline">
-                  +91 9036980574
-                </a>
-              </div>
-            </div>
-
-            {/* Card 2: Email Support */}
-            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
-              <div className="h-10 w-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
-                <Mail className="h-5 w-5" />
-              </div>
-              <h3 className="text-sm font-bold text-slate-900">Email Inquiries</h3>
-              <p className="text-xs text-slate-600">For support, billing, and general inquiries</p>
-              <div className="pt-2 space-y-1 text-sm font-bold text-slate-900">
-                <a href="mailto:info@joballocate.com" className="block text-[#174A7E] hover:underline">
-                  info@joballocate.com
-                </a>
-                <a href="mailto:support@joballocate.com" className="block text-[#174A7E] hover:underline">
-                  support@joballocate.com
-                </a>
-              </div>
-            </div>
-
-            {/* Card 3: Office Address */}
+            {/* Card 1: Registered Office Address */}
             <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
               <div className="h-10 w-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center">
                 <MapPin className="h-5 w-5" />
               </div>
               <h3 className="text-sm font-bold text-slate-900">Registered Office Address</h3>
-              <p className="text-xs text-slate-700 leading-relaxed pt-1">
+              <p className="text-xs text-slate-800 leading-relaxed font-semibold pt-1">
+                ALEEN VENTURES PRIVATE LIMITED<br />
                 Ram and Co Circle, Davanagere,<br />
                 Karnataka, India.
               </p>
             </div>
 
-            {/* Card 4: Operating Hours & WhatsApp */}
+            {/* Card 2: Operating Hours & WhatsApp */}
             <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
               <div className="h-10 w-10 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center">
                 <Clock className="h-5 w-5" />
@@ -101,12 +90,46 @@ export default function ContactPage() {
               </div>
             </div>
 
+            {/* Card 3: Phone Support */}
+            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <div className="h-10 w-10 rounded-xl bg-sky-100 text-[#174A7E] flex items-center justify-center">
+                <Phone className="h-5 w-5" />
+              </div>
+              <h3 className="text-sm font-bold text-slate-900">Direct Phone Numbers</h3>
+              <p className="text-xs text-slate-600">Customer care & payment verification</p>
+              <div className="pt-2 space-y-1 text-sm font-bold text-slate-900">
+                <a href="tel:+919036980547" className="block text-[#174A7E] hover:underline">
+                  +91 9036980547
+                </a>
+                <a href="tel:+919036980574" className="block text-[#174A7E] hover:underline">
+                  +91 9036980574
+                </a>
+              </div>
+            </div>
+
+            {/* Card 4: Email Support */}
+            <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+              <div className="h-10 w-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
+                <Mail className="h-5 w-5" />
+              </div>
+              <h3 className="text-sm font-bold text-slate-900">Official Email Addresses</h3>
+              <p className="text-xs text-slate-600">For billing, refunds, and corporate inquiries</p>
+              <div className="pt-2 space-y-1 text-sm font-bold text-slate-900">
+                <a href="mailto:info@joballocate.com" className="block text-[#174A7E] hover:underline">
+                  info@joballocate.com
+                </a>
+                <a href="mailto:support@joballocate.com" className="block text-[#174A7E] hover:underline">
+                  support@joballocate.com
+                </a>
+              </div>
+            </div>
+
           </div>
 
           <div className="p-4 rounded-2xl bg-blue-50/60 border border-blue-100 flex items-center gap-3 text-xs text-slate-700">
             <ShieldCheck className="h-5 w-5 text-[#174A7E] shrink-0" />
             <span>
-              <strong>Billing & Gateway Support:</strong> Payments are processed via Cashfree Payment Gateway India. For transaction queries, please keep your Order ID or UTR number handy.
+              <strong>Payment Gateway Processing:</strong> Digital orders on JobAllocate are billed by <strong>ALEEN VENTURES PRIVATE LIMITED</strong> and processed via <strong>Cashfree Payment Gateway India</strong>.
             </span>
           </div>
 

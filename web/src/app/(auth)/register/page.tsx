@@ -68,8 +68,12 @@ function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 1. Fetch States on mount
+  // 1. Fetch States on mount & prefetch destination routes
   useEffect(() => {
+    // Prefetch destination routes for instantaneous navigation
+    router.prefetch("/seeker/onboarding");
+    router.prefetch("/employer/dashboard");
+
     async function loadStates() {
       try {
         const res = await apiClient.get("/locations/states");
@@ -265,14 +269,30 @@ function RegisterForm() {
     }
   };
 
+  // Password strength checks matching backend requirements
+  const isPassLength = password.length >= 8;
+  const isPassUpper = /[A-Z]/.test(password);
+  const isPassLower = /[a-z]/.test(password);
+  const isPassDigit = /\d/.test(password);
+  const isPassSpecial = /[@$!%*?&#^()_\-+={}[\]:;"'<>,./\\|~`]/.test(password);
+  const isPassMatch = password.length > 0 && password === confirmPassword;
+
   // Step 2: Set Password
   const handleSetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters long");
+    if (!password) {
+      setError("Please enter a password");
       return;
     }
-    if (password !== confirmPassword) {
+    if (!isPassLength) {
+      setError("Password must be at least 8 characters long");
+      return;
+    }
+    if (!isPassUpper || !isPassLower || !isPassDigit || !isPassSpecial) {
+      setError("Password must contain uppercase (A-Z), lowercase (a-z), numbers (0-9), and a special character (@$!%*?&)");
+      return;
+    }
+    if (!isPassMatch) {
       setError("Passwords do not match");
       return;
     }
@@ -286,29 +306,25 @@ function RegisterForm() {
         password_confirmation: confirmPassword,
       });
 
-      // Redirect to onboarding or dashboard
+      // Smoothly redirect to onboarding or dashboard
       if (role === "job_seeker") {
         router.push("/seeker/onboarding");
       } else {
         router.push("/employer/dashboard");
       }
-    } catch {
-      // If set password fails or already set, proceed to next step
-      if (role === "job_seeker") {
-        router.push("/seeker/onboarding");
+    } catch (err: any) {
+      const msg = err.response?.data?.message || err.message || "Failed to set password. Please try again.";
+      // If backend says already set, proceed smoothly
+      if (msg.toLowerCase().includes("already")) {
+        if (role === "job_seeker") {
+          router.push("/seeker/onboarding");
+        } else {
+          router.push("/employer/dashboard");
+        }
       } else {
-        router.push("/employer/dashboard");
+        setError(msg);
+        setIsLoading(false);
       }
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSkipPassword = () => {
-    if (role === "job_seeker") {
-      router.push("/seeker/onboarding");
-    } else {
-      router.push("/employer/dashboard");
     }
   };
 
@@ -591,12 +607,40 @@ function RegisterForm() {
             <Input
               label="Create Password"
               type="password"
-              placeholder="At least 6 characters"
+              placeholder="At least 8 characters"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               leftIcon={<Lock className="h-4 w-4" />}
             />
+
+            {/* Live requirement checklist badges */}
+            <div className="grid grid-cols-2 gap-1.5 p-2.5 rounded-xl bg-slate-50 border border-slate-100 text-[11px]">
+              <div className={`flex items-center gap-1.5 transition-colors ${isPassLength ? "text-emerald-700 font-semibold" : "text-slate-500"}`}>
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ${isPassLength ? "bg-emerald-600" : "bg-slate-300"}`} />
+                At least 8 characters
+              </div>
+              <div className={`flex items-center gap-1.5 transition-colors ${isPassUpper ? "text-emerald-700 font-semibold" : "text-slate-500"}`}>
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ${isPassUpper ? "bg-emerald-600" : "bg-slate-300"}`} />
+                One uppercase (A-Z)
+              </div>
+              <div className={`flex items-center gap-1.5 transition-colors ${isPassLower ? "text-emerald-700 font-semibold" : "text-slate-500"}`}>
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ${isPassLower ? "bg-emerald-600" : "bg-slate-300"}`} />
+                One lowercase (a-z)
+              </div>
+              <div className={`flex items-center gap-1.5 transition-colors ${isPassDigit ? "text-emerald-700 font-semibold" : "text-slate-500"}`}>
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ${isPassDigit ? "bg-emerald-600" : "bg-slate-300"}`} />
+                One number (0-9)
+              </div>
+              <div className={`flex items-center gap-1.5 transition-colors ${isPassSpecial ? "text-emerald-700 font-semibold" : "text-slate-500"}`}>
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ${isPassSpecial ? "bg-emerald-600" : "bg-slate-300"}`} />
+                One symbol (@$!%*?&...)
+              </div>
+              <div className={`flex items-center gap-1.5 transition-colors ${isPassMatch ? "text-emerald-700 font-semibold" : "text-slate-500"}`}>
+                <span className={`inline-block w-1.5 h-1.5 rounded-full ${isPassMatch ? "bg-emerald-600" : "bg-slate-300"}`} />
+                Passwords match
+              </div>
+            </div>
 
             <Input
               label="Confirm Password"
@@ -616,14 +660,6 @@ function RegisterForm() {
             >
               Save Password & Proceed
             </Button>
-
-            <button
-              type="button"
-              onClick={handleSkipPassword}
-              className="text-xs text-slate-500 hover:text-slate-800 underline w-full text-center block pt-1 font-medium"
-            >
-              Skip password setup for now
-            </button>
           </form>
         )}
 

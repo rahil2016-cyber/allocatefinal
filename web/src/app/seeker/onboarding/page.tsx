@@ -5,171 +5,482 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
 import apiClient from "@/lib/api/client";
 import { ENDPOINTS } from "@/lib/api/endpoints";
 import {
-  User as UserIcon,
+  INDUSTRY_TYPES,
+  getRolesForIndustry,
+  getSkillsForRoles,
+  getIndustryLabel,
+} from "@/lib/constants/industryData";
+import {
+  Sparkles,
+  Rocket,
   Briefcase,
-  FileText,
-  Upload,
+  GraduationCap,
+  MapPin,
   CheckCircle2,
   ArrowRight,
   ArrowLeft,
-  GraduationCap,
-  MapPin,
-  Sparkles,
-  Building,
+  Upload,
+  FileText,
   AlertCircle,
+  Plus,
+  X,
+  Building,
+  Check,
+  Laptop,
+  BarChart3,
+  Palette,
+  FolderGit2,
+  TrendingUp,
+  Megaphone,
+  Landmark,
+  Calculator,
+  Users,
+  Truck,
+  Stethoscope,
+  Scale,
+  Headphones,
+  Wrench,
+  PhoneCall,
+  ShoppingBag,
+  Utensils,
+  Car,
+  Film,
+  Settings,
+  ShieldCheck,
 } from "lucide-react";
+
+const INDUSTRY_ICON_MAP: Record<string, any> = {
+  software_engineering_it: Laptop,
+  data_science_analytics: BarChart3,
+  design_ux_creative: Palette,
+  product_management: FolderGit2,
+  sales_business_development: TrendingUp,
+  marketing_digital_growth: Megaphone,
+  banking_finance: Landmark,
+  accountants: Calculator,
+  human_resources: Users,
+  operations_logistics: Truck,
+  healthcare_medical: Stethoscope,
+  education_training: GraduationCap,
+  legal_compliance: Scale,
+  customer_success_support: Headphones,
+  manufacturing_engineering: Wrench,
+  bpo_telecaller: PhoneCall,
+  retail_e_commerce: ShoppingBag,
+  hospitality_food: Utensils,
+  delivery_driving: Car,
+  construction_real_estate: Building,
+  media_entertainment: Film,
+  automotive: Settings,
+  beauty_wellness: Sparkles,
+  security_housekeeping: ShieldCheck,
+};
+
+const STATUS_OPTIONS = [
+  "Student",
+  "Fresher",
+  "Experienced Professional",
+  "Freelancer",
+  "Career Break",
+];
+
+const EMPLOYMENT_PREF_OPTIONS = [
+  "Full Time",
+  "Part Time",
+  "Internship",
+  "Contract",
+  "Remote",
+  "Hybrid",
+  "Work From Office",
+];
+
+const QUALIFICATION_OPTIONS = [
+  "Bachelor's Degree",
+  "Master's Degree",
+  "Diploma / Certificate",
+  "Ph.D. / Doctorate",
+  "Class 12th",
+  "Class 10th",
+];
 
 export default function SeekerOnboardingPage() {
   const router = useRouter();
-  const [step, setStep] = useState(1);
-  const totalSteps = 5;
+  const [currentStep, setCurrentStep] = useState(1);
+  const totalSteps = 8;
 
-  // Step 1: Current Status & Experience
-  const [currentStatus, setCurrentStatus] = useState("Experienced Professional");
-  const [experienceYears, setExperienceYears] = useState("2");
+  const [isLoading, setIsLoading] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isSuccess, setIsSuccess] = useState(false);
+
+  // Form State
+  // Step 2: Basic Info & Industry
+  const [name, setName] = useState("");
+  const [selectedIndustry, setSelectedIndustry] = useState<string>("software_engineering_it");
+  const [customIndustry, setCustomIndustry] = useState("");
+
+  // Step 3: Job Roles
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [customRoleInput, setCustomRoleInput] = useState("");
+
+  // Step 4: Skills
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
+  const [customSkillInput, setCustomSkillInput] = useState("");
+
+  // Step 5: Current Status & Experience
+  const [currentStatus, setCurrentStatus] = useState<string>("Experienced Professional");
+  const [expYears, setExpYears] = useState("");
   const [currentCompany, setCurrentCompany] = useState("");
   const [currentRole, setCurrentRole] = useState("");
-  const [headline, setHeadline] = useState("");
 
-  // Step 2: Target Industry & Desired Roles
-  const [industries, setIndustries] = useState<string[]>([]);
-  const [selectedIndustry, setSelectedIndustry] = useState("");
-  const [desiredRole, setDesiredRole] = useState("");
-  const [skills, setSkills] = useState("");
-
-  // Step 3: Education Details
+  // Step 6: Education
   const [qualification, setQualification] = useState("Bachelor's Degree");
   const [degree, setDegree] = useState("");
   const [college, setCollege] = useState("");
   const [gradYear, setGradYear] = useState("");
-  const [marks, setMarks] = useState("");
+  const [gradMarks, setGradMarks] = useState("");
 
-  // Step 4: Location & Work Preferences
-  const [states, setStates] = useState<string[]>([]);
-  const [districts, setDistricts] = useState<string[]>([]);
-  const [selectedState, setSelectedState] = useState("");
-  const [selectedDistrict, setSelectedDistrict] = useState("");
-  const [preferredCity, setPreferredCity] = useState("");
-  const [willingToRelocate, setWillingToRelocate] = useState(true);
-  const [employmentType, setEmploymentType] = useState<string[]>(["Full Time"]);
-  const [expectedSalaryMin, setExpectedSalaryMin] = useState("300000");
-  const [expectedSalaryMax, setExpectedSalaryMax] = useState("600000");
+  const [s12Board, setS12Board] = useState("");
+  const [s12School, setS12School] = useState("");
+  const [s12Year, setS12Year] = useState("");
+  const [s12Marks, setS12Marks] = useState("");
 
-  // Step 5: Resume PDF Upload
+  const [s10Board, setS10Board] = useState("");
+  const [s10School, setS10School] = useState("");
+  const [s10Year, setS10Year] = useState("");
+  const [s10Marks, setS10Marks] = useState("");
+
+  // Step 7: Location & Work Preferences
+  const [city, setCity] = useState("");
+  const [preferredLocations, setPreferredLocations] = useState<string[]>([]);
+  const [prefLocationInput, setPrefLocationInput] = useState("");
+  const [willingToRelocate, setWillingToRelocate] = useState(false);
+  const [selectedEmploymentPrefs, setSelectedEmploymentPrefs] = useState<string[]>(["Full Time"]);
+  const [minSalary, setMinSalary] = useState("");
+  const [maxSalary, setMaxSalary] = useState("");
+
+  // Step 8: Resume Upload
   const [resumeFile, setResumeFile] = useState<File | null>(null);
+  const [existingResumeUrl, setExistingResumeUrl] = useState<string | null>(null);
 
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [isSuccess, setIsSuccess] = useState(false);
-
-  // Load States & Industries on mount
+  // Load existing profile data on mount
   useEffect(() => {
-    async function loadMetadata() {
+    async function loadInitialProfile() {
       try {
-        const [statesRes, indRes] = await Promise.allSettled([
-          apiClient.get("/locations/states"),
-          apiClient.get("/industry-types"),
-        ]);
+        const res = await apiClient.get(ENDPOINTS.SEEKER_PROFILE);
+        const data = res.data?.data || res.data;
+        if (data) {
+          if (data.name) setName(data.name);
+          if (data.city) setCity(data.city);
+          if (data.industry_type) {
+            setSelectedIndustry(data.industry_type);
+          }
+          if (Array.isArray(data.job_roles) && data.job_roles.length > 0) {
+            setSelectedRoles(data.job_roles);
+          }
+          if (Array.isArray(data.skills) && data.skills.length > 0) {
+            setSelectedSkills(data.skills);
+          }
+          if (data.current_status) {
+            setCurrentStatus(data.current_status);
+          }
+          if (data.experience_years !== undefined && data.experience_years !== null) {
+            setExpYears(String(data.experience_years));
+          }
+          if (data.current_company) setCurrentCompany(data.current_company);
+          if (data.current_role) setCurrentRole(data.current_role);
+          if (Array.isArray(data.preferred_locations)) {
+            setPreferredLocations(data.preferred_locations);
+          }
+          if (data.willing_to_relocate !== undefined) {
+            setWillingToRelocate(Boolean(data.willing_to_relocate));
+          }
+          if (Array.isArray(data.employment_preferences) && data.employment_preferences.length > 0) {
+            setSelectedEmploymentPrefs(data.employment_preferences);
+          }
+          if (data.expected_salary_min) setMinSalary(String(data.expected_salary_min));
+          if (data.expected_salary_max) setMaxSalary(String(data.expected_salary_max));
+          if (data.resume_url) setExistingResumeUrl(data.resume_url);
 
-        if (statesRes.status === "fulfilled") {
-          const list = statesRes.value.data?.data?.states || [];
-          setStates(list);
-          if (list.length > 0) setSelectedState(list[0]);
-        }
-
-        if (indRes.status === "fulfilled") {
-          const list = indRes.value.data?.data || [];
-          const indNames = Array.isArray(list) ? list.map((i: any) => i.name || i.title || i) : [];
-          setIndustries(indNames);
-          if (indNames.length > 0) setSelectedIndustry(indNames[0]);
+          // Populate education if available
+          if (Array.isArray(data.education) && data.education.length > 0) {
+            for (const item of data.education) {
+              const t = item.title || "";
+              if (t === "Class 10th") {
+                setS10Board(item.board_or_stream || "");
+                setS10School(item.institution || "");
+                setS10Year(item.year_completed || "");
+                setS10Marks(item.marks_or_grade || "");
+              } else if (t === "Class 12th") {
+                setS12Board(item.board_or_stream || "");
+                setS12School(item.institution || "");
+                setS12Year(item.year_completed || "");
+                setS12Marks(item.marks_or_grade || "");
+              } else {
+                setQualification(t || "Bachelor's Degree");
+                setDegree(item.board_or_stream || "");
+                setCollege(item.institution || "");
+                setGradYear(item.year_completed || "");
+                setGradMarks(item.marks_or_grade || "");
+              }
+            }
+          }
         }
       } catch {
-        // Fallback
-        setStates(["Karnataka", "Maharashtra", "Delhi (NCT)", "Tamil Nadu", "Telangana"]);
-        setSelectedState("Karnataka");
+        // Fallback to local session
+        if (typeof window !== "undefined") {
+          const stored = localStorage.getItem("joballocate_user");
+          if (stored) {
+            try {
+              const parsed = JSON.parse(stored);
+              if (parsed?.name) setName(parsed.name);
+            } catch {}
+          }
+        }
+      } finally {
+        setIsPageLoading(false);
       }
     }
-    loadMetadata();
+
+    loadInitialProfile();
   }, []);
 
-  // Load Districts when State changes
-  useEffect(() => {
-    if (!selectedState) return;
-    async function loadDistricts() {
-      try {
-        const res = await apiClient.get(`/locations/districts?state=${encodeURIComponent(selectedState)}`);
-        const list = res.data?.data?.districts || [];
-        setDistricts(list);
-        if (list.length > 0) setSelectedDistrict(list[0]);
-      } catch {
-        setDistricts([]);
-      }
-    }
-    loadDistricts();
-  }, [selectedState]);
+  // Compute suggested skills based on selected industry and roles
+  const availableRoles = getRolesForIndustry(selectedIndustry);
+  const recommendedSkills = getSkillsForRoles(selectedIndustry, selectedRoles.length > 0 ? selectedRoles : availableRoles);
 
-  const toggleEmploymentType = (type: string) => {
-    if (employmentType.includes(type)) {
-      if (employmentType.length > 1) {
-        setEmploymentType(employmentType.filter((t) => t !== type));
-      }
+  // Handlers for dynamic lists
+  const handleToggleRole = (role: string) => {
+    if (selectedRoles.includes(role)) {
+      setSelectedRoles(selectedRoles.filter((r) => r !== role));
     } else {
-      setEmploymentType([...employmentType, type]);
+      setSelectedRoles([...selectedRoles, role]);
     }
   };
 
-  const handleNextStep = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (step < totalSteps) {
-      setStep(step + 1);
+  const handleAddCustomRole = () => {
+    const val = customRoleInput.trim();
+    if (val && !selectedRoles.includes(val)) {
+      setSelectedRoles([...selectedRoles, val]);
+      setCustomRoleInput("");
+    }
+  };
+
+  const handleToggleSkill = (skill: string) => {
+    if (selectedSkills.includes(skill)) {
+      setSelectedSkills(selectedSkills.filter((s) => s !== skill));
+    } else {
+      setSelectedSkills([...selectedSkills, skill]);
+    }
+  };
+
+  const handleAddCustomSkill = () => {
+    const val = customSkillInput.trim();
+    if (val && !selectedSkills.includes(val)) {
+      setSelectedSkills([...selectedSkills, val]);
+      setCustomSkillInput("");
+    }
+  };
+
+  const handleAddPreferredLocation = () => {
+    const val = prefLocationInput.trim();
+    if (val && !preferredLocations.includes(val)) {
+      setPreferredLocations([...preferredLocations, val]);
+      setPrefLocationInput("");
+    }
+  };
+
+  const handleToggleEmploymentPref = (pref: string) => {
+    if (selectedEmploymentPrefs.includes(pref)) {
+      if (selectedEmploymentPrefs.length > 1) {
+        setSelectedEmploymentPrefs(selectedEmploymentPrefs.filter((p) => p !== pref));
+      }
+    } else {
+      setSelectedEmploymentPrefs([...selectedEmploymentPrefs, pref]);
+    }
+  };
+
+  // Build education payload
+  const buildEducationArray = () => {
+    const list: any[] = [];
+    if (qualification !== "Class 10th" && qualification !== "Class 12th") {
+      if (degree.trim() || college.trim() || gradYear.trim()) {
+        list.push({
+          title: qualification,
+          board_or_stream: degree.trim() || undefined,
+          institution: college.trim() || undefined,
+          year_completed: gradYear.trim() || undefined,
+          marks_or_grade: gradMarks.trim() || undefined,
+        });
+      }
+    }
+    if (qualification !== "Class 10th") {
+      if (s12Board.trim() || s12School.trim() || s12Year.trim()) {
+        list.push({
+          title: "Class 12th",
+          board_or_stream: s12Board.trim() || undefined,
+          institution: s12School.trim() || undefined,
+          year_completed: s12Year.trim() || undefined,
+          marks_or_grade: s12Marks.trim() || undefined,
+        });
+      }
+    }
+    if (s10Board.trim() || s10School.trim() || s10Year.trim()) {
+      list.push({
+        title: "Class 10th",
+        board_or_stream: s10Board.trim() || undefined,
+        institution: s10School.trim() || undefined,
+        year_completed: s10Year.trim() || undefined,
+        marks_or_grade: s10Marks.trim() || undefined,
+      });
+    }
+    return list;
+  };
+
+  // Build full profile payload
+  const buildPayload = (isFinal = false) => {
+    const isExp = currentStatus === "Experienced Professional" || currentStatus === "Freelancer";
+    const resolvedIndustry = selectedIndustry === "none_of_above" ? customIndustry.trim() : selectedIndustry;
+    const resolvedHeadline = isExp && currentRole.trim() && currentCompany.trim()
+      ? `${currentRole.trim()} at ${currentCompany.trim()}`
+      : selectedRoles[0]
+      ? `${selectedRoles[0]} · ${currentStatus}`
+      : `Seeking opportunities as ${currentStatus}`;
+
+    return {
+      name: name.trim() || undefined,
+      industry_type: resolvedIndustry || undefined,
+      job_roles: selectedRoles.length > 0 ? selectedRoles : undefined,
+      skills: selectedSkills.length > 0 ? selectedSkills : undefined,
+      current_status: currentStatus,
+      is_experienced: isExp,
+      experience_years: isExp ? parseInt(expYears, 10) || 0 : 0,
+      current_company: isExp ? currentCompany.trim() || undefined : undefined,
+      current_role: isExp ? currentRole.trim() || undefined : undefined,
+      headline: resolvedHeadline,
+      education: buildEducationArray(),
+      city: city.trim() || undefined,
+      preferred_locations: preferredLocations.length > 0 ? preferredLocations : undefined,
+      willing_to_relocate: willingToRelocate,
+      employment_preferences: selectedEmploymentPrefs,
+      expected_salary_min: minSalary ? parseInt(minSalary, 10) : undefined,
+      expected_salary_max: maxSalary ? parseInt(maxSalary, 10) : undefined,
+      onboarding_step: isFinal ? 11 : currentStep + 1,
+      onboarded: isFinal ? true : undefined,
+    };
+  };
+
+  // Step validation
+  const validateCurrentStep = (): boolean => {
+    setError(null);
+    if (currentStep === 2) {
+      if (!name.trim()) {
+        setError("Please enter your full name");
+        return false;
+      }
+      if (!selectedIndustry) {
+        setError("Please select your primary industry");
+        return false;
+      }
+      if (selectedIndustry === "none_of_above" && !customIndustry.trim()) {
+        setError("Please specify your custom industry");
+        return false;
+      }
+    } else if (currentStep === 3) {
+      if (selectedRoles.length === 0) {
+        setError("Please select at least one job role that interests you");
+        return false;
+      }
+    } else if (currentStep === 4) {
+      if (selectedSkills.length === 0) {
+        setError("Please select or add at least one professional skill");
+        return false;
+      }
+    } else if (currentStep === 5) {
+      if (!currentStatus) {
+        setError("Please select your current profile status");
+        return false;
+      }
+      const isExp = currentStatus === "Experienced Professional" || currentStatus === "Freelancer";
+      if (isExp && !expYears.trim()) {
+        setError("Please enter your total years of experience");
+        return false;
+      }
+    } else if (currentStep === 7) {
+      if (!city.trim()) {
+        setError("Please enter your current city");
+        return false;
+      }
+    }
+    return true;
+  };
+
+  // Next Step or Save
+  const handleNext = async () => {
+    if (!validateCurrentStep()) return;
+
+    if (currentStep < totalSteps) {
+      // Auto-save progress silently in background
+      try {
+        const payload = buildPayload(false);
+        apiClient.put(ENDPOINTS.SEEKER_PROFILE, payload).catch(() => {});
+      } catch {}
+
+      setCurrentStep(currentStep + 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      await handleFinalSubmit();
+    }
+  };
+
+  const handleBack = () => {
+    if (currentStep > 1) {
+      setError(null);
+      setCurrentStep(currentStep - 1);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  // Skip step if optional
+  const handleSkipStep = () => {
+    setError(null);
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } else {
       handleFinalSubmit();
     }
   };
 
+  // Skip entire onboarding
+  const handleSkipAll = async () => {
+    setIsLoading(true);
+    try {
+      await apiClient.put(ENDPOINTS.SEEKER_PROFILE, {
+        onboarded: true,
+        onboarding_step: 11,
+      });
+      router.push("/seeker/dashboard");
+    } catch {
+      router.push("/seeker/dashboard");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Final submit
   const handleFinalSubmit = async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const skillsArray = skills
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean);
-
-      const payload = {
-        headline: headline.trim() || desiredRole || currentRole || "Job Seeker",
-        experience_years: currentStatus === "Student" || currentStatus === "Fresher" ? 0 : Number(experienceYears) || 0,
-        expected_salary_min: Number(expectedSalaryMin) || undefined,
-        expected_salary_max: Number(expectedSalaryMax) || undefined,
-        state: selectedState,
-        district: selectedDistrict,
-        location: preferredCity ? `${preferredCity}, ${selectedDistrict}, ${selectedState}` : `${selectedDistrict}, ${selectedState}`,
-        skills: skillsArray,
-        industry_type: selectedIndustry,
-        bio: `${currentStatus} targeting ${desiredRole || "open opportunities"} in ${selectedIndustry}. Education: ${qualification} ${degree ? `in ${degree}` : ""} from ${college || "reputed institute"}.`,
-        education: [
-          {
-            qualification,
-            degree,
-            college_name: college,
-            passing_year: gradYear,
-            percentage_or_cgpa: marks,
-          },
-        ],
-        employment_preferences: employmentType,
-        willing_to_relocate: willingToRelocate,
-      };
-
-      // 1. Update Seeker Profile in Laravel Backend
+      const payload = buildPayload(true);
       await apiClient.put(ENDPOINTS.SEEKER_PROFILE, payload);
 
-      // 2. Upload Resume PDF if attached
+      // Upload resume if attached
       if (resumeFile) {
         const formData = new FormData();
         formData.append("resume", resumeFile);
@@ -178,452 +489,856 @@ export default function SeekerOnboardingPage() {
             headers: { "Content-Type": "multipart/form-data" },
           });
         } catch {
-          // Resume upload warning
+          // Non-fatal resume upload issue
         }
       }
 
       setIsSuccess(true);
       setTimeout(() => {
         router.push("/seeker/dashboard");
-      }, 1500);
+      }, 1200);
     } catch (err: any) {
-      setError(err.response?.data?.message || err.message || "Failed to update profile. Please verify your fields.");
-    } finally {
+      setError(err.response?.data?.message || err.message || "Failed to save profile. Please check your details.");
       setIsLoading(false);
     }
   };
 
+  if (isPageLoading) {
+    return (
+      <div className="min-h-[70vh] flex flex-col items-center justify-center space-y-4">
+        <div className="h-10 w-10 border-4 border-[#174A7E] border-t-transparent rounded-full animate-spin" />
+        <p className="text-xs font-semibold text-slate-500">Loading your profile preferences...</p>
+      </div>
+    );
+  }
+
+  const isOptionalStep = currentStep === 1 || currentStep === 6 || currentStep === 8;
+
   return (
-    <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 py-10 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+    <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      {/* Top Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div className="space-y-1">
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#174A7E]/10 text-[#174A7E]">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#174A7E]/10 text-[#174A7E]">
             <Sparkles className="h-3.5 w-3.5" /> Candidate Onboarding
-          </span>
+          </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
-            Complete Your Job Profile
+            {currentStep === 1 ? "Welcome to JobAllocate! 🚀" : "Build Your Career Profile"}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500">
-            Match with verified recruiters and access all 13 ATS resume templates
+            Complete your profile to unlock tailored job recommendations, direct recruiter outreach, and ATS resume access.
           </p>
         </div>
+
         <button
           type="button"
-          onClick={() => router.push("/seeker/dashboard")}
-          className="self-start sm:self-center text-xs font-bold text-slate-500 hover:text-[#174A7E] border border-slate-200 hover:border-slate-300 bg-white px-3.5 py-1.5 rounded-full transition-all shadow-2xs"
+          onClick={handleSkipAll}
+          disabled={isLoading}
+          className="self-start sm:self-center text-xs font-bold text-slate-600 hover:text-[#174A7E] border border-slate-200 hover:border-slate-300 bg-white px-4 py-2 rounded-full transition-all shadow-2xs"
         >
           Skip Onboarding →
         </button>
       </div>
 
-      {/* Step Progress Bar */}
-      <div className="grid grid-cols-5 gap-2 text-center text-xs font-bold">
-        {[
-          { num: 1, label: "Status" },
-          { num: 2, label: "Role & Skills" },
-          { num: 3, label: "Education" },
-          { num: 4, label: "Preferences" },
-          { num: 5, label: "Resume" },
-        ].map((s) => (
+      {/* Progress Indicator */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-xs font-bold">
+          <span className="text-[#174A7E]">
+            Step {currentStep} of {totalSteps}
+          </span>
+          <span className="text-emerald-700">
+            {Math.round((currentStep / totalSteps) * 100)}% Completed
+          </span>
+        </div>
+        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
           <div
-            key={s.num}
-            className={`py-2.5 px-1 rounded-xl border transition-all ${
-              step === s.num
-                ? "bg-[#174A7E] text-white border-[#174A7E] shadow-md scale-[1.02]"
-                : step > s.num
-                ? "bg-emerald-50 text-emerald-800 border-emerald-300 font-semibold"
-                : "bg-slate-100 text-slate-500 border-slate-200"
-            }`}
-          >
-            {s.num}. {s.label}
-          </div>
-        ))}
+            className="h-full bg-[#174A7E] transition-all duration-300 rounded-full"
+            style={{ width: `${(currentStep / totalSteps) * 100}%` }}
+          />
+        </div>
       </div>
 
-      <Card className="p-6 sm:p-8 space-y-6 border-slate-200/90 shadow-xl rounded-3xl">
+      {/* Main Card Content */}
+      <Card className="p-6 sm:p-8 space-y-6 border-slate-200/90 shadow-lg rounded-3xl bg-white">
         {error && (
-          <div className="rounded-xl bg-red-50 p-3.5 text-xs text-red-700 font-medium flex items-center gap-2 border border-red-200">
+          <div className="rounded-2xl bg-red-50 p-4 text-xs text-red-700 font-medium flex items-center gap-2 border border-red-200 animate-in fade-in">
             <AlertCircle className="h-4 w-4 shrink-0 text-red-500" />
             <span>{error}</span>
           </div>
         )}
 
         {isSuccess ? (
-          <div className="text-center py-12 space-y-3">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-600">
-              <CheckCircle2 className="h-10 w-10" />
+          <div className="text-center py-16 space-y-4">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-100 text-emerald-600 shadow-md">
+              <CheckCircle2 className="h-12 w-12" />
             </div>
-            <h3 className="text-xl font-bold text-slate-900">Candidate Profile Completed!</h3>
-            <p className="text-xs text-slate-500">Redirecting to candidate dashboard and matching jobs...</p>
+            <h2 className="text-2xl font-black text-slate-900">Profile Setup Completed! 🚀</h2>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+              Your profile is ready. Redirecting you to your candidate dashboard to view matching jobs...
+            </p>
           </div>
         ) : (
-          <form onSubmit={handleNextStep} className="space-y-6">
-            {/* STEP 1: CURRENT STATUS & EXPERIENCE */}
-            {step === 1 && (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <h3 className="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2">
-                  Step 1: What is your current employment status?
-                </h3>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
-                  {[
-                    "Student",
-                    "Fresher",
-                    "Experienced Professional",
-                    "Freelancer",
-                    "Career Break",
-                  ].map((status) => (
-                    <button
-                      key={status}
-                      type="button"
-                      onClick={() => setCurrentStatus(status)}
-                      className={`p-3 rounded-2xl border text-xs font-bold text-left transition-all ${
-                        currentStatus === status
-                          ? "bg-sky-50 text-[#174A7E] border-[#174A7E] ring-2 ring-[#174A7E]/20"
-                          : "border-slate-200 text-slate-700 hover:bg-slate-50"
-                      }`}
-                    >
-                      {status}
-                    </button>
-                  ))}
+          <div className="space-y-6">
+            {/* STEP 1: Welcome Overview */}
+            {currentStep === 1 && (
+              <div className="text-center py-6 space-y-6 max-w-xl mx-auto">
+                <div className="h-24 w-24 rounded-3xl bg-blue-50 text-[#174A7E] flex items-center justify-center mx-auto shadow-sm">
+                  <Rocket className="h-12 w-12" />
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-2xl font-black text-slate-900">Let&apos;s Help You Land Your Dream Job</h3>
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                    In just 2 minutes, personalize your industry, job preferences, and key skills. Recruiters prioritize candidates with completed profiles!
+                  </p>
                 </div>
 
-                {currentStatus !== "Student" && currentStatus !== "Fresher" && (
-                  <div className="space-y-4 pt-2">
-                    <Input
-                      label="Total Years of Work Experience"
-                      type="number"
-                      placeholder="e.g. 3"
-                      min="0"
-                      max="40"
-                      value={experienceYears}
-                      onChange={(e) => setExperienceYears(e.target.value)}
-                    />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-left pt-2">
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                    <span className="text-lg">🎯</span>
+                    <h4 className="text-xs font-bold text-slate-800">Targeted Matches</h4>
+                    <p className="text-[11px] text-slate-500">Only see jobs that match your selected role & skills.</p>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                    <span className="text-lg">⚡</span>
+                    <h4 className="text-xs font-bold text-slate-800">1-Click Apply</h4>
+                    <p className="text-[11px] text-slate-500">Apply instantly to hiring companies and consultancies.</p>
+                  </div>
+                  <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 space-y-1">
+                    <span className="text-lg">📄</span>
+                    <h4 className="text-xs font-bold text-slate-800">ATS Resumes</h4>
+                    <p className="text-[11px] text-slate-500">Access verified resume layouts approved by recruiters.</p>
+                  </div>
+                </div>
+              </div>
+            )}
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* STEP 2: Basic Info & Industry Selection */}
+            {currentStep === 2 && (
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>What is your name & industry?</span> 👋
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    We will customize your job roles and skills recommendations based on your primary industry.
+                  </p>
+                </div>
+
+                <Input
+                  label="Full Name *"
+                  placeholder="e.g. Rahul Sharma"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  required
+                />
+
+                <div className="space-y-3">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                    Select Your Primary Industry *
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 max-h-80 overflow-y-auto pr-1">
+                    {INDUSTRY_TYPES.map((ind) => {
+                      const Icon = INDUSTRY_ICON_MAP[ind.key] || Briefcase;
+                      const isSelected = selectedIndustry === ind.key;
+                      return (
+                        <button
+                          key={ind.key}
+                          type="button"
+                          onClick={() => {
+                            setSelectedIndustry(ind.key);
+                            setSelectedRoles([]);
+                            setSelectedSkills([]);
+                          }}
+                          className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all gap-2 ${
+                            isSelected
+                              ? "bg-[#174A7E]/5 border-[#174A7E] shadow-sm ring-2 ring-[#174A7E]/20 text-[#174A7E]"
+                              : "bg-white border-slate-200 hover:border-slate-300 text-slate-700"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <Icon className={`h-5 w-5 ${isSelected ? "text-[#174A7E]" : "text-slate-400"}`} />
+                            {isSelected && <Check className="h-4 w-4 text-[#174A7E]" />}
+                          </div>
+                          <span className="text-xs font-bold leading-snug line-clamp-2">
+                            {ind.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedIndustry("none_of_above");
+                        setSelectedRoles([]);
+                        setSelectedSkills([]);
+                      }}
+                      className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all gap-2 ${
+                        selectedIndustry === "none_of_above"
+                          ? "bg-[#174A7E]/5 border-[#174A7E] shadow-sm ring-2 ring-[#174A7E]/20 text-[#174A7E]"
+                          : "bg-white border-slate-200 hover:border-slate-300 text-slate-700"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <Plus className="h-5 w-5 text-slate-400" />
+                        {selectedIndustry === "none_of_above" && <Check className="h-4 w-4 text-[#174A7E]" />}
+                      </div>
+                      <span className="text-xs font-bold leading-snug">Other (Custom Industry)</span>
+                    </button>
+                  </div>
+                </div>
+
+                {selectedIndustry === "none_of_above" && (
+                  <Input
+                    label="Custom Industry Name *"
+                    placeholder="e.g. Space Exploration, Robotics"
+                    value={customIndustry}
+                    onChange={(e) => setCustomIndustry(e.target.value)}
+                    required
+                  />
+                )}
+              </div>
+            )}
+
+            {/* STEP 3: Job Roles */}
+            {currentStep === 3 && (
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>What job roles interest you?</span> 🎯
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Select the job roles you are looking for in {getIndustryLabel(selectedIndustry)}. (Multiple selections allowed)
+                  </p>
+                </div>
+
+                {availableRoles.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                      Common Roles in {getIndustryLabel(selectedIndustry)}
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {availableRoles.map((role) => {
+                        const isSelected = selectedRoles.includes(role);
+                        return (
+                          <button
+                            key={role}
+                            type="button"
+                            onClick={() => handleToggleRole(role)}
+                            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all border ${
+                              isSelected
+                                ? "bg-[#174A7E] text-white border-[#174A7E] shadow-2xs"
+                                : "bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300"
+                            }`}
+                          >
+                            {isSelected ? `✓ ${role}` : `+ ${role}`}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                    Add Custom Role
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="e.g. Senior Tech Lead, Growth Associate"
+                      value={customRoleInput}
+                      onChange={(e) => setCustomRoleInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddCustomRole();
+                        }
+                      }}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={handleAddCustomRole}
+                      className="px-4 font-bold"
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Add
+                    </Button>
+                  </div>
+                </div>
+
+                {selectedRoles.length > 0 && (
+                  <div className="p-4 rounded-2xl bg-blue-50/50 border border-blue-100 space-y-2">
+                    <span className="text-xs font-bold text-[#174A7E]">
+                      Selected Roles ({selectedRoles.length}):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedRoles.map((role) => (
+                        <span
+                          key={role}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-[#174A7E] text-white shadow-2xs"
+                        >
+                          {role}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleRole(role)}
+                            className="hover:text-red-200"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STEP 4: Skills */}
+            {currentStep === 4 && (
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>Add your professional skills</span> 💻
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Recommended based on high-demand recruiter searches in {getIndustryLabel(selectedIndustry)}.
+                  </p>
+                </div>
+
+                {recommendedSkills.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                      Recommended Skills
+                    </label>
+                    <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-1">
+                      {recommendedSkills.map((skill) => {
+                        const isSelected = selectedSkills.includes(skill);
+                        return (
+                          <button
+                            key={skill}
+                            type="button"
+                            onClick={() => handleToggleSkill(skill)}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                              isSelected
+                                ? "bg-emerald-600 text-white border-emerald-600 shadow-2xs"
+                                : "bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300"
+                            }`}
+                          >
+                            {isSelected ? `✓ ${skill}` : `+ ${skill}`}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                    Add Custom Skill
+                  </label>
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="e.g. Next.js, SAP, Kubernetes, Figma"
+                      value={customSkillInput}
+                      onChange={(e) => setCustomSkillInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleAddCustomSkill();
+                        }
+                      }}
+                      className="flex-1"
+                    />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      onClick={handleAddCustomSkill}
+                      className="px-4 font-bold"
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Add
+                    </Button>
+                  </div>
+                </div>
+
+                {selectedSkills.length > 0 && (
+                  <div className="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100 space-y-2">
+                    <span className="text-xs font-bold text-emerald-800">
+                      Selected Skills ({selectedSkills.length}):
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {selectedSkills.map((skill) => (
+                        <span
+                          key={skill}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-700 text-white shadow-2xs"
+                        >
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => handleToggleSkill(skill)}
+                            className="hover:text-red-200"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STEP 5: Current Status & Experience */}
+            {currentStep === 5 && (
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>What is your current profile status?</span> 💼
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Helps employers know if you are entry-level or have prior corporate experience.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {STATUS_OPTIONS.map((status) => {
+                    const isSelected = currentStatus === status;
+                    return (
+                      <button
+                        key={status}
+                        type="button"
+                        onClick={() => setCurrentStatus(status)}
+                        className={`p-4 rounded-2xl border text-left flex items-center justify-between transition-all ${
+                          isSelected
+                            ? "bg-[#174A7E]/5 border-[#174A7E] ring-2 ring-[#174A7E]/20 text-[#174A7E] font-bold"
+                            : "bg-white border-slate-200 hover:border-slate-300 text-slate-700 font-medium"
+                        }`}
+                      >
+                        <span className="text-sm">{status}</span>
+                        {isSelected ? (
+                          <CheckCircle2 className="h-5 w-5 text-[#174A7E]" />
+                        ) : (
+                          <div className="h-4 w-4 rounded-full border border-slate-300" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {(currentStatus === "Experienced Professional" || currentStatus === "Freelancer") && (
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4 animate-in fade-in">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                      Experience Details
+                    </h4>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <Input
-                        label="Current / Most Recent Company"
+                        label="Total Experience (Years) *"
+                        type="number"
+                        min="0"
+                        placeholder="e.g. 3"
+                        value={expYears}
+                        onChange={(e) => setExpYears(e.target.value)}
+                        required
+                      />
+                      <Input
+                        label="Current / Last Company *"
                         placeholder="e.g. Infosys, TCS, Startup"
                         value={currentCompany}
                         onChange={(e) => setCurrentCompany(e.target.value)}
+                        className="sm:col-span-2"
+                        required
+                      />
+                    </div>
+
+                    <Input
+                      label="Current / Last Job Title *"
+                      placeholder="e.g. Senior Software Engineer"
+                      value={currentRole}
+                      onChange={(e) => setCurrentRole(e.target.value)}
+                      required
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* STEP 6: Education Details */}
+            {currentStep === 6 && (
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>Tell us about your education</span> 🎓
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Academic qualifications help recruiters match entry-level and specialized roles. (Optional, can be skipped)
+                  </p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                    Highest Qualification
+                  </label>
+                  <select
+                    value={qualification}
+                    onChange={(e) => setQualification(e.target.value)}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#174A7E]"
+                  >
+                    {QUALIFICATION_OPTIONS.map((q) => (
+                      <option key={q} value={q}>
+                        {q}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {qualification !== "Class 10th" && qualification !== "Class 12th" && (
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                      Highest Qualification Details ({qualification})
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Input
+                        label="Course / Degree Name"
+                        placeholder="e.g. B.Tech Computer Science, BBA"
+                        value={degree}
+                        onChange={(e) => setDegree(e.target.value)}
                       />
                       <Input
-                        label="Current / Last Job Title"
-                        placeholder="e.g. Software Engineer"
-                        value={currentRole}
-                        onChange={(e) => setCurrentRole(e.target.value)}
+                        label="College / University Name"
+                        placeholder="e.g. Delhi University, IIT Bombay"
+                        value={college}
+                        onChange={(e) => setCollege(e.target.value)}
+                      />
+                      <Input
+                        label="Graduation Year"
+                        placeholder="e.g. 2024"
+                        value={gradYear}
+                        onChange={(e) => setGradYear(e.target.value)}
+                      />
+                      <Input
+                        label="Marks / CGPA"
+                        placeholder="e.g. 8.5 CGPA or 85%"
+                        value={gradMarks}
+                        onChange={(e) => setGradMarks(e.target.value)}
                       />
                     </div>
                   </div>
                 )}
 
-                <Input
-                  label="Professional Headline"
-                  placeholder="e.g. B.Tech Computer Science Graduate | Full Stack React & Node Developer"
-                  value={headline}
-                  onChange={(e) => setHeadline(e.target.value)}
-                  helperText="This is the first line recruiters see on your profile"
-                />
-              </div>
-            )}
+                {qualification !== "Class 10th" && (
+                  <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                      Class 12th Details
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Input
+                        label="Board / Stream Name"
+                        placeholder="e.g. CBSE Science, State Board Commerce"
+                        value={s12Board}
+                        onChange={(e) => setS12Board(e.target.value)}
+                      />
+                      <Input
+                        label="School Name"
+                        placeholder="e.g. St. Xavier's High School"
+                        value={s12School}
+                        onChange={(e) => setS12School(e.target.value)}
+                      />
+                      <Input
+                        label="Passing Year"
+                        placeholder="e.g. 2020"
+                        value={s12Year}
+                        onChange={(e) => setS12Year(e.target.value)}
+                      />
+                      <Input
+                        label="Marks / Percentage"
+                        placeholder="e.g. 90%"
+                        value={s12Marks}
+                        onChange={(e) => setS12Marks(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                )}
 
-            {/* STEP 2: INDUSTRY & SKILLS */}
-            {step === 2 && (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <h3 className="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2">
-                  Step 2: Target Industry & Top Skills
-                </h3>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Primary Industry Focus <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={selectedIndustry}
-                    onChange={(e) => setSelectedIndustry(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#174A7E]/20"
-                  >
-                    {industries.length > 0 ? (
-                      industries.map((ind) => (
-                        <option key={ind} value={ind}>{ind}</option>
-                      ))
-                    ) : (
-                      <>
-                        <option value="Information Technology">Information Technology</option>
-                        <option value="Finance & Banking">Finance & Banking</option>
-                        <option value="Healthcare & Pharma">Healthcare & Pharma</option>
-                        <option value="E-Commerce & Retail">E-Commerce & Retail</option>
-                        <option value="Manufacturing & Engineering">Manufacturing & Engineering</option>
-                      </>
-                    )}
-                  </select>
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-4">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800">
+                    Class 10th Details
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Input
+                      label="Board Name"
+                      placeholder="e.g. CBSE, ICSE, State Board"
+                      value={s10Board}
+                      onChange={(e) => setS10Board(e.target.value)}
+                    />
+                    <Input
+                      label="School Name"
+                      placeholder="e.g. Central School"
+                      value={s10School}
+                      onChange={(e) => setS10School(e.target.value)}
+                    />
+                    <Input
+                      label="Passing Year"
+                      placeholder="e.g. 2018"
+                      value={s10Year}
+                      onChange={(e) => setS10Year(e.target.value)}
+                    />
+                    <Input
+                      label="Marks / Percentage"
+                      placeholder="e.g. 92%"
+                      value={s10Marks}
+                      onChange={(e) => setS10Marks(e.target.value)}
+                    />
+                  </div>
                 </div>
-
-                <Input
-                  label="Desired Job Title / Target Role"
-                  placeholder="e.g. Frontend Developer, HR Executive, Data Analyst"
-                  required
-                  value={desiredRole}
-                  onChange={(e) => setDesiredRole(e.target.value)}
-                  leftIcon={<Briefcase className="h-4 w-4" />}
-                />
-
-                <Input
-                  label="Top Skills (Comma Separated)"
-                  placeholder="e.g. Python, SQL, React, Project Management, Communication"
-                  required
-                  value={skills}
-                  onChange={(e) => setSkills(e.target.value)}
-                  helperText="Enter 3 to 8 relevant skills"
-                />
               </div>
             )}
 
-            {/* STEP 3: EDUCATION */}
-            {step === 3 && (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <h3 className="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2">
-                  Step 3: Highest Educational Qualification
-                </h3>
-
-                <div className="space-y-1.5">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Highest Qualification <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={qualification}
-                    onChange={(e) => setQualification(e.target.value)}
-                    className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#174A7E]/20"
-                  >
-                    <option value="Bachelor's Degree">Bachelor's Degree (B.Tech / B.E / B.Sc / B.Com / B.A)</option>
-                    <option value="Master's Degree">Master's Degree (M.Tech / M.Sc / MBA / MCA)</option>
-                    <option value="Diploma">Diploma / Polytechnic</option>
-                    <option value="12th Pass">12th Standard / Higher Secondary</option>
-                    <option value="10th Pass">10th Standard / Matriculation</option>
-                    <option value="Doctorate / PhD">Doctorate / PhD</option>
-                  </select>
+            {/* STEP 7: Location & Work Preferences */}
+            {currentStep === 7 && (
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>Where are you located & work preferences?</span> 📍
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Let employers know your location constraints, relocation interest, and salary expectations.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
-                    label="Degree / Course Specialization"
-                    placeholder="e.g. Computer Science, Mechanical, Finance"
-                    value={degree}
-                    onChange={(e) => setDegree(e.target.value)}
+                    label="Current City *"
+                    placeholder="e.g. Bengaluru, Mumbai, Pune"
+                    value={city}
+                    onChange={(e) => setCity(e.target.value)}
+                    leftIcon={<MapPin className="h-4 w-4" />}
+                    required
                   />
-                  <Input
-                    label="College / Institute / University"
-                    placeholder="e.g. Delhi University, VTU, Mumbai University"
-                    value={college}
-                    onChange={(e) => setCollege(e.target.value)}
-                    leftIcon={<GraduationCap className="h-4 w-4" />}
-                  />
-                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <Input
-                    label="Year of Graduation"
-                    type="number"
-                    placeholder="e.g. 2024"
-                    value={gradYear}
-                    onChange={(e) => setGradYear(e.target.value)}
-                  />
-                  <Input
-                    label="Percentage / CGPA (Optional)"
-                    placeholder="e.g. 8.2 CGPA or 78%"
-                    value={marks}
-                    onChange={(e) => setMarks(e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-
-            {/* STEP 4: LOCATION & WORK PREFERENCES */}
-            {step === 4 && (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <h3 className="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2">
-                  Step 4: Location & Compensation Preferences
-                </h3>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Preferred State <span className="text-red-500">*</span>
+                  <div className="space-y-1">
+                    <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                      Preferred Job Locations
                     </label>
-                    <select
-                      value={selectedState}
-                      onChange={(e) => setSelectedState(e.target.value)}
-                      required
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#174A7E]/20"
-                    >
-                      {states.map((st) => (
-                        <option key={st} value={st}>{st}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="block text-xs font-bold text-slate-700">
-                      Preferred District <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={selectedDistrict}
-                      onChange={(e) => setSelectedDistrict(e.target.value)}
-                      required
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#174A7E]/20"
-                    >
-                      {districts.map((dst) => (
-                        <option key={dst} value={dst}>{dst}</option>
-                      ))}
-                    </select>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Add city (e.g. Hyderabad)"
+                        value={prefLocationInput}
+                        onChange={(e) => setPrefLocationInput(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleAddPreferredLocation();
+                          }
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={handleAddPreferredLocation}
+                        className="px-3"
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
-                <Input
-                  label="Specific Preferred City / Town (Optional)"
-                  placeholder="e.g. Whitefield, Koramangala, Pune, Noida"
-                  value={preferredCity}
-                  onChange={(e) => setPreferredCity(e.target.value)}
-                  leftIcon={<MapPin className="h-4 w-4" />}
-                />
+                {preferredLocations.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {preferredLocations.map((loc) => (
+                      <span
+                        key={loc}
+                        className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200"
+                      >
+                        {loc}
+                        <button
+                          type="button"
+                          onClick={() => setPreferredLocations(preferredLocations.filter((l) => l !== loc))}
+                          className="hover:text-red-500"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
 
-                <label className="flex items-center gap-2 text-xs font-semibold text-slate-700 cursor-pointer pt-1">
+                <div className="flex items-center gap-2 pt-2">
                   <input
                     type="checkbox"
+                    id="relocateCheck"
                     checked={willingToRelocate}
                     onChange={(e) => setWillingToRelocate(e.target.checked)}
-                    className="rounded text-[#174A7E] h-4 w-4"
+                    className="h-4 w-4 rounded border-slate-300 text-[#174A7E] focus:ring-[#174A7E]"
                   />
-                  <span>I am willing to relocate for the right job opportunity</span>
-                </label>
+                  <label htmlFor="relocateCheck" className="text-xs font-semibold text-slate-800 cursor-pointer">
+                    I am willing to relocate for the right job opportunity
+                  </label>
+                </div>
 
                 <div className="space-y-2 pt-2">
-                  <label className="block text-xs font-bold text-slate-700">
-                    Employment Type Preferences
+                  <label className="text-xs font-bold uppercase tracking-wider text-slate-700 block">
+                    Employment Formats (Select Multiple)
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {["Full Time", "Part Time", "Internship", "Remote", "Hybrid", "Work From Office"].map((type) => (
-                      <button
-                        key={type}
-                        type="button"
-                        onClick={() => toggleEmploymentType(type)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
-                          employmentType.includes(type)
-                            ? "bg-[#174A7E] text-white shadow-sm"
-                            : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                        }`}
-                      >
-                        {type}
-                      </button>
-                    ))}
+                    {EMPLOYMENT_PREF_OPTIONS.map((opt) => {
+                      const isSelected = selectedEmploymentPrefs.includes(opt);
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() => handleToggleEmploymentPref(opt)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all border ${
+                            isSelected
+                              ? "bg-[#174A7E] text-white border-[#174A7E]"
+                              : "bg-slate-50 text-slate-700 border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          {isSelected ? `✓ ${opt}` : `+ ${opt}`}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                   <Input
-                    label="Expected Minimum Salary (₹ / Annual LPA)"
+                    label="Expected Minimum Annual Salary (₹)"
                     type="number"
-                    placeholder="300000"
-                    value={expectedSalaryMin}
-                    onChange={(e) => setExpectedSalaryMin(e.target.value)}
-                    helperText="e.g. ₹3,00,000 (3 LPA)"
+                    placeholder="e.g. 400000"
+                    value={minSalary}
+                    onChange={(e) => setMinSalary(e.target.value)}
                   />
                   <Input
-                    label="Expected Maximum Salary (₹ / Annual LPA)"
+                    label="Expected Maximum Annual Salary (₹)"
                     type="number"
-                    placeholder="600000"
-                    value={expectedSalaryMax}
-                    onChange={(e) => setExpectedSalaryMax(e.target.value)}
-                    helperText="e.g. ₹6,00,000 (6 LPA)"
+                    placeholder="e.g. 800000"
+                    value={maxSalary}
+                    onChange={(e) => setMaxSalary(e.target.value)}
                   />
                 </div>
               </div>
             )}
 
-            {/* STEP 5: RESUME PDF */}
-            {step === 5 && (
-              <div className="space-y-4 animate-in fade-in duration-200">
-                <h3 className="text-base font-extrabold text-slate-900 border-b border-slate-100 pb-2">
-                  Step 5: Upload Your Resume PDF
-                </h3>
+            {/* STEP 8: Resume Upload */}
+            {currentStep === 8 && (
+              <div className="space-y-6">
+                <div className="space-y-1">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <span>Upload your Resume</span> 📄
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Upload your latest CV in PDF format so recruiters can download it directly. (Optional, can finish without file)
+                  </p>
+                </div>
 
-                <div className="border-2 border-dashed border-slate-200 rounded-2xl p-8 text-center hover:border-[#174A7E] transition-colors cursor-pointer relative bg-slate-50/50">
+                <div className="border-2 border-dashed border-slate-200 rounded-3xl p-8 text-center space-y-4 hover:border-[#174A7E] transition-all bg-slate-50/50">
+                  <div className="h-14 w-14 rounded-2xl bg-blue-50 text-[#174A7E] flex items-center justify-center mx-auto">
+                    <Upload className="h-7 w-7" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-slate-800">
+                      {resumeFile ? resumeFile.name : "Choose a PDF resume file from your computer"}
+                    </p>
+                    <p className="text-[11px] text-slate-400">PDF, DOC, or DOCX (up to 5MB)</p>
+                  </div>
+
                   <input
                     type="file"
+                    id="resumeUploadInput"
                     accept=".pdf,.doc,.docx"
-                    onChange={(e) => setResumeFile(e.target.files?.[0] || null)}
-                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        setResumeFile(e.target.files[0]);
+                      }
+                    }}
                   />
-                  <div className="flex flex-col items-center justify-center space-y-2">
-                    {resumeFile ? (
-                      <>
-                        <div className="h-12 w-12 rounded-2xl bg-sky-100 text-[#174A7E] flex items-center justify-center mb-1">
-                          <FileText className="h-6 w-6" />
-                        </div>
-                        <p className="text-sm font-bold text-slate-900">{resumeFile.name}</p>
-                        <p className="text-xs text-slate-500">
-                          {(resumeFile.size / 1024 / 1024).toFixed(2)} MB • Ready to upload
-                        </p>
-                      </>
-                    ) : (
-                      <>
-                        <div className="h-12 w-12 rounded-2xl bg-slate-100 text-slate-400 flex items-center justify-center mb-1">
-                          <Upload className="h-6 w-6" />
-                        </div>
-                        <p className="text-xs font-bold text-slate-700">
-                          Click to upload your Resume PDF or drag and drop
-                        </p>
-                        <p className="text-[11px] text-slate-400">PDF, DOC, DOCX up to 5MB</p>
-                      </>
+
+                  <div className="flex justify-center gap-3">
+                    <label
+                      htmlFor="resumeUploadInput"
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-300 hover:border-slate-400 text-xs font-bold text-slate-700 cursor-pointer shadow-2xs"
+                    >
+                      <FileText className="h-4 w-4" />
+                      {resumeFile ? "Change File" : "Select Document"}
+                    </label>
+
+                    {resumeFile && (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        onClick={() => setResumeFile(null)}
+                        className="text-xs font-bold text-red-600"
+                      >
+                        Remove
+                      </Button>
                     )}
                   </div>
                 </div>
 
-                <div className="bg-sky-50 border border-sky-200/80 rounded-2xl p-4 flex items-start gap-3 text-xs text-sky-900">
-                  <Sparkles className="h-5 w-5 text-sky-600 shrink-0 mt-0.5" />
-                  <div>
-                    <span className="font-bold">Don't have an ATS resume yet?</span>
-                    <p className="text-[11px] text-sky-800 mt-0.5">
-                      No worries! After onboarding, you can use our built-in Resume Studio to create one of our 13 ATS-friendly templates in minutes.
-                    </p>
+                {existingResumeUrl && !resumeFile && (
+                  <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 flex items-center justify-between">
+                    <span className="font-semibold">✓ You already have an active resume uploaded.</span>
+                    <a
+                      href={existingResumeUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="underline font-bold"
+                    >
+                      View Current CV
+                    </a>
                   </div>
-                </div>
+                )}
               </div>
             )}
 
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-100">
-              {step > 1 ? (
+            {/* Bottom Actions Bar */}
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 border-t border-slate-100">
+              {currentStep > 1 ? (
                 <Button
-                  variant="outline"
                   type="button"
-                  onClick={() => setStep(step - 1)}
-                  leftIcon={<ArrowLeft className="h-4 w-4" />}
-                  className="rounded-2xl"
+                  variant="outline"
+                  onClick={handleBack}
+                  disabled={isLoading}
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-xl font-bold"
                 >
-                  Previous
+                  <ArrowLeft className="h-4 w-4 mr-1.5" /> Back
                 </Button>
               ) : (
-                <button
-                  type="button"
-                  onClick={() => router.push("/seeker/dashboard")}
-                  className="text-xs font-semibold text-slate-400 hover:text-slate-600 underline"
-                >
-                  Skip for now
-                </button>
+                <div />
               )}
 
-              <Button
-                variant="primary"
-                type="submit"
-                isLoading={isLoading}
-                rightIcon={step === totalSteps ? <CheckCircle2 className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-                className="rounded-2xl font-bold px-6 py-2.5 shadow-md"
-              >
-                {step === totalSteps ? "Finish Onboarding & View Jobs" : "Continue"}
-              </Button>
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                {isOptionalStep && currentStep !== 1 && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    onClick={handleSkipStep}
+                    disabled={isLoading}
+                    className="w-full sm:w-auto px-4 py-2.5 text-xs font-bold text-slate-500 hover:text-slate-800"
+                  >
+                    Skip Step
+                  </Button>
+                )}
+
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={handleNext}
+                  isLoading={isLoading}
+                  className="w-full sm:w-auto px-7 py-3 rounded-2xl font-bold shadow-md bg-[#174A7E] hover:bg-[#123962] text-white"
+                >
+                  {currentStep === 1
+                    ? "Let's Start →"
+                    : currentStep === totalSteps
+                    ? "Finish Profile & Go to Dashboard"
+                    : "Next Step →"}
+                </Button>
+              </div>
             </div>
-          </form>
+          </div>
         )}
       </Card>
     </div>

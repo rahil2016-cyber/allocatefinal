@@ -41,13 +41,12 @@ const SUPPORT_INFO = {
   phone: "+91 9036980547",
   phoneRaw: "9036980547",
   whatsappUrl: "https://wa.me/919036980547",
-  email: "info@joballocate.tech",
-  emailSupport: "support@joballocate.com",
+  email: "info@joballocate.com",
   youtubeUrl: "https://www.youtube.com/@joballocate",
   instagramUrl: "https://www.instagram.com/joballocate",
   linkedinUrl: "https://www.linkedin.com/company/joballocate",
   facebookUrl: "https://www.facebook.com/joballocate",
-  websiteUrl: "https://joballocate.tech",
+  websiteUrl: "https://joballocate.com",
   timing: "Mon - Sat: 9:30 AM - 6:30 PM IST",
 };
 

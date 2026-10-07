@@ -69,7 +69,11 @@ export interface Company {
   id?: number | string;
   name: string;
   company_logo_url?: string;
+  logo_url?: string;
+  logo?: string;
   location?: string;
+  website?: string;
+  description?: string;
 }
 
 export interface Job {
@@ -98,12 +102,38 @@ export interface Job {
   created_at: string;
   company_name?: string;
   company_logo?: string;
+  company_logo_url?: string;
   company?: Company;
   employer?: EmployerProfile;
   applications_count?: number;
   views_count?: number;
   is_applied?: boolean;
   is_saved?: boolean;
+  skills?: string[];
+  preferred_locations?: string[];
+  benefits?: string;
+  salary_insights?: string;
+  about_company?: string;
+  role_category?: string;
+  functional_area?: string;
+  education?: string;
+  assets_required?: string;
+  languages?: string;
+  incentive_detail?: string;
+  job_timings?: string;
+  working_days?: string;
+  age_min?: number;
+  age_max?: number;
+  gender_preference?: string;
+  contact_preference?: string;
+  contact_person?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  department?: string;
+  role?: string;
+  security_deposit?: boolean | number;
+  security_deposit_amount?: string;
+  interview_timings?: string;
 }
 
 export interface JobApplication {

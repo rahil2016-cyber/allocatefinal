@@ -12,6 +12,7 @@ import { JobCard } from "@/components/jobs/JobCard";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
 import { ResumeMiniPreview } from "@/components/resume/ResumeMiniPreview";
 import { ResumePreviewModal } from "@/components/resume/ResumePreviewModal";
+import { AiChatFab } from "@/components/ai/AiChatFab";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -242,48 +243,48 @@ export default function HomePage() {
           </div>
 
           {/* Quick Platform Metrics Bar with Real Values */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-              <div className="h-11 w-11 rounded-xl bg-sky-50 text-[#174A7E] flex items-center justify-center shrink-0">
-                <Briefcase className="h-5 w-5" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
+            <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-slate-200/80 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+              <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-lg sm:rounded-xl bg-sky-50 text-[#174A7E] flex items-center justify-center shrink-0">
+                <Briefcase className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+              <div className="min-w-0">
+                <p className="text-base sm:text-xl lg:text-2xl font-black text-slate-900 leading-tight truncate">
                   {jobsList.length > 0 ? `${jobsList.length} Active` : "10,000+"}
                 </p>
-                <p className="text-xs text-slate-500 font-medium">Live Job Openings</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-semibold truncate">Live Job Openings</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-              <div className="h-11 w-11 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
-                <Users className="h-5 w-5" />
+            <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-slate-200/80 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+              <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-lg sm:rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0">
+                <Users className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">50,000+</p>
-                <p className="text-xs text-slate-500 font-medium">Verified Candidates</p>
-              </div>
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-              <div className="h-11 w-11 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
-                <FileText className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">13 ATS</p>
-                <p className="text-xs text-slate-500 font-medium">Resume Templates</p>
+              <div className="min-w-0">
+                <p className="text-base sm:text-xl lg:text-2xl font-black text-slate-900 leading-tight truncate">50,000+</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-semibold truncate">Verified Candidates</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs flex items-center gap-3.5">
-              <div className="h-11 w-11 rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
-                <Building2 className="h-5 w-5" />
+            <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-slate-200/80 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+              <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-lg sm:rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0">
+                <FileText className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
-              <div>
-                <p className="text-xl sm:text-2xl font-black text-slate-900 leading-tight">
+              <div className="min-w-0">
+                <p className="text-base sm:text-xl lg:text-2xl font-black text-slate-900 leading-tight truncate">13 ATS</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-semibold truncate">Resume Templates</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-xl sm:rounded-2xl p-3 sm:p-4 md:p-5 border border-slate-200/80 shadow-xs flex items-center gap-2.5 sm:gap-3.5">
+              <div className="h-9 w-9 sm:h-11 sm:w-11 rounded-lg sm:rounded-xl bg-purple-50 text-purple-700 flex items-center justify-center shrink-0">
+                <Building2 className="h-4 w-4 sm:h-5 sm:w-5" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-base sm:text-xl lg:text-2xl font-black text-slate-900 leading-tight truncate">
                   {topCompanies.length > 0 ? `${topCompanies.length}+ Top` : "500+"}
                 </p>
-                <p className="text-xs text-slate-500 font-medium">Hiring Companies</p>
+                <p className="text-[11px] sm:text-xs text-slate-500 font-semibold truncate">Hiring Companies</p>
               </div>
             </div>
           </div>
@@ -798,6 +799,9 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Floating AI Career Coach matching Flutter app */}
+      <AiChatFab />
     </div>
   );
 }

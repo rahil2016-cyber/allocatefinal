@@ -95,14 +95,11 @@ export default function ContactPage() {
               <div className="h-10 w-10 rounded-xl bg-sky-100 text-[#174A7E] flex items-center justify-center">
                 <Phone className="h-5 w-5" />
               </div>
-              <h3 className="text-sm font-bold text-slate-900">Direct Phone Numbers</h3>
+              <h3 className="text-sm font-bold text-slate-900">Direct Phone Support</h3>
               <p className="text-xs text-slate-600">Customer care & payment verification</p>
               <div className="pt-2 space-y-1 text-sm font-bold text-slate-900">
                 <a href="tel:+919036980547" className="block text-[#174A7E] hover:underline">
                   +91 9036980547
-                </a>
-                <a href="tel:+919036980574" className="block text-[#174A7E] hover:underline">
-                  +91 9036980574
                 </a>
               </div>
             </div>
@@ -112,14 +109,11 @@ export default function ContactPage() {
               <div className="h-10 w-10 rounded-xl bg-purple-100 text-purple-700 flex items-center justify-center">
                 <Mail className="h-5 w-5" />
               </div>
-              <h3 className="text-sm font-bold text-slate-900">Official Email Addresses</h3>
+              <h3 className="text-sm font-bold text-slate-900">Official Email Support</h3>
               <p className="text-xs text-slate-600">For billing, refunds, and corporate inquiries</p>
               <div className="pt-2 space-y-1 text-sm font-bold text-slate-900">
                 <a href="mailto:info@joballocate.com" className="block text-[#174A7E] hover:underline">
                   info@joballocate.com
-                </a>
-                <a href="mailto:support@joballocate.com" className="block text-[#174A7E] hover:underline">
-                  support@joballocate.com
                 </a>
               </div>
             </div>

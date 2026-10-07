@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -33,6 +34,8 @@ import {
   Award,
   Globe,
   BookOpen,
+  History,
+  Calendar,
 } from "lucide-react";
 
 import { useAuth } from "@/lib/auth/context";
@@ -73,7 +76,7 @@ export default function SeekerResumeStudioPage() {
     }
     return "t3_bold_navy";
   });
-  const [activeTab, setActiveTab] = useState<"templates" | "edit" | "preview" | "packages">("templates");
+  const [activeTab, setActiveTab] = useState<"templates" | "edit" | "preview" | "packages" | "history">("templates");
   const [viewMode, setViewMode] = useState<"grid" | "compact">("grid");
   const [purchasingKey, setPurchasingKey] = useState<string | null>(null);
   const [demoVariant, setDemoVariant] = useState(0);
@@ -145,10 +148,17 @@ export default function SeekerResumeStudioPage() {
     "t4_classic_serif",
   ]);
 
-  // Restore draft fields from localStorage on mount (template key already set via lazy init)
+  // Restore draft fields from localStorage on mount and adapt initial zoom to viewport
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
+      const w = window.innerWidth;
+      if (w < 640) {
+        setZoomScale(Math.min(0.85, Math.max(0.36, (w - 36) / 794)));
+      } else if (w < 1024) {
+        setZoomScale(Math.min(0.85, (w - 64) / 794));
+      }
+
       const params = new URLSearchParams(window.location.search);
       const urlTab = params.get("tab");
       if (urlTab && ["templates", "edit", "preview", "packages"].includes(urlTab)) {
@@ -258,6 +268,24 @@ export default function SeekerResumeStudioPage() {
 
   const allowedCount = selectionData?.allowed_count ?? 4;
   const activePackageKey = selectionData?.active_package_key || "basic_resume";
+
+  // Fetch past plan purchases & activations
+  const {
+    data: purchaseHistory,
+    isLoading: isHistoryLoading,
+    refetch: refetchPurchases,
+  } = useQuery({
+    queryKey: ["seekerPackagePurchases"],
+    queryFn: async () => {
+      try {
+        const res = await apiClient.get("/job-seeker/packages/purchases");
+        return res.data?.data || res.data?.items || [];
+      } catch {
+        return [];
+      }
+    },
+    enabled: !!user && activeTab === "history",
+  });
 
   useEffect(() => {
     if (selectionData?.selected_template_ids && Array.isArray(selectionData.selected_template_ids)) {
@@ -562,34 +590,154 @@ export default function SeekerResumeStudioPage() {
     setIsPdfLoading(true);
     setMessage(null);
     try {
+      const htmlToExport = activeHtmlPreview || batchPreviews[selectedTemplateKey] || "";
+      if (!htmlToExport) {
+        throw new Error("Resume template is still loading. Please wait a moment.");
+      }
+
       const res = await apiClient.post("/job-seeker/resume/pdf-create-order", {
         resume_template_id: 1,
         resume_template_title: activeTemplate.label,
         resume_template_key: selectedTemplateKey,
       });
       const orderData = res.data?.data;
+
+      const triggerIsolatedPdf = async () => {
+        const { downloadResumeA4Pdf } = await import("@/lib/resume/exportPdf");
+        await downloadResumeA4Pdf({
+          html: htmlToExport,
+          filename: `${fullName ? fullName.trim().replace(/\s+/g, "_") : "Resume"}_JobAllocate`,
+          title: fullName ? `${fullName} - Resume` : "JobAllocate Resume",
+        });
+      };
+
       if (orderData?.payment_session_id) {
         const { launchCashfreeCheckout } = await import("@/lib/payment/cashfree");
         await launchCashfreeCheckout({
           paymentSessionId: orderData.payment_session_id,
           environment: orderData.environment === "sandbox" ? "sandbox" : "production",
           onSuccess: async () => {
-            setMessage(`🎉 Payment received! High-resolution vector PDF export unlocked for ${activeTemplate.label}!`);
-            if (typeof window !== "undefined") window.print();
+            setMessage(`🎉 Payment received! Exporting isolated A4 PDF for ${activeTemplate.label}...`);
+            await triggerIsolatedPdf();
           },
         });
       } else {
-        setMessage(`🎉 High-resolution vector PDF export ready for ${activeTemplate.label}!`);
-        if (typeof window !== "undefined") window.print();
+        setMessage(`Generating clean A4 PDF for ${activeTemplate.label}...`);
+        await triggerIsolatedPdf();
       }
     } catch {
-      // If user already has package or demo mode
-      setMessage(`Exporting PDF for ${activeTemplate.label}...`);
-      if (typeof window !== "undefined") window.print();
+      // If user already has package or fallback
+      try {
+        const htmlToExport = activeHtmlPreview || batchPreviews[selectedTemplateKey] || "";
+        if (htmlToExport) {
+          const { downloadResumeA4Pdf } = await import("@/lib/resume/exportPdf");
+          await downloadResumeA4Pdf({
+            html: htmlToExport,
+            filename: `${fullName ? fullName.trim().replace(/\s+/g, "_") : "Resume"}_JobAllocate`,
+            title: fullName ? `${fullName} - Resume` : "JobAllocate Resume",
+          });
+          setMessage(`Resume PDF generated successfully!`);
+        }
+      } catch (err: any) {
+        setMessage(err.message || "Failed to generate PDF.");
+      }
     } finally {
       setIsPdfLoading(false);
     }
   };
+
+  // ── GUEST / LOGGED-OUT VIEW-ONLY MODE ────────────────────────────
+  if (!user) {
+    return (
+      <div className="mx-auto max-w-5xl px-4 sm:px-6 py-8 space-y-6">
+        {/* Public Visitor Banner */}
+        <div className="bg-gradient-to-r from-slate-900 via-[#174A7E] to-slate-900 text-white rounded-2xl p-4 sm:p-5 shadow-lg flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 shrink-0">
+              <ShieldCheck className="h-5 w-5 text-sky-300" />
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-bold">
+                Candidate Resume · Read-Only Preview
+              </h3>
+              <p className="text-xs text-white/80">
+                You are viewing a verified candidate resume document. Sign in to edit or build your own resume.
+              </p>
+            </div>
+          </div>
+          <Link href="/login" className="shrink-0">
+            <Button variant="primary" size="sm" className="bg-white text-[#174A7E] hover:bg-slate-100 font-bold border-0 shadow-md">
+              Sign In / Register
+            </Button>
+          </Link>
+        </div>
+
+        {/* View-Only Controls: Zoom & Reload */}
+        <div className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-200 shadow-xs">
+          <span className="text-xs font-bold text-slate-700">
+            Document View ({Math.round(zoomScale * 100)}%)
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setZoomScale((z) => Math.max(0.5, z - 0.1))}
+              className="p-1.5 rounded hover:bg-slate-100 text-slate-600 border border-slate-200"
+              title="Zoom Out"
+            >
+              <ZoomOut className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoomScale(1)}
+              className="px-2 py-1 rounded text-xs font-semibold text-slate-600 border border-slate-200 hover:bg-slate-50"
+            >
+              Reset
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoomScale((z) => Math.min(1.3, z + 0.1))}
+              className="p-1.5 rounded hover:bg-slate-100 text-slate-600 border border-slate-200"
+              title="Zoom In"
+            >
+              <ZoomIn className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* Isolated Read-Only Document Container */}
+        <div className="w-full overflow-x-auto flex justify-center py-6 bg-slate-200/80 rounded-2xl border border-slate-300 min-h-[750px]">
+          {isActiveHtmlLoading || isBatchLoading ? (
+            <div className="flex flex-col items-center justify-center py-24 text-slate-500 gap-3">
+              <Loader2 className="h-10 w-10 animate-spin text-[#174A7E]" />
+              <span className="text-sm font-bold text-slate-700">Loading Resume Document...</span>
+            </div>
+          ) : activeHtmlPreview ? (
+            <div
+              className="bg-white shadow-2xl rounded-sm transition-all duration-200 overflow-hidden border border-slate-300"
+              style={{
+                width: `${794 * zoomScale}px`,
+                height: `${1123 * zoomScale}px`,
+              }}
+            >
+              <iframe
+                srcDoc={activeHtmlPreview}
+                title="Public Candidate Resume"
+                className="w-[794px] h-[1123px] border-0 origin-top-left bg-white pointer-events-auto"
+                style={{
+                  transform: `scale(${zoomScale})`,
+                }}
+              />
+            </div>
+          ) : (
+            <div className="text-center py-16 text-slate-500">
+              <FileText className="h-12 w-12 text-slate-400 mx-auto mb-2" />
+              <p className="text-sm font-semibold">Resume document preview is unavailable.</p>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
@@ -646,6 +794,15 @@ export default function SeekerResumeStudioPage() {
             className="font-bold text-[#174A7E] shrink-0 whitespace-nowrap"
           >
             Buy Packages
+          </Button>
+          <Button
+            variant={activeTab === "history" ? "primary" : "outline"}
+            size="sm"
+            onClick={() => setActiveTab("history")}
+            leftIcon={<History className="h-4 w-4" />}
+            className="shrink-0 whitespace-nowrap"
+          >
+            Plan History
           </Button>
           <Button
             variant="success"
@@ -1316,23 +1473,35 @@ export default function SeekerResumeStudioPage() {
               </span>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
               <button
                 type="button"
-                onClick={() => setZoomScale((z) => Math.max(0.5, z - 0.1))}
-                className="p-1.5 rounded hover:bg-slate-100 text-slate-600 border border-slate-200"
+                onClick={() => setZoomScale((z) => Math.max(0.35, z - 0.1))}
+                className="p-2 sm:p-1.5 rounded hover:bg-slate-100 text-slate-600 border border-slate-200 transition-colors"
                 title="Zoom Out"
+                aria-label="Zoom Out"
               >
                 <ZoomOut className="h-4 w-4" />
               </button>
-              <span className="text-xs font-bold text-slate-700 w-12 text-center">
-                {Math.round(zoomScale * 100)}%
-              </span>
               <button
                 type="button"
-                onClick={() => setZoomScale((z) => Math.min(1.2, z + 0.1))}
-                className="p-1.5 rounded hover:bg-slate-100 text-slate-600 border border-slate-200"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    const w = window.innerWidth;
+                    setZoomScale(w < 640 ? Math.min(0.85, Math.max(0.36, (w - 36) / 794)) : 0.85);
+                  }
+                }}
+                className="px-2.5 py-1 text-xs font-bold text-slate-700 bg-slate-50 hover:bg-slate-100 rounded border border-slate-200 transition-colors"
+                title="Reset to Fit Width"
+              >
+                {Math.round(zoomScale * 100)}% Fit
+              </button>
+              <button
+                type="button"
+                onClick={() => setZoomScale((z) => Math.min(1.5, z + 0.1))}
+                className="p-2 sm:p-1.5 rounded hover:bg-slate-100 text-slate-600 border border-slate-200 transition-colors"
                 title="Zoom In"
+                aria-label="Zoom In"
               >
                 <ZoomIn className="h-4 w-4" />
               </button>
@@ -1344,6 +1513,7 @@ export default function SeekerResumeStudioPage() {
                   refetchBatch();
                 }}
                 leftIcon={<RefreshCw className="h-3.5 w-3.5 text-slate-500" />}
+                className="min-h-[38px] text-xs font-bold"
               >
                 Refresh
               </Button>
@@ -1353,6 +1523,7 @@ export default function SeekerResumeStudioPage() {
                 onClick={handlePdfExport}
                 isLoading={isPdfLoading}
                 leftIcon={<Download className="h-3.5 w-3.5" />}
+                className="min-h-[38px] text-xs font-bold"
               >
                 Export PDF
               </Button>
@@ -1461,6 +1632,126 @@ export default function SeekerResumeStudioPage() {
             )}
           </div>
         </Card>
+      )}
+
+      {/* 5. PLAN & PACKAGE PURCHASE HISTORY */}
+      {activeTab === "history" && (
+        <div className="space-y-4 animate-fadeIn">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-base sm:text-lg font-black text-slate-900">
+                Plan Activations & Purchase History
+              </h3>
+              <p className="text-xs text-slate-500">
+                All resume and combo plan activations stored on the server for your account.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetchPurchases()}
+              leftIcon={<RefreshCw className="h-3.5 w-3.5" />}
+              className="text-xs font-bold"
+            >
+              Refresh
+            </Button>
+          </div>
+
+          {isHistoryLoading ? (
+            <div className="bg-white rounded-3xl p-12 text-center border border-slate-200">
+              <div className="animate-spin h-8 w-8 border-3 border-[#174A7E] border-t-transparent rounded-full mx-auto" />
+              <p className="text-xs text-slate-500 font-semibold mt-3">Loading plan history...</p>
+            </div>
+          ) : !purchaseHistory || (Array.isArray(purchaseHistory) && purchaseHistory.length === 0) ? (
+            <div className="bg-white rounded-3xl p-12 text-center border border-slate-200 space-y-3">
+              <div className="h-12 w-12 rounded-full bg-slate-100 text-slate-400 flex items-center justify-center mx-auto">
+                <History className="h-6 w-6" />
+              </div>
+              <h4 className="text-sm font-bold text-slate-800">No plan purchases found</h4>
+              <p className="text-xs text-slate-500 max-w-sm mx-auto">
+                You haven&apos;t purchased any resume packages yet. Unlocked plans will display their activation date, receipt, and status here.
+              </p>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => setActiveTab("packages")}
+                className="mt-2 font-bold"
+              >
+                View Resume Packages
+              </Button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {(Array.isArray(purchaseHistory) ? purchaseHistory : []).map((item: any) => {
+                const isSuccessful =
+                  item.payment_status === "successful" || item.payment_status === "paid";
+                const isPending = item.payment_status === "pending";
+                const price = item.price_inr ?? 0;
+
+                return (
+                  <Card
+                    key={item.id}
+                    className="p-4 sm:p-5 border border-slate-200 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          variant={price === 0 ? "success" : "primary"}
+                          size="sm"
+                          className="font-black uppercase"
+                        >
+                          {price === 0 ? "FREE" : `₹${price}`}
+                        </Badge>
+                        <span className="text-xs font-bold text-slate-400 capitalize">
+                          {item.kind ? `${item.kind} Plan` : "Package"}
+                        </span>
+                      </div>
+                      <h4 className="text-sm font-extrabold text-slate-900">
+                        {item.title || item.package_key?.replace("_", " ").toUpperCase() || "Resume Package"}
+                      </h4>
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500 pt-0.5">
+                        {item.activated_at && (
+                          <span className="flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                            Activated: {new Date(item.activated_at).toLocaleDateString("en-IN", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </span>
+                        )}
+                        {item.expires_at && (
+                          <span className="text-slate-400">
+                            Valid until: {new Date(item.expires_at).toLocaleDateString("en-IN", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </span>
+                        )}
+                        {item.merchant_order_id && (
+                          <span className="font-mono text-slate-400 truncate max-w-xs">
+                            Ref: {item.merchant_order_id}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100">
+                      <Badge
+                        variant={isSuccessful ? "success" : isPending ? "warning" : "secondary"}
+                        size="sm"
+                        className="font-bold"
+                      >
+                        {isSuccessful ? "Active / Paid" : isPending ? "Pending" : item.payment_status || "Completed"}
+                      </Badge>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

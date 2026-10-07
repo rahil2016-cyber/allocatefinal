@@ -155,25 +155,11 @@ export const Footer: React.FC = () => {
                 <span>+91 9036980547</span>
               </a>
               <a
-                href="tel:+919036980574"
-                className="flex items-center gap-2 hover:text-[#174A7E] transition-colors font-medium"
-              >
-                <Phone className="h-4 w-4 text-[#174A7E] shrink-0" />
-                <span>+91 9036980574</span>
-              </a>
-              <a
                 href="mailto:info@joballocate.com"
                 className="flex items-center gap-2 hover:text-[#174A7E] transition-colors font-medium"
               >
                 <Mail className="h-4 w-4 text-[#174A7E] shrink-0" />
                 <span>info@joballocate.com</span>
-              </a>
-              <a
-                href="mailto:support@joballocate.com"
-                className="flex items-center gap-2 hover:text-[#174A7E] transition-colors font-medium"
-              >
-                <Mail className="h-4 w-4 text-[#174A7E] shrink-0" />
-                <span>support@joballocate.com</span>
               </a>
               <Link
                 href="https://joballocate.com"
@@ -272,7 +258,7 @@ export const Footer: React.FC = () => {
               <span className="text-[11px]">Call</span>
             </a>
             <a
-              href="mailto:support@joballocate.com"
+              href="mailto:info@joballocate.com"
               className="flex items-center justify-center gap-1.5 py-2 px-2 rounded-xl bg-slate-50 border border-slate-200 text-slate-800 font-bold hover:bg-slate-100"
             >
               <Mail className="h-3.5 w-3.5 text-[#174A7E]" />

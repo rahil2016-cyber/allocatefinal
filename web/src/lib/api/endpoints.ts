@@ -26,6 +26,12 @@ export const ENDPOINTS = {
   MY_APPLICATIONS: "/job-seeker/applications",
   SAVED_JOBS: "/job-seeker/saved-jobs",
   SAVE_JOB: (jobId: string | number) => `/job-seeker/jobs/${jobId}/save`,
+  REPORT_JOB: (jobId: string | number) => `/job-seeker/jobs/${jobId}/report`,
+  SEEKER_PACKAGES_CATALOG: "/job-seeker/packages/catalog",
+  SEEKER_PACKAGES_PURCHASES: "/job-seeker/packages/purchases",
+  SEEKER_RESUME_SAVE: "/job-seeker/resume/save",
+  SEEKER_RESUME_PREVIEW_HTML: "/job-seeker/resume/preview-html",
+  AI_CHAT: "/ai/chat",
 
   // Employer / Company Actions
   COMPANY_PROFILE: "/company/profile",
@@ -35,4 +41,8 @@ export const ENDPOINTS = {
   JOB_APPLICANTS: (jobId: string | number) => `/company/job-posts/${jobId}/applications`,
   UPDATE_APPLICATION_STATUS: (jobId: string | number, appId: string | number) =>
     `/company/job-posts/${jobId}/applications/${appId}`,
+  COMPANY_SUBSCRIPTION_OFFER: "/company/subscription/offer",
+  COMPANY_SUBSCRIPTION_PURCHASE: "/company/subscription/purchase",
+  COMPANY_SUBSCRIPTION_CONFIRM: "/company/subscription/confirm-status",
+  COMPANY_SUBSCRIPTION_HISTORY: "/company/subscription/history",
 };

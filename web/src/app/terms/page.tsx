@@ -129,8 +129,8 @@ export default function TermsPage() {
                 <p><strong>Business Legal Name:</strong> ALEEN VENTURES PRIVATE LIMITED</p>
                 <p><strong>Trade Name:</strong> JobAllocate</p>
                 <p><strong>Registered Office Address:</strong> Ram and Co Circle, Davanagere, Karnataka, India</p>
-                <p><strong>Direct Phone:</strong> +91 9036980547 / +91 9036980574</p>
-                <p><strong>Email:</strong> info@joballocate.com | support@joballocate.com</p>
+                <p><strong>Direct Phone:</strong> +91 9036980547</p>
+                <p><strong>Email:</strong> info@joballocate.com</p>
                 <p><strong>Official Website:</strong> https://joballocate.com</p>
               </div>
             </section>

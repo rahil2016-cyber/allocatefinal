@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Job } from "@/lib/types";
 import { formatSalary, formatDate } from "@/lib/utils";
 import { Card } from "@/components/ui/Card";
@@ -24,6 +25,7 @@ export interface JobCardProps {
 }
 
 export const JobCard: React.FC<JobCardProps> = ({ job, onApply, onSaveToggle }) => {
+  const router = useRouter();
   const [isSaved, setIsSaved] = useState(job.is_saved || false);
 
   const companyName = job.company?.name || job.company_name || job.employer?.company_name || "Verified Hiring Partner";
@@ -38,8 +40,21 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onApply, onSaveToggle }) 
     if (onSaveToggle) onSaveToggle(job);
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Only navigate if click wasn't on an interactive child
+    const target = e.target as HTMLElement;
+    if (target.closest("button") || target.closest("a")) {
+      return;
+    }
+    router.push(`/jobs/${job.id}`);
+  };
+
   return (
-    <Card hoverEffect className="group relative flex flex-col justify-between overflow-hidden h-full p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-[#174A7E]/50 shadow-xs hover:shadow-md transition-all">
+    <Card
+      hoverEffect
+      onClick={handleCardClick}
+      className="group relative flex flex-col justify-between overflow-hidden h-full p-4 sm:p-5 rounded-2xl bg-white border border-slate-200/90 hover:border-[#174A7E]/50 shadow-xs hover:shadow-md transition-all cursor-pointer"
+    >
       {/* Header with Logo and Company info */}
       <div className="flex items-center justify-between gap-2 mb-3">
         <div className="flex items-center gap-2.5 min-w-0">

@@ -76,10 +76,6 @@ export default function RefundPolicyPage() {
                   <a href="mailto:info@joballocate.com" className="font-bold text-[#174A7E] underline">
                     info@joballocate.com
                   </a>{" "}
-                  or{" "}
-                  <a href="mailto:support@joballocate.com" className="font-bold text-[#174A7E] underline">
-                    support@joballocate.com
-                  </a>{" "}
                   with your <strong>Order ID</strong>, <strong>Payment Reference Number</strong>, registered phone number, and a brief description of the issue.
                 </li>
                 <li>Refund requests must be raised within <strong>7 business days</strong> of the transaction.</li>
@@ -102,8 +98,8 @@ export default function RefundPolicyPage() {
                 <p><strong>Business Legal Name:</strong> ALEEN VENTURES PRIVATE LIMITED</p>
                 <p><strong>Brand:</strong> JobAllocate</p>
                 <p><strong>Address:</strong> Ram and Co Circle, Davanagere, Karnataka, India</p>
-                <p><strong>Phone:</strong> +91 9036980547 / +91 9036980574</p>
-                <p><strong>Support Email:</strong> info@joballocate.com / support@joballocate.com</p>
+                <p><strong>Phone:</strong> +91 9036980547</p>
+                <p><strong>Support Email:</strong> info@joballocate.com</p>
                 <p><strong>Operating Hours:</strong> Monday – Saturday: 9:30 AM – 6:30 PM IST</p>
               </div>
             </section>

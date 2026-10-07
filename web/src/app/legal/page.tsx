@@ -96,7 +96,7 @@ export default function LegalPage() {
 
             <h3 className="font-bold text-slate-900 pt-2">Refund Processing Timeline</h3>
             <p>
-              Refund requests must be emailed to <strong>info@joballocate.com</strong> or <strong>support@joballocate.com</strong> within 7 business days with your Order ID and payment receipt. Approved refunds will be credited back to the original payment source within <strong>5 to 7 working days</strong>.
+              Refund requests must be emailed to <strong>info@joballocate.com</strong> within 7 business days with your Order ID and payment receipt. Approved refunds will be credited back to the original payment source within <strong>5 to 7 working days</strong>.
             </p>
           </div>
         )}
@@ -197,14 +197,14 @@ export default function LegalPage() {
 
               <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
                 <p className="font-bold text-slate-900 flex items-center gap-1.5"><Phone className="h-4 w-4 text-[#174A7E]" /> Phone Support</p>
-                <p className="pt-2 text-sm font-bold text-[#174A7E]">+91 9036980547 / +91 9036980574</p>
+                <p className="pt-2 text-sm font-bold text-[#174A7E]">+91 9036980547</p>
                 <p className="text-xs text-slate-500">Mon – Sat: 9:30 AM – 6:30 PM IST</p>
               </div>
 
               <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200">
                 <p className="font-bold text-slate-900 flex items-center gap-1.5"><Mail className="h-4 w-4 text-[#174A7E]" /> Email Helpdesk</p>
                 <p className="pt-2 text-sm font-bold text-[#174A7E]">info@joballocate.com</p>
-                <p className="text-xs text-slate-500">support@joballocate.com</p>
+                <p className="text-xs text-slate-500">Official Customer Support</p>
               </div>
 
               <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 md:col-span-2">

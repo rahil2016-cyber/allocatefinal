@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth/context";
 import { Card } from "@/components/ui/Card";
@@ -13,6 +14,7 @@ import { Job } from "@/lib/types";
 import { JobApplyModal } from "@/components/jobs/JobApplyModal";
 import { ResumeMiniPreview } from "@/components/resume/ResumeMiniPreview";
 import { ResumePreviewModal } from "@/components/resume/ResumePreviewModal";
+import { AiChatFab } from "@/components/ai/AiChatFab";
 import {
   TrendingUp,
   BarChart3,
@@ -191,6 +193,7 @@ const ALL_RESUME_TEMPLATES = [
 ];
 
 export default function SeekerDashboard() {
+  const router = useRouter();
   const { user } = useAuth();
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
@@ -228,6 +231,25 @@ export default function SeekerDashboard() {
     latestJobsSliderRef.current.scrollBy({ left: scrollAmount, behavior: "smooth" });
   };
 
+  // Official Promotional Banners (Exact Artwork)
+  const OFFICIAL_SEEKER_BANNERS = useMemo(
+    () => [
+      {
+        id: "seeker-1",
+        image_url: "/banner_seeker.png",
+        title: "Empowering Students & Job Seekers to Get Hired",
+        target_url: "/jobs",
+      },
+      {
+        id: "seeker-2",
+        image_url: "/banner_resume.jpg",
+        title: "Build Recruiter-Approved Resumes",
+        target_url: "/seeker/resume",
+      },
+    ],
+    []
+  );
+
   // Fetch real banners from API
   const { data: banners = [] } = useQuery({
     queryKey: ["seekerBanners"],
@@ -237,9 +259,31 @@ export default function SeekerDashboard() {
     },
   });
 
+  // De-duplicate and validate banners from API; fallback to official banners if none returned
+  const displayBanners = useMemo(() => {
+    const validFromApi = Array.isArray(banners)
+      ? banners.filter((b: any) => b && typeof b.image_url === "string" && b.image_url.trim().length > 0)
+      : [];
+
+    const seen = new Set<string>();
+    const deduplicatedApi: any[] = [];
+    for (const b of validFromApi) {
+      const key = b.image_url.trim();
+      if (!seen.has(key)) {
+        seen.add(key);
+        deduplicatedApi.push(b);
+      }
+    }
+
+    if (deduplicatedApi.length > 0) {
+      return deduplicatedApi;
+    }
+    return OFFICIAL_SEEKER_BANNERS;
+  }, [banners, OFFICIAL_SEEKER_BANNERS]);
+
   // Active banner slide index and sliding logic
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
-  const totalSlides = banners.length > 1 ? banners.length : (banners.length === 1 ? 2 : 1);
+  const totalSlides = displayBanners.length;
 
   React.useEffect(() => {
     if (totalSlides <= 1) return;
@@ -430,124 +474,69 @@ export default function SeekerDashboard() {
 
   return (
     <div className="mx-auto max-w-7xl px-3 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6 sm:space-y-8 lg:space-y-10">
-      {/* 1. HERO BANNER SLIDING CAROUSEL (Full Width, Zero Extra Space, Working Controls) */}
-      <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 shadow-sm bg-slate-900 w-full h-[160px] sm:h-[240px] md:h-[300px] lg:h-[340px]">
-        <div
-          className="flex w-full h-full transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(-${activeBannerIndex * 100}%)` }}
-        >
-          {banners.length > 0 ? (
-            <>
-              {/* Primary API Banner(s) */}
-              {banners.map((b: any, idx: number) => (
+      {/* 1. HERO BANNER SLIDING CAROUSEL (Real Configured Banners Only) */}
+      {displayBanners.length > 0 && (
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/90 shadow-sm bg-slate-900 w-full h-[160px] sm:h-[240px] md:h-[300px] lg:h-[340px]">
+          <div
+            className="flex w-full h-full transition-transform duration-500 ease-out"
+            style={{ transform: `translateX(-${activeBannerIndex * 100}%)` }}
+          >
+            {displayBanners.map((b: any, idx: number) => {
+              const target = b.target_url || b.href || "/jobs";
+              return (
                 <div key={b.id || idx} className="w-full h-full shrink-0 relative flex items-center justify-center bg-slate-900">
-                  <img
-                    src={b.image_url}
-                    alt={b.title || "JobAllocate Banner"}
-                    className="w-full h-full object-cover sm:object-fill rounded-2xl block"
+                  <Link href={target} className="block w-full h-full relative cursor-pointer">
+                    <img
+                      src={b.image_url}
+                      alt={b.title || "JobAllocate Banner"}
+                      className="w-full h-full object-cover sm:object-fill rounded-2xl block select-none"
+                    />
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Carousel controls on Left and Right (Only when > 1 slide) */}
+          {totalSlides > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={() => setActiveBannerIndex((prev) => (prev === 0 ? totalSlides - 1 : prev - 1))}
+                className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer"
+                title="Previous Banner"
+                aria-label="Previous Banner"
+              >
+                <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveBannerIndex((prev) => (prev === totalSlides - 1 ? 0 : prev + 1))}
+                className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer"
+                title="Next Banner"
+                aria-label="Next Banner"
+              >
+                <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
+              </button>
+
+              {/* Slide Dots Indicator */}
+              <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20 bg-black/30 backdrop-blur-xs px-2 py-1 rounded-full">
+                {Array.from({ length: totalSlides }).map((_, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setActiveBannerIndex(i)}
+                    className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                      activeBannerIndex === i ? "w-5 bg-white" : "w-1.5 bg-white/50"
+                    }`}
+                    aria-label={`Go to slide ${i + 1}`}
                   />
-                </div>
-              ))}
-
-              {/* If only 1 banner returned by API, add a second interactive promotional slide so user can slide left & right */}
-              {banners.length === 1 && (
-                <div className="w-full h-full shrink-0 relative bg-gradient-to-r from-slate-100 via-sky-50 to-blue-100/60 p-4 sm:p-7 md:p-8 flex items-center">
-                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center w-full">
-                    <div className="lg:col-span-8 space-y-2 sm:space-y-3">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-sm sm:text-base font-extrabold text-[#E53E3E]">Job</span>
-                        <span className="text-sm sm:text-base font-extrabold text-[#174A7E]">Allocate</span>
-                        <span className="text-[11px] text-slate-500 font-medium">— Right job, right candidate</span>
-                      </div>
-                      <h1 className="text-xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                        <span className="text-[#E53E3E]">LOCAL JOBS</span> NEAR YOU
-                      </h1>
-                      <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-slate-700">
-                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-red-500" /> Your City</span>
-                        <span className="flex items-center gap-1"><MapPin className="h-3 w-3 text-blue-500" /> Your District</span>
-                      </div>
-                      <div>
-                        <Link href="/jobs">
-                          <Button variant="primary" size="sm" className="rounded-full bg-[#E53E3E] hover:bg-[#C53030] px-5 font-bold shadow-md text-xs">
-                            Explore Jobs →
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="w-full h-full shrink-0 relative bg-gradient-to-r from-slate-100 via-sky-50 to-blue-100/60 p-5 sm:p-7 md:p-8 flex items-center">
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center w-full">
-                <div className="lg:col-span-8 space-y-3 sm:space-y-4">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-base sm:text-lg font-extrabold text-[#E53E3E]">Job</span>
-                    <span className="text-base sm:text-lg font-extrabold text-[#174A7E]">Allocate</span>
-                    <span className="text-xs text-slate-500 font-medium">— Right job, right candidate</span>
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                      <span className="text-[#E53E3E]">LOCAL JOBS</span> <br />
-                      FIND JOBS NEAR YOU
-                    </h1>
-                    <div className="flex flex-wrap items-center gap-3 text-xs font-bold text-slate-700 pt-0.5">
-                      <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-red-500" /> Your City</span>
-                      <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5 text-blue-500" /> Your District</span>
-                    </div>
-                  </div>
-
-                  <div>
-                    <Link href="/jobs">
-                      <Button variant="primary" size="md" className="rounded-full bg-[#E53E3E] hover:bg-[#C53030] px-6 font-bold shadow-md text-xs sm:text-sm">
-                        Explore Jobs →
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
+                ))}
               </div>
-            </div>
+            </>
           )}
         </div>
-
-        {/* Carousel controls on Left and Right (Working on Click and Touch) */}
-        {totalSlides > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={() => setActiveBannerIndex((prev) => (prev === 0 ? totalSlides - 1 : prev - 1))}
-              className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer"
-              title="Previous Banner"
-            >
-              <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveBannerIndex((prev) => (prev === totalSlides - 1 ? 0 : prev + 1))}
-              className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full bg-white/90 text-slate-800 shadow-md hover:bg-white hover:scale-105 active:scale-95 transition-all z-20 cursor-pointer"
-              title="Next Banner"
-            >
-              <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
-            </button>
-
-            {/* Slide Dots Indicator */}
-            <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-20 bg-black/30 backdrop-blur-xs px-2 py-1 rounded-full">
-              {Array.from({ length: totalSlides }).map((_, i) => (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => setActiveBannerIndex(i)}
-                  className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                    activeBannerIndex === i ? "w-5 bg-white" : "w-1.5 bg-white/50"
-                  }`}
-                />
-              ))}
-            </div>
-          </>
-        )}
-      </div>
+      )}
 
       {/* 2. POPULAR CATEGORIES (All App Categories & Mobile Sliding Track) */}
       <section className="space-y-3.5">
@@ -692,10 +681,15 @@ export default function SeekerDashboard() {
               return (
                 <div
                   key={`profile-job-${job.id}`}
-                  className="w-[84vw] sm:w-[320px] max-w-[340px] shrink-0 snap-start h-full md:w-auto md:max-w-none md:shrink flex flex-col"
+                  className="w-[88vw] sm:w-[320px] max-w-[340px] shrink-0 snap-start h-full md:w-auto md:max-w-none md:shrink flex flex-col"
                 >
                   <Card
-                    className="p-4 flex flex-col justify-between space-y-3.5 border-slate-200/90 hover:border-[#174A7E]/40 hover:shadow-md transition-all group bg-white h-full"
+                    onClick={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (target.closest("button") || target.closest("a")) return;
+                      router.push(`/jobs/${job.id}`);
+                    }}
+                    className="p-4 flex flex-col justify-between space-y-3.5 border-slate-200/90 hover:border-[#174A7E]/50 hover:shadow-md transition-all group bg-white h-full cursor-pointer"
                   >
                     <div className="space-y-2">
                       <div className="flex items-start justify-between gap-2">
@@ -703,12 +697,18 @@ export default function SeekerDashboard() {
                           <span className="inline-flex items-center gap-1 text-[10px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
                             <Sparkles className="h-2.5 w-2.5" /> Profile Match
                           </span>
-                          <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-[#174A7E] transition-colors line-clamp-1 pt-1">
-                            {job.title}
-                          </h3>
+                          <Link href={`/jobs/${job.id}`} className="block">
+                            <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-[#174A7E] transition-colors line-clamp-1 pt-1">
+                              {job.title}
+                            </h3>
+                          </Link>
                         </div>
                         <button
-                          onClick={() => toggleSaveJob(job.id)}
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSaveJob(job.id);
+                          }}
                           className="text-slate-400 hover:text-amber-500 transition-colors p-1"
                           title="Save Job"
                         >
@@ -738,17 +738,28 @@ export default function SeekerDashboard() {
                         <Briefcase className="h-3 w-3 mr-1" />
                         {job.job_type || job.employment_type || "Full time"}
                       </Badge>
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedJob(job);
-                          setIsApplyModalOpen(true);
-                        }}
-                        className="rounded-full bg-[#174A7E] hover:bg-[#0f3459] text-xs font-bold px-3.5 py-1.5 shadow-2xs"
-                      >
-                        Quick Apply
-                      </Button>
+                      <div className="flex items-center gap-1.5">
+                        <Link href={`/jobs/${job.id}`}>
+                          <button
+                            type="button"
+                            className="px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold"
+                          >
+                            Details
+                          </button>
+                        </Link>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedJob(job);
+                            setIsApplyModalOpen(true);
+                          }}
+                          className="rounded-full bg-[#174A7E] hover:bg-[#0f3459] text-xs font-bold px-3 py-1 shadow-2xs"
+                        >
+                          Quick Apply
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 </div>
@@ -895,16 +906,26 @@ export default function SeekerDashboard() {
                   className="w-[84vw] sm:w-[320px] max-w-[340px] shrink-0 snap-start h-full md:w-auto md:max-w-none md:shrink flex flex-col"
                 >
                   <Card
-                    className="p-4 flex flex-col justify-between space-y-3 border-slate-200/80 hover:border-slate-300 hover:shadow-md transition-all bg-white h-full"
+                    onClick={() => {
+                      router.push(`/jobs/${job.id}`);
+                    }}
+                    className="p-4 flex flex-col justify-between space-y-3 border-slate-200/80 hover:border-[#174A7E]/50 hover:shadow-md transition-all group bg-white h-full cursor-pointer"
                   >
                     <div className="space-y-1.5">
                       <div className="flex items-start justify-between gap-2">
-                        <h3 className="text-sm font-extrabold text-slate-900 line-clamp-1">
-                          {job.title}
-                        </h3>
+                        <Link href={`/jobs/${job.id}`} className="block flex-1" onClick={(e) => e.stopPropagation()}>
+                          <h3 className="text-sm font-extrabold text-slate-900 group-hover:text-[#174A7E] transition-colors line-clamp-1">
+                            {job.title}
+                          </h3>
+                        </Link>
                         <button
-                          onClick={() => toggleSaveJob(job.id)}
-                          className="text-slate-400 hover:text-amber-500 transition-colors"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleSaveJob(job.id);
+                          }}
+                          className="text-slate-400 hover:text-amber-500 transition-colors p-1"
+                          title="Save Job"
                         >
                           <Bookmark className={`h-4 w-4 ${isSaved ? "fill-amber-500 text-amber-500" : ""}`} />
                         </button>
@@ -918,19 +939,32 @@ export default function SeekerDashboard() {
                     </div>
 
                     <div className="flex items-center justify-between pt-2 border-t border-slate-100">
-                      <Badge variant="primary" size="sm" className="bg-sky-50 text-[#174A7E] font-bold border-sky-100">
+                      <Badge variant="primary" size="sm" className="bg-sky-50 text-[#174A7E] font-bold border-sky-100 text-[11px]">
                         <Briefcase className="h-3 w-3 mr-1" />
                         {job.job_type || job.employment_type || "Full time"}
                       </Badge>
-                      <button
-                        onClick={() => {
-                          setSelectedJob(job);
-                          setIsApplyModalOpen(true);
-                        }}
-                        className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-50 text-[#174A7E] hover:bg-[#174A7E] hover:text-white transition-colors"
-                      >
-                        <ArrowRight className="h-3.5 w-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1.5">
+                        <Link href={`/jobs/${job.id}`} onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            className="px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-bold"
+                          >
+                            Details
+                          </button>
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedJob(job);
+                            setIsApplyModalOpen(true);
+                          }}
+                          className="flex h-7 w-7 items-center justify-center rounded-full bg-sky-50 text-[#174A7E] hover:bg-[#174A7E] hover:text-white transition-colors"
+                          title="Quick Apply"
+                        >
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                   </Card>
                 </div>
@@ -1051,6 +1085,9 @@ export default function SeekerDashboard() {
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}
       />
+
+      {/* FLOATING AI CAREER COACH */}
+      <AiChatFab />
     </div>
   );
 }
